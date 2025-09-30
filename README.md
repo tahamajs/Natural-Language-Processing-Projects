@@ -169,10 +169,81 @@ This repository is licensed under the MIT License - see the [LICENSE](LICENSE) f
 
 ## Acknowledgments
 
-- Special thanks to the course instructor and teaching assistants
-- Appreciation to the Sharif University of Technology for providing the academic environment
-- Gratitude to the open-source community for the excellent libraries and tools used in these projects
+# NLP Assignments — Sharif University (Spring 1402)
 
----
+Clean, learning-focused presentation of course assignments and supporting code. This repo bundles four practical projects that walk from classic NLP preprocessing to feature-based models and deep learning for text.
 
-_This repository showcases the practical application of NLP concepts learned throughout the course, demonstrating proficiency in text processing, machine learning, and deep learning techniques for real-world language understanding tasks._
+Quick links
+
+- Learning guide: `LEARNING_GUIDE.md`
+- Requirements: `requirements.txt`
+- Assignments: `A1-Persian-Poetry-Comments-on-Ganjoor/`, `A2-HeKasreh/`, `A3-MedicineNameExtraction/`, `A4-SentimentAnalysis/`
+
+What this repository is for
+
+This collection is designed for students who want a compact, hands-on path to learn modern NLP techniques with Persian- and English-language examples. Each assignment includes code, data samples or pointers, and a report/notebook describing experiments.
+
+Who this is for
+
+- Students or engineers new to NLP who want guided, project-based learning
+- People interested in Persian NLP (datasets, Hazm-based preprocessing, morphological challenges)
+- Practitioners who want runnable examples of embedding-based extraction and LSTM/PyTorch classification
+
+How to use this repo (fast path)
+
+1. Clone the repo and open it in your editor/IDE.
+2. Create a Python environment and install dependencies from `requirements.txt` (recommended).
+3. Read `LEARNING_GUIDE.md` for a suggested learning order and exercises.
+4. Open each assignment's `README.md` and the `code/` folder. Notebooks are in the `report/` or `code/` directories for interactive exploration.
+
+Project summaries (short)
+
+- A1 — Persian Poetry Comments on Ganjoor: web-scraping + Persian preprocessing (Hazm), exploratory analysis, frequency/popularity analysis. See `A1-Persian-Poetry-Comments-on-Ganjoor/README.md`.
+- A2 — HeKasreh: POS tagging for Persian with feature engineering and ML models; includes a trained `postagger.model`. See `A2-HeKasreh/README.md`.
+- A3 — Medicine Name Extraction: cross-lingual name/entity extraction using embeddings and alignment (Gensim). Includes datasets and pre-trained embedding files. See `A3-MedicineNameExtraction/README.md`.
+- A4 — Sentiment Analysis: LSTM-based sentiment classifier implemented in PyTorch; notebooks and training logs available. See `A4-SentimentAnalysis/README.md`.
+
+Structure
+
+```
+nlp-assignments-spring-2023/
+├─ README.md                 # This file (cleaned)
+├─ LEARNING_GUIDE.md         # Suggested learning path and exercises (new)
+├─ requirements.txt          # Consolidated dependencies (new)
+├─ A1-Persian-Poetry-Comments-on-Ganjoor/
+├─ A2-HeKasreh/
+├─ A3-MedicineNameExtraction/
+└─ A4-SentimentAnalysis/
+```
+
+Environment setup (recommended)
+
+1. Create a virtual environment (venv or conda).
+
+   python -m venv .venv
+   source .venv/bin/activate
+
+2. Install dependencies:
+
+   pip install -r requirements.txt
+
+Notes on per-project extras
+
+- Some assignments rely on large model or data files (word2vec/skip-gram models, datasets). These are included where feasible; otherwise the project README will point to download instructions.
+- For Persian preprocessing we use `hazm` (see per-project README for version notes).
+
+Contributing and usage
+
+If you'd like this repo reorganized further (for example: turn each assignment into a small package, provide Docker/Conda files, or add unit tests), open an issue describing the desired output and I can prepare a follow-up pull request.
+
+License
+
+This repository is published under the MIT License — see `LICENSE`.
+
+Author
+
+Taha Majlesi
+
+Acknowledgements
+
+Thanks to the course instructors, TAs, and open-source library authors.
