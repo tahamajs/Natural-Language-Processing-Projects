@@ -1,0 +1,17 @@
+# Consolidated requirements for the NLP assignments (use a virtualenv/conda)
+pandas>=1.3
+numpy>=1.21
+scikit-learn>=1.0
+gensim>=4.0
+nltk>=3.6
+torch>=1.10
+torchvision>=0.11
+torchaudio>=0.10
+hazm>=0.7.0
+matplotlib>=3.4
+seaborn>=0.11
+jupyterlab>=3.0
+tensorboard>=2.7
+scrapy>=2.5
+tqdm>=4.60
+requests>=2.25
