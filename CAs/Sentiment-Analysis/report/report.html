@@ -1,0 +1,408 @@
+<div class="cell markdown" id="lFEILNops51W">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir=rtl>
+<h3><center>تمرین چهارم درس پردازش زبان‌های طبیعی</center></h3>
+<h4><center>چالش تحلیل احساسات</center></h4>
+<table width='100%' style="border: none;">
+<tr style="border: none; text-align: center;">
+<td style="border: none;"><h5>علیرضا بلال</h5></td>
+<td style="border: none;"><h5>زهرا رجالی</h5></td>
+<td style="border: none;"><h5>جواد راضی</h5></td> </tr>
+<tr style="border: none; text-align: center;">
+<td style="border: none;"><h5>400200881</h5></td>
+<td style="border: none;"><h5>401204716</h5></td>
+<td style="border: none;"><h5>401204354</h5></td> </tr> </table>
+<h5 style="font-size: 16px;"><center> بهار ۱۴۰۲ </center></h5> <br/>
+<hr/> <br/></p>
+</div>
+<div class="cell markdown" id="CNIzlWMLtDLc">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar', 'B Lotus', 'Calibri'" size=3><div dir='rtl' align='justify'>
+<b> فایل ژوپیتر این تمرین در کولب توسعه داده و تست شده‌است. این فایل هم
+در محیط کولب، هم با ایمیج داکر jupyter/datascience-notebook تست شده‌است و
+همه قطعه‌کدها خروجی مورد انتظار را می‌دهند. اگه در بازتولید خروجی بعضی
+سل‌ها، یا کدهای تمرین مشکلی وجود داشت، ممنون می‌شویم در صورت امکان به ما
+اطلاع دهید تا فایل را در محیطی که قابل اجرا است، اجرا نموده و خروجی را
+نمایش دهیم. </b></p>
+</div>
+<div class="cell markdown" id="eGI84uBStKvy">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="خلاصهای-از-نحوه-انجام-تمرین"><strong>خلاصه‌ای از نحوه انجام
+تمرین</strong></h1>
+<p>در این پروژه یک مدل تحلیل احساسات مبتنی بر جنبه را برای نظرات کاربران
+(به زبان فارسی) در یک وب‌سایت فیلم، پیاده سازی می کنیم. مدل نهایی، متن
+نظر (نقد) کاربر، و فهرستی از جنبه‌ها را به عنوان ورودی دریافت می‌کند و
+برای هر جنبه، نظر را از این جنبه سنجیده و احساس (Sentiment) را برای این
+جنبه طبقه‌بندی می‌کند.</p>
+<p>به طور کلی، مراحل انجام خواسته‌های این تمرین به صورت زیر است:‌</p>
+<ol>
+<li>پیش‌پردازش و نرمال‌سازی داده‌ها</li>
+<li>تعریف و ترین‌کردن مدل</li>
+<li>ارزیابی مدل</li>
+<li>استخراج جملات مرتبط با هر جنبه، از کل متن نقد</li>
+<li>پیاده‌سازی تابع نهایی طبقه‌بندی احساسات</li>
+<li>ارزیابی تابع نهایی طبقه‌بندی احساسات</li>
+</ol>
+</div>
+<div class="cell markdown" id="SqioCdrhu6JN">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h2 id="واردکردن-و-نصب-کتابخانههای-مورد-استفاده">واردکردن و نصب
+کتاب‌خانه‌های مورد استفاده</h2>
+</div>
+<div class="cell code" data-execution_count="1"
+data-colab="{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}"
+id="DxJA_ogy_4v6" data-outputId="c7e2073f-1621-4580-9848-f8841f313876">
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>pip install transformers[torch]</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> transformers</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install transformers</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> ipywidgets</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install ipywidgets</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install pandas</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> datasets</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install datasets</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> matplotlib <span class="im">as</span> mpl</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install matplotlib</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> sklearn</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install sklearn</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> hazm</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install hazm</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> accelerate</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="op">%</span>pip install accelerate <span class="op">-</span>U</span></code></pre></div>
+<div class="output stream stdout">
+<pre><code>Requirement already satisfied: transformers[torch] in /usr/local/lib/python3.10/dist-packages (4.30.2)
+Requirement already satisfied: filelock in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (3.12.2)
+Requirement already satisfied: huggingface-hub&lt;1.0,&gt;=0.14.1 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (0.16.4)
+Requirement already satisfied: numpy&gt;=1.17 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (1.25.0)
+Requirement already satisfied: packaging&gt;=20.0 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (23.1)
+Requirement already satisfied: pyyaml&gt;=5.1 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (6.0)
+Requirement already satisfied: regex!=2019.12.17 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (2022.10.31)
+Requirement already satisfied: requests in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (2.27.1)
+Requirement already satisfied: tokenizers!=0.11.3,&lt;0.14,&gt;=0.11.1 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (0.13.3)
+Requirement already satisfied: safetensors&gt;=0.3.1 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (0.3.1)
+Requirement already satisfied: tqdm&gt;=4.27 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (4.65.0)
+Requirement already satisfied: torch!=1.12.0,&gt;=1.9 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (2.0.1+cu118)
+Requirement already satisfied: accelerate&gt;=0.20.2 in /usr/local/lib/python3.10/dist-packages (from transformers[torch]) (0.20.3)
+Requirement already satisfied: psutil in /usr/local/lib/python3.10/dist-packages (from accelerate&gt;=0.20.2-&gt;transformers[torch]) (5.9.5)
+Requirement already satisfied: fsspec in /usr/local/lib/python3.10/dist-packages (from huggingface-hub&lt;1.0,&gt;=0.14.1-&gt;transformers[torch]) (2023.6.0)
+Requirement already satisfied: typing-extensions&gt;=3.7.4.3 in /usr/local/lib/python3.10/dist-packages (from huggingface-hub&lt;1.0,&gt;=0.14.1-&gt;transformers[torch]) (4.6.3)
+Requirement already satisfied: sympy in /usr/local/lib/python3.10/dist-packages (from torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (1.11.1)
+Requirement already satisfied: networkx in /usr/local/lib/python3.10/dist-packages (from torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (3.1)
+Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/dist-packages (from torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (3.1.2)
+Requirement already satisfied: triton==2.0.0 in /usr/local/lib/python3.10/dist-packages (from torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (2.0.0)
+Requirement already satisfied: cmake in /usr/local/lib/python3.10/dist-packages (from triton==2.0.0-&gt;torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (3.25.2)
+Requirement already satisfied: lit in /usr/local/lib/python3.10/dist-packages (from triton==2.0.0-&gt;torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (16.0.6)
+Requirement already satisfied: urllib3&lt;1.27,&gt;=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests-&gt;transformers[torch]) (1.26.16)
+Requirement already satisfied: certifi&gt;=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests-&gt;transformers[torch]) (2023.5.7)
+Requirement already satisfied: charset-normalizer~=2.0.0 in /usr/local/lib/python3.10/dist-packages (from requests-&gt;transformers[torch]) (2.0.12)
+Requirement already satisfied: idna&lt;4,&gt;=2.5 in /usr/local/lib/python3.10/dist-packages (from requests-&gt;transformers[torch]) (3.4)
+Requirement already satisfied: MarkupSafe&gt;=2.0 in /usr/local/lib/python3.10/dist-packages (from jinja2-&gt;torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (2.1.3)
+Requirement already satisfied: mpmath&gt;=0.19 in /usr/local/lib/python3.10/dist-packages (from sympy-&gt;torch!=1.12.0,&gt;=1.9-&gt;transformers[torch]) (1.3.0)
+</code></pre>
+</div>
+</div>
+<div class="cell markdown" id="M6LqPJw0vBBl">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h2 id="پیکربندیهای-اولیه-نوتبوک-و-کتابخانهها">پیکربندی‌های اولیه نوت‌بوک
+و کتاب‌خانه‌ها</h2>
+</div>
+<div class="cell code" data-execution_count="2"
+data-colab="{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;,&quot;height&quot;:17}"
+id="xPmytZXsZzvk" data-outputId="50bc38bd-a658-425c-b312-2c71e0805e91">
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Some configuration for pandas for a better display of tables</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">&quot;display.max_columns&quot;</span>, <span class="va">None</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">&quot;display.expand_frame_repr&quot;</span>, <span class="va">False</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">&quot;max_colwidth&quot;</span>, <span class="va">None</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> HTML</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Set the font family and fallback fonts for pandas output globally</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> set_pandas_font(fonts):</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    css <span class="op">=</span> <span class="ss">f&quot;&quot;&quot;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ss">    &lt;style&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ss">        table.dataframe td, table.dataframe th </span><span class="ch">{{</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="ss">            font-family: </span><span class="sc">{</span>fonts<span class="sc">}</span><span class="ss">;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="ss">        </span><span class="ch">}}</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="ss">    &lt;/style&gt;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="ss">    &quot;&quot;&quot;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> HTML(css)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>set_pandas_font(<span class="st">&quot;&#39;vazirmatn&#39;, &#39;Vazir&#39;, &#39;B Nazanin&#39;, &#39;Arial&#39;&quot;</span>)</span></code></pre></div>
+<div class="output execute_result" data-execution_count="2">
+
+    <style>
+        table.dataframe td, table.dataframe th {
+            font-family: 'vazirmatn', 'Vazir', 'B Nazanin', 'Arial';
+        }
+    </style>
+    
+</div>
+</div>
+<div class="cell markdown" id="BDyzCggVvecF">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="بارگذاری-و-پیشپردازشهای-دیتاستها"><strong>بارگذاری و
+پیش‌پردازش‌های دیتاست‌ها</strong></h1>
+<p>در این قسمت، دیتاست‌ها که در قالب چهار فایل با فرمت jsonline بودند، به
+عنوان دیتافریم‌های pandas بارگذاری شده، و توسط کتاب‌خانه هضم، محتوای فیلد
+«نقد» رکوردها نرمالایز می‌شود.</p>
+</div>
+<div class="cell code" data-execution_count="3" id="ZEhDMpEj_jcW">
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> hazm <span class="im">import</span> Normalizer</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>normalizer <span class="op">=</span> Normalizer()</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> preprocess_text(text):</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> normalizer.normalize(text)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>movie_data_df <span class="op">=</span> pd.read_json(<span class="st">&#39;./data/movie.jsonl&#39;</span>, lines<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>movie_train_df <span class="op">=</span> pd.read_json(<span class="st">&#39;./data/movie_train.jsonl&#39;</span>, lines<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>movie_test_df <span class="op">=</span> pd.read_json(<span class="st">&#39;./data/movie_test.jsonl&#39;</span>, lines<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>movie_dev_df <span class="op">=</span> pd.read_json(<span class="st">&#39;./data/movie_dev.jsonl&#39;</span>, lines<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>movie_data_df[<span class="st">&#39;review&#39;</span>] <span class="op">=</span> movie_data_df[<span class="st">&#39;review&#39;</span>].<span class="bu">apply</span>(preprocess_text)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>movie_train_df[<span class="st">&#39;review&#39;</span>] <span class="op">=</span> movie_train_df[<span class="st">&#39;review&#39;</span>].<span class="bu">apply</span>(preprocess_text)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>movie_test_df[<span class="st">&#39;review&#39;</span>] <span class="op">=</span> movie_test_df[<span class="st">&#39;review&#39;</span>].<span class="bu">apply</span>(preprocess_text)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>movie_dev_df[<span class="st">&#39;review&#39;</span>] <span class="op">=</span> movie_dev_df[<span class="st">&#39;review&#39;</span>].<span class="bu">apply</span>(preprocess_text)</span></code></pre></div>
+</div>
+<div class="cell markdown" id="mZUQ--10xetu">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="تعریف-و-ترینکردن-مدل"><strong>تعریف و ترین‌کردن مدل</strong></h1>
+<p>در این قسمت، از ترنسفورمر ازپیش‌ترین‌شده ParsBERT، که بر مبنای BERT
+است، برای یادگیری احساسات روی دیتاست نظرات فیلم‌ها استفاده می‌کنیم.</p>
+</div>
+<div class="cell code" data-execution_count="4"
+data-colab="{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;,&quot;height&quot;:352,&quot;referenced_widgets&quot;:[&quot;b19f1f2b1af84dbe90d6f180317a8739&quot;,&quot;1e23af14c184464596b01595976c8bea&quot;,&quot;caad0e9dd41a43b798d264ed6c45d9d4&quot;,&quot;8e817eeba5234fd6881ee9aa7fde1992&quot;,&quot;9a30d580820648dd8c4a2c3bd6f4409b&quot;,&quot;9496bb86fdde4106b684f6dfcc076243&quot;,&quot;fc90772fedf24eb68f5d0ab6cadc1333&quot;,&quot;c21f20aaaae346718e01de8ff840ef8b&quot;,&quot;2726e73e55fd4700b0ba3e35944053f5&quot;,&quot;c4324d6065f2479f8de1af54f9f2bf91&quot;,&quot;8fb7fbc9b3cc4fbe8bfb1221b18bc465&quot;,&quot;bf519fa46f4e420b8a7210976d9ad85d&quot;,&quot;216b6e4b812e41a694e20eb04d32c9cd&quot;,&quot;72eff612f18241be8ddb656b8a84af4c&quot;,&quot;26dc32e0e7ac4021afd89a9cdf7849e6&quot;,&quot;85a8fb98d124434e9a0fe67c09b704cc&quot;,&quot;550271409b444c56a0686bcaf14ec814&quot;,&quot;d9896cdcc6eb4cc49e08db6fe063d9a5&quot;,&quot;a4746c5ec545461ba079e04261980e89&quot;,&quot;bb89e869790f471db3ec7908ca280d9f&quot;,&quot;fa516f8e99504c47b45ff357f9e02810&quot;,&quot;1a115193c1714bc0b78e9338cd756577&quot;]}"
+id="X6grSgo3_xLh" data-outputId="19094f40-1ec4-441a-fa4c-1ea7a113ccbe">
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> BertForSequenceClassification, BertTokenizer, Trainer, TrainingArguments</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datasets <span class="im">import</span> Dataset</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenize the text</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> BertTokenizer.from_pretrained(<span class="st">&#39;distilbert-base-uncased&#39;</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tokenize_function(examples):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tokenizer(examples[<span class="st">&#39;review&#39;</span>], padding<span class="op">=</span><span class="st">&#39;max_length&#39;</span>, truncation<span class="op">=</span><span class="va">True</span>, max_length<span class="op">=</span><span class="dv">128</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the model</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> BertForSequenceClassification.from_pretrained(<span class="st">&#39;distilbert-base-uncased&#39;</span>, num_labels<span class="op">=</span><span class="dv">7</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the training arguments</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>training_args <span class="op">=</span> TrainingArguments(</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span><span class="st">&#39;./results&#39;</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    num_train_epochs<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    per_device_train_batch_size<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    per_device_eval_batch_size<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    evaluation_strategy<span class="op">=</span><span class="st">&#39;epoch&#39;</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    logging_dir<span class="op">=</span><span class="st">&#39;./logs&#39;</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    fp16<span class="op">=</span><span class="va">False</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Load and tokenize the datasets</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>movie_train <span class="op">=</span> Dataset.from_pandas(movie_train_df)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>movie_train <span class="op">=</span> movie_train.<span class="bu">map</span>(tokenize_function, batched<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>movie_dev <span class="op">=</span> Dataset.from_pandas(movie_dev_df)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>movie_dev <span class="op">=</span> movie_dev.<span class="bu">map</span>(tokenize_function, batched<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>data_collator<span class="op">=</span><span class="kw">lambda</span> data: {<span class="st">&#39;input_ids&#39;</span>: torch.stack([torch.tensor(x[<span class="st">&#39;input_ids&#39;</span>]) <span class="cf">for</span> x <span class="kw">in</span> data]),</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>                              <span class="st">&#39;attention_mask&#39;</span>: torch.stack([torch.tensor(x[<span class="st">&#39;attention_mask&#39;</span>]) <span class="cf">for</span> x <span class="kw">in</span> data]),</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>                              <span class="st">&#39;labels&#39;</span>: torch.tensor([<span class="bu">int</span>(x[<span class="st">&#39;label&#39;</span>]) <span class="op">+</span> <span class="dv">3</span> <span class="cf">for</span> x <span class="kw">in</span> data])}</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the trainer</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>trainer <span class="op">=</span> Trainer(</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>model,</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    args<span class="op">=</span>training_args,</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    train_dataset<span class="op">=</span>movie_train,</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    eval_dataset<span class="op">=</span>movie_dev,</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    tokenizer<span class="op">=</span>tokenizer,</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    data_collator<span class="op">=</span>data_collator</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Train the model</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>trainer.train()</span></code></pre></div>
+<div class="output stream stderr">
+<pre><code>The tokenizer class you load from this checkpoint is not the same type as the class this function is called from. It may result in unexpected tokenization. 
+The tokenizer class you load from this checkpoint is &#39;DistilBertTokenizer&#39;. 
+The class this function is called from is &#39;BertTokenizer&#39;.
+You are using a model of type distilbert to instantiate a model of type bert. This is not supported for all configurations of models and can yield errors.
+Some weights of the model checkpoint at distilbert-base-uncased were not used when initializing BertForSequenceClassification: [&#39;distilbert.transformer.layer.1.attention.out_lin.bias&#39;, &#39;vocab_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.3.attention.v_lin.weight&#39;, &#39;distilbert.embeddings.LayerNorm.weight&#39;, &#39;distilbert.transformer.layer.0.sa_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.0.output_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.1.attention.k_lin.weight&#39;, &#39;distilbert.transformer.layer.2.output_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.5.attention.out_lin.weight&#39;, &#39;distilbert.transformer.layer.4.ffn.lin2.weight&#39;, &#39;distilbert.transformer.layer.0.attention.v_lin.bias&#39;, &#39;distilbert.transformer.layer.1.ffn.lin1.weight&#39;, &#39;distilbert.transformer.layer.4.ffn.lin2.bias&#39;, &#39;vocab_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.4.attention.q_lin.bias&#39;, &#39;distilbert.transformer.layer.4.attention.v_lin.weight&#39;, &#39;distilbert.transformer.layer.5.ffn.lin2.weight&#39;, &#39;distilbert.transformer.layer.3.ffn.lin2.bias&#39;, &#39;distilbert.transformer.layer.1.attention.q_lin.bias&#39;, &#39;distilbert.embeddings.LayerNorm.bias&#39;, &#39;distilbert.transformer.layer.4.sa_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.2.attention.q_lin.weight&#39;, &#39;distilbert.transformer.layer.2.attention.out_lin.weight&#39;, &#39;distilbert.transformer.layer.0.attention.k_lin.weight&#39;, &#39;distilbert.transformer.layer.5.sa_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.4.attention.out_lin.bias&#39;, &#39;distilbert.transformer.layer.0.attention.k_lin.bias&#39;, &#39;distilbert.transformer.layer.0.attention.q_lin.weight&#39;, &#39;distilbert.transformer.layer.5.attention.q_lin.weight&#39;, &#39;distilbert.transformer.layer.1.attention.v_lin.weight&#39;, &#39;distilbert.transformer.layer.4.sa_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.2.sa_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.5.ffn.lin2.bias&#39;, &#39;distilbert.transformer.layer.1.ffn.lin1.bias&#39;, &#39;distilbert.transformer.layer.2.ffn.lin1.bias&#39;, &#39;distilbert.transformer.layer.3.ffn.lin1.weight&#39;, &#39;distilbert.transformer.layer.4.attention.k_lin.weight&#39;, &#39;distilbert.transformer.layer.5.output_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.2.attention.v_lin.weight&#39;, &#39;distilbert.transformer.layer.3.attention.q_lin.bias&#39;, &#39;distilbert.transformer.layer.0.ffn.lin2.bias&#39;, &#39;distilbert.transformer.layer.4.attention.k_lin.bias&#39;, &#39;distilbert.transformer.layer.5.attention.k_lin.bias&#39;, &#39;distilbert.transformer.layer.2.attention.k_lin.weight&#39;, &#39;distilbert.transformer.layer.0.attention.out_lin.bias&#39;, &#39;distilbert.transformer.layer.0.output_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.5.ffn.lin1.bias&#39;, &#39;distilbert.transformer.layer.3.attention.q_lin.weight&#39;, &#39;distilbert.transformer.layer.5.attention.out_lin.bias&#39;, &#39;vocab_transform.bias&#39;, &#39;distilbert.transformer.layer.1.output_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.0.ffn.lin1.weight&#39;, &#39;distilbert.transformer.layer.4.attention.out_lin.weight&#39;, &#39;distilbert.transformer.layer.2.ffn.lin1.weight&#39;, &#39;distilbert.transformer.layer.0.ffn.lin1.bias&#39;, &#39;distilbert.transformer.layer.1.sa_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.2.output_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.3.attention.out_lin.bias&#39;, &#39;distilbert.transformer.layer.1.attention.out_lin.weight&#39;, &#39;distilbert.transformer.layer.1.output_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.2.attention.k_lin.bias&#39;, &#39;distilbert.transformer.layer.3.output_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.5.attention.v_lin.weight&#39;, &#39;distilbert.transformer.layer.0.attention.v_lin.weight&#39;, &#39;distilbert.transformer.layer.4.ffn.lin1.bias&#39;, &#39;distilbert.transformer.layer.5.attention.k_lin.weight&#39;, &#39;distilbert.transformer.layer.0.attention.q_lin.bias&#39;, &#39;distilbert.transformer.layer.1.attention.q_lin.weight&#39;, &#39;distilbert.transformer.layer.2.attention.out_lin.bias&#39;, &#39;distilbert.transformer.layer.3.attention.v_lin.bias&#39;, &#39;distilbert.transformer.layer.3.attention.k_lin.weight&#39;, &#39;distilbert.embeddings.position_embeddings.weight&#39;, &#39;distilbert.transformer.layer.1.ffn.lin2.bias&#39;, &#39;distilbert.transformer.layer.5.sa_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.2.ffn.lin2.bias&#39;, &#39;distilbert.transformer.layer.5.ffn.lin1.weight&#39;, &#39;distilbert.transformer.layer.3.attention.out_lin.weight&#39;, &#39;distilbert.transformer.layer.3.sa_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.1.ffn.lin2.weight&#39;, &#39;distilbert.transformer.layer.1.sa_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.0.attention.out_lin.weight&#39;, &#39;distilbert.transformer.layer.4.attention.v_lin.bias&#39;, &#39;distilbert.transformer.layer.2.attention.v_lin.bias&#39;, &#39;distilbert.transformer.layer.4.output_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.3.output_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.3.ffn.lin2.weight&#39;, &#39;distilbert.transformer.layer.3.ffn.lin1.bias&#39;, &#39;distilbert.transformer.layer.5.output_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.5.attention.q_lin.bias&#39;, &#39;distilbert.transformer.layer.1.attention.v_lin.bias&#39;, &#39;distilbert.transformer.layer.2.ffn.lin2.weight&#39;, &#39;distilbert.transformer.layer.4.output_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.0.ffn.lin2.weight&#39;, &#39;distilbert.embeddings.word_embeddings.weight&#39;, &#39;distilbert.transformer.layer.1.attention.k_lin.bias&#39;, &#39;vocab_transform.weight&#39;, &#39;distilbert.transformer.layer.4.ffn.lin1.weight&#39;, &#39;distilbert.transformer.layer.5.attention.v_lin.bias&#39;, &#39;distilbert.transformer.layer.2.attention.q_lin.bias&#39;, &#39;distilbert.transformer.layer.2.sa_layer_norm.weight&#39;, &#39;distilbert.transformer.layer.3.attention.k_lin.bias&#39;, &#39;distilbert.transformer.layer.4.attention.q_lin.weight&#39;, &#39;distilbert.transformer.layer.0.sa_layer_norm.bias&#39;, &#39;distilbert.transformer.layer.3.sa_layer_norm.bias&#39;, &#39;vocab_projector.bias&#39;]
+- This IS expected if you are initializing BertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing BertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at distilbert-base-uncased and are newly initialized: [&#39;encoder.layer.3.output.LayerNorm.weight&#39;, &#39;encoder.layer.10.attention.output.dense.bias&#39;, &#39;encoder.layer.8.output.LayerNorm.bias&#39;, &#39;encoder.layer.3.attention.output.dense.weight&#39;, &#39;encoder.layer.3.attention.self.value.weight&#39;, &#39;encoder.layer.9.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.6.attention.output.dense.weight&#39;, &#39;encoder.layer.8.attention.self.value.weight&#39;, &#39;encoder.layer.8.attention.output.dense.bias&#39;, &#39;encoder.layer.1.output.dense.bias&#39;, &#39;embeddings.LayerNorm.bias&#39;, &#39;encoder.layer.6.attention.self.key.bias&#39;, &#39;encoder.layer.11.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.7.output.dense.bias&#39;, &#39;classifier.weight&#39;, &#39;encoder.layer.1.intermediate.dense.weight&#39;, &#39;encoder.layer.6.attention.output.dense.bias&#39;, &#39;encoder.layer.7.attention.output.dense.bias&#39;, &#39;encoder.layer.3.output.LayerNorm.bias&#39;, &#39;encoder.layer.9.attention.self.query.weight&#39;, &#39;encoder.layer.4.attention.self.value.weight&#39;, &#39;encoder.layer.6.output.dense.weight&#39;, &#39;encoder.layer.1.attention.self.key.weight&#39;, &#39;encoder.layer.6.intermediate.dense.weight&#39;, &#39;encoder.layer.0.attention.output.dense.weight&#39;, &#39;encoder.layer.4.output.dense.bias&#39;, &#39;encoder.layer.8.attention.output.dense.weight&#39;, &#39;encoder.layer.5.output.dense.weight&#39;, &#39;encoder.layer.10.attention.self.query.bias&#39;, &#39;encoder.layer.7.attention.self.key.bias&#39;, &#39;encoder.layer.4.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.2.attention.self.value.bias&#39;, &#39;encoder.layer.7.output.LayerNorm.bias&#39;, &#39;encoder.layer.11.intermediate.dense.weight&#39;, &#39;encoder.layer.2.intermediate.dense.bias&#39;, &#39;encoder.layer.10.attention.self.key.bias&#39;, &#39;encoder.layer.0.attention.self.value.bias&#39;, &#39;encoder.layer.11.attention.self.value.bias&#39;, &#39;encoder.layer.11.output.dense.bias&#39;, &#39;encoder.layer.8.output.LayerNorm.weight&#39;, &#39;encoder.layer.8.output.dense.weight&#39;, &#39;encoder.layer.5.intermediate.dense.bias&#39;, &#39;encoder.layer.0.intermediate.dense.weight&#39;, &#39;encoder.layer.5.attention.self.key.weight&#39;, &#39;pooler.dense.bias&#39;, &#39;encoder.layer.3.intermediate.dense.weight&#39;, &#39;encoder.layer.1.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.11.attention.output.dense.weight&#39;, &#39;encoder.layer.11.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.5.output.LayerNorm.weight&#39;, &#39;encoder.layer.0.attention.self.key.weight&#39;, &#39;encoder.layer.2.intermediate.dense.weight&#39;, &#39;encoder.layer.10.intermediate.dense.bias&#39;, &#39;encoder.layer.1.attention.self.value.bias&#39;, &#39;encoder.layer.5.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.6.output.dense.bias&#39;, &#39;encoder.layer.0.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.6.attention.self.query.weight&#39;, &#39;encoder.layer.0.output.dense.bias&#39;, &#39;encoder.layer.5.intermediate.dense.weight&#39;, &#39;encoder.layer.8.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.5.attention.self.value.weight&#39;, &#39;encoder.layer.0.output.LayerNorm.weight&#39;, &#39;encoder.layer.10.output.dense.bias&#39;, &#39;encoder.layer.4.attention.output.dense.weight&#39;, &#39;encoder.layer.1.attention.self.query.bias&#39;, &#39;encoder.layer.11.attention.output.dense.bias&#39;, &#39;encoder.layer.9.attention.self.value.bias&#39;, &#39;encoder.layer.6.attention.self.query.bias&#39;, &#39;encoder.layer.0.intermediate.dense.bias&#39;, &#39;encoder.layer.10.output.LayerNorm.weight&#39;, &#39;encoder.layer.6.output.LayerNorm.bias&#39;, &#39;encoder.layer.0.output.dense.weight&#39;, &#39;encoder.layer.1.output.LayerNorm.bias&#39;, &#39;encoder.layer.2.attention.self.value.weight&#39;, &#39;encoder.layer.2.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.3.attention.self.query.weight&#39;, &#39;encoder.layer.3.attention.self.key.bias&#39;, &#39;encoder.layer.9.output.LayerNorm.bias&#39;, &#39;encoder.layer.10.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.11.attention.self.value.weight&#39;, &#39;encoder.layer.7.attention.self.value.bias&#39;, &#39;encoder.layer.5.attention.self.key.bias&#39;, &#39;encoder.layer.1.attention.self.key.bias&#39;, &#39;encoder.layer.8.intermediate.dense.bias&#39;, &#39;encoder.layer.9.output.LayerNorm.weight&#39;, &#39;embeddings.token_type_embeddings.weight&#39;, &#39;pooler.dense.weight&#39;, &#39;encoder.layer.1.attention.self.value.weight&#39;, &#39;encoder.layer.4.output.dense.weight&#39;, &#39;encoder.layer.9.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.1.attention.output.dense.weight&#39;, &#39;encoder.layer.5.output.LayerNorm.bias&#39;, &#39;encoder.layer.2.output.LayerNorm.weight&#39;, &#39;encoder.layer.11.intermediate.dense.bias&#39;, &#39;embeddings.position_embeddings.weight&#39;, &#39;encoder.layer.10.attention.self.key.weight&#39;, &#39;encoder.layer.2.attention.self.query.weight&#39;, &#39;encoder.layer.9.intermediate.dense.weight&#39;, &#39;encoder.layer.4.intermediate.dense.bias&#39;, &#39;encoder.layer.11.attention.self.query.weight&#39;, &#39;encoder.layer.9.attention.self.value.weight&#39;, &#39;encoder.layer.8.attention.self.key.weight&#39;, &#39;encoder.layer.3.attention.output.dense.bias&#39;, &#39;encoder.layer.2.output.dense.weight&#39;, &#39;encoder.layer.1.attention.output.dense.bias&#39;, &#39;encoder.layer.2.attention.output.dense.bias&#39;, &#39;encoder.layer.8.attention.self.query.bias&#39;, &#39;encoder.layer.9.attention.output.dense.weight&#39;, &#39;encoder.layer.6.intermediate.dense.bias&#39;, &#39;encoder.layer.1.attention.self.query.weight&#39;, &#39;encoder.layer.6.output.LayerNorm.weight&#39;, &#39;encoder.layer.11.output.LayerNorm.bias&#39;, &#39;encoder.layer.7.attention.self.query.bias&#39;, &#39;encoder.layer.4.attention.self.query.weight&#39;, &#39;encoder.layer.2.output.dense.bias&#39;, &#39;embeddings.LayerNorm.weight&#39;, &#39;encoder.layer.4.attention.self.key.weight&#39;, &#39;encoder.layer.2.output.LayerNorm.bias&#39;, &#39;encoder.layer.2.attention.self.key.weight&#39;, &#39;encoder.layer.1.output.dense.weight&#39;, &#39;encoder.layer.6.attention.self.key.weight&#39;, &#39;encoder.layer.4.output.LayerNorm.weight&#39;, &#39;encoder.layer.11.output.LayerNorm.weight&#39;, &#39;embeddings.word_embeddings.weight&#39;, &#39;encoder.layer.4.intermediate.dense.weight&#39;, &#39;encoder.layer.0.attention.output.dense.bias&#39;, &#39;encoder.layer.10.attention.self.value.weight&#39;, &#39;encoder.layer.4.attention.self.value.bias&#39;, &#39;encoder.layer.9.intermediate.dense.bias&#39;, &#39;encoder.layer.10.attention.output.dense.weight&#39;, &#39;encoder.layer.4.attention.output.dense.bias&#39;, &#39;encoder.layer.0.attention.self.value.weight&#39;, &#39;encoder.layer.6.attention.self.value.bias&#39;, &#39;encoder.layer.7.attention.self.key.weight&#39;, &#39;encoder.layer.2.attention.self.query.bias&#39;, &#39;encoder.layer.6.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.7.attention.self.query.weight&#39;, &#39;encoder.layer.3.output.dense.weight&#39;, &#39;encoder.layer.10.output.dense.weight&#39;, &#39;encoder.layer.1.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.7.output.LayerNorm.weight&#39;, &#39;encoder.layer.4.attention.self.query.bias&#39;, &#39;encoder.layer.4.output.LayerNorm.bias&#39;, &#39;encoder.layer.7.intermediate.dense.bias&#39;, &#39;encoder.layer.3.output.dense.bias&#39;, &#39;encoder.layer.8.attention.self.value.bias&#39;, &#39;encoder.layer.9.attention.self.query.bias&#39;, &#39;encoder.layer.0.attention.self.query.bias&#39;, &#39;encoder.layer.7.attention.self.value.weight&#39;, &#39;encoder.layer.8.intermediate.dense.weight&#39;, &#39;encoder.layer.4.attention.self.key.bias&#39;, &#39;encoder.layer.3.attention.self.value.bias&#39;, &#39;encoder.layer.3.attention.self.query.bias&#39;, &#39;encoder.layer.2.attention.output.dense.weight&#39;, &#39;encoder.layer.10.output.LayerNorm.bias&#39;, &#39;encoder.layer.9.attention.self.key.bias&#39;, &#39;encoder.layer.7.output.dense.weight&#39;, &#39;encoder.layer.2.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.6.attention.self.value.weight&#39;, &#39;encoder.layer.7.attention.output.dense.weight&#39;, &#39;encoder.layer.11.attention.self.query.bias&#39;, &#39;classifier.bias&#39;, &#39;encoder.layer.5.attention.output.dense.weight&#39;, &#39;encoder.layer.5.attention.self.query.weight&#39;, &#39;encoder.layer.11.output.dense.weight&#39;, &#39;encoder.layer.3.attention.self.key.weight&#39;, &#39;encoder.layer.5.attention.self.query.bias&#39;, &#39;encoder.layer.7.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.10.attention.self.value.bias&#39;, &#39;encoder.layer.9.output.dense.weight&#39;, &#39;encoder.layer.3.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.10.intermediate.dense.weight&#39;, &#39;encoder.layer.10.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.0.output.LayerNorm.bias&#39;, &#39;encoder.layer.11.attention.self.key.weight&#39;, &#39;encoder.layer.5.attention.output.dense.bias&#39;, &#39;encoder.layer.9.attention.output.dense.bias&#39;, &#39;encoder.layer.8.attention.self.query.weight&#39;, &#39;encoder.layer.3.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.0.attention.self.query.weight&#39;, &#39;encoder.layer.8.output.dense.bias&#39;, &#39;encoder.layer.1.output.LayerNorm.weight&#39;, &#39;encoder.layer.4.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.5.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.3.intermediate.dense.bias&#39;, &#39;encoder.layer.8.attention.self.key.bias&#39;, &#39;encoder.layer.9.output.dense.bias&#39;, &#39;encoder.layer.7.intermediate.dense.weight&#39;, &#39;encoder.layer.0.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.10.attention.self.query.weight&#39;, &#39;encoder.layer.8.attention.output.LayerNorm.weight&#39;, &#39;encoder.layer.1.intermediate.dense.bias&#39;, &#39;encoder.layer.11.attention.self.key.bias&#39;, &#39;encoder.layer.6.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.9.attention.self.key.weight&#39;, &#39;encoder.layer.5.output.dense.bias&#39;, &#39;encoder.layer.2.attention.self.key.bias&#39;, &#39;encoder.layer.5.attention.self.value.bias&#39;, &#39;encoder.layer.7.attention.output.LayerNorm.bias&#39;, &#39;encoder.layer.0.attention.self.key.bias&#39;]
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+</code></pre>
+</div>
+<div class="output display_data">
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;model_id&quot;</span><span class="fu">:</span><span class="st">&quot;b19f1f2b1af84dbe90d6f180317a8739&quot;</span><span class="fu">,</span><span class="dt">&quot;version_major&quot;</span><span class="fu">:</span><span class="dv">2</span><span class="fu">,</span><span class="dt">&quot;version_minor&quot;</span><span class="fu">:</span><span class="dv">0</span><span class="fu">}</span></span></code></pre></div>
+</div>
+<div class="output display_data">
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;model_id&quot;</span><span class="fu">:</span><span class="st">&quot;bf519fa46f4e420b8a7210976d9ad85d&quot;</span><span class="fu">,</span><span class="dt">&quot;version_major&quot;</span><span class="fu">:</span><span class="dv">2</span><span class="fu">,</span><span class="dt">&quot;version_minor&quot;</span><span class="fu">:</span><span class="dv">0</span><span class="fu">}</span></span></code></pre></div>
+</div>
+<div class="output stream stderr">
+<pre><code>/usr/local/lib/python3.10/dist-packages/transformers/optimization.py:411: FutureWarning: This implementation of AdamW is deprecated and will be removed in a future version. Use the PyTorch implementation torch.optim.AdamW instead, or set `no_deprecation_warning=True` to disable this warning
+  warnings.warn(
+</code></pre>
+</div>
+<div class="output display_data">
+
+    <div>
+      
+      <progress value='718' max='718' style='width:300px; height:20px; vertical-align: middle;'></progress>
+      [718/718 01:34, Epoch 1/1]
+    </div>
+    <table border="1" class="dataframe">
+  <thead>
+ <tr style="text-align: left;">
+      <th>Epoch</th>
+      <th>Training Loss</th>
+      <th>Validation Loss</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1.071800</td>
+      <td>0.960085</td>
+    </tr>
+  </tbody>
+</table><p>
+</div>
+<div class="output execute_result" data-execution_count="4">
+<pre><code>TrainOutput(global_step=718, training_loss=1.0655548605746215, metrics={&#39;train_runtime&#39;: 97.1123, &#39;train_samples_per_second&#39;: 29.574, &#39;train_steps_per_second&#39;: 7.394, &#39;total_flos&#39;: 188922218649600.0, &#39;train_loss&#39;: 1.0655548605746215, &#39;epoch&#39;: 1.0})</code></pre>
+</div>
+</div>
+<div class="cell markdown" id="B2GD9vRVsELX">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="ارزیابی-مدل"><strong>ارزیابی مدل</strong></h1>
+<p>پس از ترین‌کردن مدل، با استفاده از تابع evaluate ترینر تعریف‌شده،
+عملکرد مدل را بر روی داده‌های تست بررسی می‌کنیم. نتیجه عملکرد، در خروجی
+گزارش شده‌است.</p>
+</div>
+<div class="cell code" data-execution_count="8"
+data-colab="{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;,&quot;height&quot;:54,&quot;referenced_widgets&quot;:[&quot;8f05dcae6c2047dc9a8cf03779c7d72d&quot;,&quot;e28cffe5a5c34609bbb7b1cfa3ed92f0&quot;,&quot;c9ec415ef54241e2a7deda53e8fb6e34&quot;,&quot;14292d9d8b4d4ffa864e75f98c5f1dd4&quot;,&quot;f287d1b4b2fb4e7d88ea7fc7a78c2218&quot;,&quot;e0c1750c9f644ea597e1dded44e0bb80&quot;,&quot;cef9a5b01bd34571b8fad3cd21d15158&quot;,&quot;4cd0f0a7c7e84247bdd8e7abec80de63&quot;,&quot;76be242b5e6443f5b8917510de25e827&quot;,&quot;b658cc73482b4f85be1565dc44e420da&quot;,&quot;2b49edf6f21b45b095c3be431ace7201&quot;]}"
+id="8JOqRmpxWU6f" data-outputId="917ce998-02d0-4375-be80-b911635e6bc7">
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluate the model</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>movie_test <span class="op">=</span> Dataset.from_pandas(movie_train_df)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>movie_test <span class="op">=</span> movie_train.<span class="bu">map</span>(tokenize_function, batched<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>eval_results <span class="op">=</span> trainer.evaluate(movie_test)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(eval_results)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<div class="output display_data">
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="dt">&quot;model_id&quot;</span><span class="fu">:</span><span class="st">&quot;8f05dcae6c2047dc9a8cf03779c7d72d&quot;</span><span class="fu">,</span><span class="dt">&quot;version_major&quot;</span><span class="fu">:</span><span class="dv">2</span><span class="fu">,</span><span class="dt">&quot;version_minor&quot;</span><span class="fu">:</span><span class="dv">0</span><span class="fu">}</span></span></code></pre></div>
+</div>
+<div class="output display_data">
+
+    <div>
+      
+      <progress value='718' max='718' style='width:300px; height:20px; vertical-align: middle;'></progress>
+      [718/718 00:20]
+    </div>
+    
+</div>
+<div class="output stream stdout">
+<pre><code>{&#39;eval_loss&#39;: 1.0577553510665894, &#39;eval_runtime&#39;: 20.5792, &#39;eval_samples_per_second&#39;: 139.558, &#39;eval_steps_per_second&#39;: 34.89, &#39;epoch&#39;: 1.0}
+</code></pre>
+</div>
+</div>
+<div class="cell markdown" id="2ewAlaRNsPAC">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="استخراج-قسمتهای-مرتبط-هر-جنبه-از-متن-نقد"><strong>استخراج
+قسمت‌های مرتبط هر جنبه، از متن نقد</strong></h1>
+<p>تابع قطعه‌کد زیر، با گرفتن نام یک جنبه، قسمت‌هایی از متن که به آن جنبه
+مرتبط هستند را استخراج کرده و توکن‌ها را در خروجی برمی‌گرداند.</p>
+</div>
+<div class="cell code" data-execution_count="9" id="QvANpqHpsNxL">
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> hazm <span class="im">import</span> word_tokenize</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a function to extract the relevant parts of the review for each aspect</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_aspect_text(review, aspect):</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> word_tokenize(review)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    aspect_tokens <span class="op">=</span> []</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> token <span class="kw">in</span> tokens:</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> token <span class="kw">in</span> aspect:</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>            aspect_tokens.append(token)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="st">&#39; &#39;</span>.join(aspect_tokens)</span></code></pre></div>
+</div>
+<div class="cell markdown" id="TWls55R5sVil">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="طبقهبندی-احساسات-مبتنی-بر-جنبه"><strong>طبقه‌بندی احساسات مبتنی
+بر جنبه</strong></h1>
+<p>تابع زیر، به عنوان تابع نهایی، یک رشته را به عنوان نظر کاربر، به
+همراه فهرستی از جنبه‌هایی که برای تحلیل مد نظرند را دریافت می‌کند. خروجی
+تابع، طبقه‌بندی احساس، به ازای هر یک از جنبه‌های خواسته‌شده می‌باشد.</p>
+</div>
+<div class="cell code" data-execution_count="14" id="yu5dJCjqWYHm">
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a function to classify the sentiment of the review for each aspect</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> classify_sentiment(review, aspects):</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    aspect_sentiments <span class="op">=</span> {}</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> aspect <span class="kw">in</span> aspects:</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        aspect_text <span class="op">=</span> extract_aspect_text(review, aspect)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> aspect_text:</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>            inputs <span class="op">=</span> tokenizer(aspect_text, padding<span class="op">=</span><span class="st">&#39;max_length&#39;</span>, truncation<span class="op">=</span><span class="va">True</span>, return_tensors<span class="op">=</span><span class="st">&#39;pt&#39;</span>, max_length<span class="op">=</span><span class="dv">128</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>            inputs <span class="op">=</span> {k: v.to(model.device) <span class="cf">for</span> k, v <span class="kw">in</span> inputs.items()}</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>            outputs <span class="op">=</span> model(<span class="op">**</span>inputs)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>            logits <span class="op">=</span> outputs.logits.detach().cpu().numpy() <span class="co"># Move tensor to CPU before converting to NumPy array</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>            aspect_sentiments[aspect] <span class="op">=</span> np.argmax(logits)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> aspect_sentiments</span></code></pre></div>
+</div>
+<div class="cell markdown" id="JnlapFkxsa99">
+<p><font face="'vazirmatn', 'Vazir', 'B Nazanin', 'XB Zar'" size=4><div dir='rtl' align='justify'></p>
+<h1 id="ارزیابی-دستی-خروجی-مدل"><strong>ارزیابی دستی خروجی
+مدل</strong></h1>
+<p>در قسمت‌های بالا، مدل با استفاده از داده تست، ارزیابی شده و متریک‌های
+مختلف مرتبط با ارزیابی برای آن در خروجی چاپ شد. در این قسمت، برای بیان
+شهودی عملکرد مدل در قالب گزارش، یک متن نمونه ، به همراه جنبه‌های مختلف
+مورد نظر داده‌شده و خروجی مدل، که یک دیکشنری است که برای هرجنبه، جهت
+احساس را مشخص می‌کند چاپ شده‌است.</p>
+</div>
+<div class="cell code" data-execution_count="16"
+data-colab="{&quot;base_uri&quot;:&quot;https://localhost:8080/&quot;}"
+id="DPjJ27ngWaXW" data-outputId="0180a511-99a5-4a01-c047-034a50850a6a">
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Test the function</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>review <span class="op">=</span> <span class="st">&#39;فیلم بسیار خوبی بود. بازیگران عالی بودند و داستان جذاب بود.&#39;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>aspects <span class="op">=</span> [<span class="st">&#39;بازی&#39;</span>, <span class="st">&#39;داستان&#39;</span>, <span class="st">&#39;صحنه&#39;</span>, <span class="st">&#39;صدا&#39;</span>, <span class="st">&#39;فیلمبرداری&#39;</span>, <span class="st">&#39;موسیقی&#39;</span>, <span class="st">&#39;کارگردانی&#39;</span>, <span class="st">&#39;کلی&#39;</span>]</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>aspect_sentiments <span class="op">=</span> classify_sentiment(review, aspects)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(aspect_sentiments)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span></code></pre></div>
+<div class="output stream stdout">
+<pre><code>{&#39;داستان&#39;: 0, &#39;فیلمبرداری&#39;: 0, &#39;موسیقی&#39;: 0}
+</code></pre>
+</div>
+</div>
