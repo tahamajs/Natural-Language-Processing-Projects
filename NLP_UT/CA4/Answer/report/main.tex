@@ -1,0 +1,120 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{xepersian}
+
+% Code listing settings
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    captionpos=b
+}
+
+\settextfont{XB Niloofar}
+\setlatintextfont{Times New Roman}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Natural Language Processing Assignment 4:\\
+Text-to-SQL Generation and Instruction-Following\\
+in Large Language Models}
+
+\author{\IEEEauthorblockN{Student Name}
+\IEEEauthorblockA{\textit{Department of Computer Engineering} \\
+\textit{University Name}\\
+Student ID: XXXXXXXXX \\
+Email: student@university.ac.ir}
+}
+
+\maketitle
+
+\begin{abstract}
+This report presents a comprehensive study of two critical aspects of modern Natural Language Processing: (1) comparing Encoder-Decoder and Decoder-only architectures for Text-to-SQL generation using BART and GPT-2 models, and (2) improving instruction-following capabilities of Large Language Models through Supervised Fine-Tuning with LoRA. The first part demonstrates the superiority of BART's bidirectional encoding for structured query generation, achieving higher Exact Match scores compared to GPT-2's autoregressive approach. The second part showcases the efficiency of Parameter-Efficient Fine-Tuning (PEFT) using LoRA, successfully enhancing TinyLlama's instruction-following capabilities while training only 0.5\% of parameters. Both studies provide valuable insights into architectural choices and training methodologies for specialized NLP tasks.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Text-to-SQL, BART, GPT-2, Instruction-Following, LoRA, Fine-Tuning, Large Language Models, Transformer Architecture
+\end{IEEEkeywords}
+
+\section{Introduction}
+Natural Language Processing has witnessed remarkable advancements with the emergence of large-scale transformer models. Two fundamental challenges in this domain are: (1) converting natural language queries to structured database queries (Text-to-SQL), and (2) ensuring models accurately follow complex instructions. This report addresses both challenges through rigorous experimentation and analysis.
+
+The Text-to-SQL task requires models to understand both natural language semantics and database schema structures, making it an ideal testbed for comparing different transformer architectures. Meanwhile, instruction-following is crucial for deploying language models in real-world applications where precise adherence to user specifications is essential.
+
+\subsection{Report Structure}
+This report is organized into two main sections corresponding to the two questions:
+\begin{itemize}
+    \item \textbf{Question 1:} Text-to-SQL with BART and GPT-2
+    \item \textbf{Question 2:} Improving Instruction-Following with LoRA
+\end{itemize}
+
+Each section provides detailed methodology, implementation details, experimental results, and comprehensive analysis.
+
+\input{Q1}
+\input{Q2}
+
+\section{Conclusion}
+This assignment provided hands-on experience with two critical aspects of modern NLP:
+
+\textbf{From Question 1 (Text-to-SQL):}
+\begin{itemize}
+    \item BART's Encoder-Decoder architecture is inherently more suitable for sequence-to-sequence tasks like Text-to-SQL
+    \item Normalized evaluation metrics are essential for fair comparison of SQL queries
+    \item Cross-attention mechanisms significantly improve schema utilization
+    \item Decoder-only models can work but require careful prompt engineering
+\end{itemize}
+
+\textbf{From Question 2 (Instruction-Following):}
+\begin{itemize}
+    \item LoRA enables efficient fine-tuning with minimal computational resources
+    \item Proper dataset formatting and chat templates are crucial for success
+    \item Even small models can be adapted for complex instruction-following
+    \item Quantitative benchmarks like IFEval provide objective evaluation
+\end{itemize}
+
+\textbf{Overall Impact:} These experiments demonstrate the importance of choosing appropriate architectures and training methodologies based on task requirements. The combination of theoretical understanding and practical implementation provides valuable insights for future NLP projects.
+
+\section*{Acknowledgment}
+The author would like to thank the course instructor and teaching assistants for their guidance and support throughout this assignment.
+
+\begin{thebibliography}{00}
+\bibitem{b1} Lewis, M., et al. (2019). "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension." arXiv:1910.13461.
+
+\bibitem{b2} Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." OpenAI Blog.
+
+\bibitem{b3} Hu, E. J., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." arXiv:2106.09685.
+
+\bibitem{b4} Zhou, Y., et al. (2023). "Instruction-Following Evaluation for Large Language Models." arXiv:2311.07911.
+
+\bibitem{b5} Scholak, T., et al. (2021). "PICARD: Parsing Incrementally for Constrained Auto-Regressive Decoding from Language Models." arXiv:2109.05093.
+
+\bibitem{b6} Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs." arXiv:2305.14314.
+
+\bibitem{b7} Zhong, V., et al. (2017). "Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning." arXiv:1709.00103.
+
+\bibitem{b8} Yu, T., et al. (2018). "Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task." arXiv:1809.08887.
+
+\bibitem{b9} Touvron, H., et al. (2023). "Llama 2: Open Foundation and Fine-Tuned Chat Models." arXiv:2307.09288.
+
+\bibitem{b10} Ouyang, L., et al. (2022). "Training language models to follow instructions with human feedback." arXiv:2203.02155.
+\end{thebibliography}
+
+\end{document}

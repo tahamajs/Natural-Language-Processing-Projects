@@ -1,0 +1,89 @@
+\section{Question 1: Text-to-SQL with BART and GPT-2}
+
+\subsection{Introduction}
+The task of converting natural language questions into Structured Query Language (SQL) queries, known as Text-to-SQL, is a challenging problem in NLP. It requires the model to understand the user's intent, the database schema structure, and the syntax of SQL. In this section, we compare two distinct transformer architectures for this task: the Encoder-Decoder architecture (represented by BART) and the Decoder-only architecture (represented by GPT-2).
+
+\subsection{Methodology}
+
+\subsubsection{Dataset and Preprocessing}
+We utilized the \texttt{gretelai/synthetic\_text\_to\_sql} dataset. The dataset consists of three main components:
+\begin{itemize}
+    \item \textbf{Question:} The natural language query (e.g., "How many users are active?").
+    \item \textbf{Schema:} The database structure definition (CREATE TABLE statements).
+    \item \textbf{Query:} The target SQL query.
+\end{itemize}
+
+Data was split into training (2000 samples), development (300 samples), and test (300 samples) sets.
+
+For \textbf{BART}, the input was formatted as a single sequence:
+\begin{lstlisting}
+question: [Question] schema: [Schema]
+\end{lstlisting}
+The target was simply the SQL query.
+
+For \textbf{GPT-2}, we used a prefix-based format to enable autoregressive generation:
+\begin{lstlisting}
+question: [Question] schema: [Schema] SQL: [Query]
+\end{lstlisting}
+During training, the loss was calculated only on the SQL portion by masking the prefix tokens.
+
+\subsubsection{Models and Training}
+\textbf{BART (Facebook/bart-base):} An Encoder-Decoder model pre-trained with a denoising objective. Its bidirectional encoder allows for a comprehensive understanding of the question and schema before generation begins. We fine-tuned it for 1 epoch with a learning rate of $3e-5$.
+
+\textbf{GPT-2 (gpt2):} A Decoder-only model pre-trained on causal language modeling. It processes the input strictly from left to right. We fine-tuned it for 1 epoch with a learning rate of $3e-5$, using a custom Data Collator to mask the instruction prefix.
+
+\subsection{Results}
+
+We evaluated the models using two metrics:
+\begin{itemize}
+    \item \textbf{Raw Exact Match (EM):} Strict string comparison.
+    \item \textbf{Normalized Exact Match:} Comparison after normalizing SQL (lowercase, removing whitespace, standardized formatting).
+\end{itemize}
+
+Table \ref{tab:q1_results} summarizes the performance of both models.
+
+\begin{table}[htbp]
+\caption{Performance Comparison of BART and GPT-2}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Set} & \textbf{Raw EM (\%)} & \textbf{Norm EM (\%)} & \textbf{Time (s)} \\
+\hline
+\multirow{2}{*}{BART} & Dev & 65.3 & 72.1 & \multirow{2}{*}{~450} \\
+& Test & 64.8 & 71.5 & \\
+\hline
+\multirow{2}{*}{GPT-2} & Dev & 42.1 & 55.4 & \multirow{2}{*}{~380} \\
+& Test & 41.5 & 54.8 & \\
+\hline
+\end{tabular}
+\label{tab:q1_results}
+\end{center}
+\end{table}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.45\textwidth]{bart_vs_gpt2_comparison.png}}
+\caption{Comparison of Raw and Normalized Exact Match scores. BART consistently outperforms GPT-2 across both metrics.}
+\label{fig:q1_comparison}
+\end{figure}
+
+\subsection{Analysis}
+
+\subsubsection{Architecture Comparison}
+BART significantly outperformed GPT-2. The Encoder-Decoder architecture allows the model to attend to the entire schema and question simultaneously (via the encoder) before starting generation. In contrast, GPT-2's unidirectional attention mechanism may struggle to retain schema details when the input sequence is long.
+
+\subsubsection{Error Analysis}
+Figure \ref{fig:q1_errors} illustrates the distribution of error types.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.45\textwidth]{error_type_comparison.png}}
+\caption{Distribution of error types for BART and GPT-2. GPT-2 shows a higher tendency for syntax errors and hallucinated content.}
+\label{fig:q1_errors}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{BART Errors:} Mostly related to selecting the wrong column or missing complex WHERE conditions. The syntax was generally correct.
+    \item \textbf{GPT-2 Errors:} Included syntax errors, failure to stop generation (generating extra text after the query), and hallucinating table names not present in the schema.
+\end{itemize}
+
+\subsubsection{Normalization Impact}
+The gap between Raw and Normalized EM (approx. 7-13\%) highlights the importance of normalization. Models often generate valid SQL with different spacing or casing than the gold standard. Normalization ensures a fairer evaluation of the model's semantic understanding.

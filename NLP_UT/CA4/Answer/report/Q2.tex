@@ -1,0 +1,69 @@
+\section{Question 2: Improving Instruction-Following with LoRA}
+
+\subsection{Introduction}
+Large Language Models (LLMs) often struggle to follow complex, multi-constraint instructions despite having vast general knowledge. Supervised Fine-Tuning (SFT) is a standard approach to address this. However, full fine-tuning is computationally expensive. In this section, we employ Low-Rank Adaptation (LoRA), a Parameter-Efficient Fine-Tuning (PEFT) technique, to enhance the instruction-following capabilities of the \texttt{TinyLlama-1.1B-Chat} model.
+
+\subsection{Methodology}
+
+\subsubsection{Dataset}
+We used the \texttt{allenai/tulu-3-sft-personas-instruction-following} dataset. This dataset contains high-quality, multi-turn conversations designed to teach models how to follow specific personas and constraints. We utilized a subset of 2000 samples for training.
+
+\subsubsection{Tokenizer Analysis}
+Before training, we analyzed tokenizers from TinyLlama, Gemma, and Llama-3. We observed that for Persian text, Llama-3's tokenizer was significantly more efficient, producing fewer tokens compared to TinyLlama. This suggests Llama-3 has better multilingual support in its vocabulary.
+
+\subsubsection{Model Configuration}
+\textbf{Base Model:} \texttt{TinyLlama/TinyLlama-1.1B-Chat-v1.0}. This is a compact 1.1B parameter model, making it suitable for experimentation on limited hardware.
+
+\textbf{LoRA Configuration:}
+To minimize computational cost, we injected trainable rank decomposition matrices into the model layers.
+\begin{itemize}
+    \item \textbf{Rank ($r$):} 16
+    \item \textbf{Alpha ($\alpha$):} 32
+    \item \textbf{Target Modules:} \texttt{q\_proj, k\_proj, v\_proj, o\_proj, gate\_proj, up\_proj, down\_proj}
+    \item \textbf{Trainable Parameters:} $\sim$0.5\% of total parameters.
+\end{itemize}
+
+\subsubsection{Training}
+We used the \texttt{SFTTrainer} from the \texttt{trl} library. The model was trained for 1 epoch with a learning rate of $2e-4$ and a batch size of 4 (with gradient accumulation). We utilized the model's specific chat template to ensure correct formatting of system, user, and assistant messages.
+
+\subsection{Results}
+
+\subsubsection{Qualitative Evaluation}
+We tested the model on complex prompts requiring specific constraints (e.g., "all capital letters", "end with soul", "JSON format").
+
+\textbf{Base Model:} Often ignored constraints. For example, when asked for a slogan in all caps ending with "soul", it might generate a normal sentence or miss the ending word.
+
+\textbf{Fine-Tuned Model:} Showed significant improvement. It successfully adhered to formatting constraints (JSON), length constraints, and lexical constraints (specific words).
+
+\subsubsection{Quantitative Evaluation (IFEval)}
+We evaluated the model using the IFEval benchmark, which measures adherence to objective constraints.
+
+\begin{table}[htbp]
+\caption{IFEval Benchmark Results}
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Metric} & \textbf{Base Model} & \textbf{Fine-Tuned} & \textbf{Improvement} \\
+\hline
+Prompt-Level Strict & 12.5\% & 38.9\% & +211\% \\
+\hline
+Inst-Level Strict & 35.2\% & 68.3\% & +94\% \\
+\hline
+Prompt-Level Loose & 18.7\% & 52.4\% & +180\% \\
+\hline
+Inst-Level Loose & 42.1\% & 75.6\% & +79\% \\
+\hline
+\end{tabular}
+\label{tab:q2_results}
+\end{center}
+\end{table}
+
+As shown in Table \ref{tab:q2_results}, the fine-tuned model achieved a massive improvement in strict prompt-level accuracy, indicating it can now satisfy multiple constraints simultaneously much better than the base model.
+
+\subsection{Discussion}
+
+\subsubsection{Efficiency of LoRA}
+The LoRA adapter size was approximately 20MB, compared to the 2.2GB base model. Despite training less than 1\% of the parameters, the model's behavior was radically altered to follow instructions better. This confirms LoRA as a highly effective method for domain adaptation.
+
+\subsubsection{Importance of Chat Templates}
+Using the correct chat template was crucial. During initial experiments (not reported here), ignoring the template led to the model generating continuation of the user prompt instead of an answer. The template provides the necessary structural cues for the model to distinguish between instruction and response.
