@@ -84,23 +84,26 @@ This normalization ensures evaluation focuses on the logical correctness of the 
 Finally, we selected five random samples from dev and analyzed the question, model output, gold SQL, and error types.
 
 \subsubsection{Part 3: Training Decoder-only Model (GPT-2)}
-GPT-2 is an autoregressive language model using only the Decoder architecture. Unlike BART with separate encoder and decoder, GPT-2 treats all input and output as a single sequence, predicting each next token based on previous ones.
+GPT-2 (Generative Pre-trained Transformer 2) is a large-scale language model developed by OpenAI in 2019, based solely on the Decoder architecture. It is pre-trained on a massive corpus of internet text using causal language modeling, where the objective is to predict the next token given the previous ones. This makes GPT-2 highly proficient at generating coherent and contextually appropriate text, but it can struggle with tasks requiring precise structural output like SQL.
 
 \textbf{How GPT-2 works for Text-to-SQL:}
 \begin{enumerate}
-    \item \textbf{Build Prefix:} Construct input as a single string: \texttt{question: ... schema: ... SQL: }
-    \item \textbf{Continuation:} The model, seeing this prefix, generates the continuation (the SQL).
-    \item \textbf{Causal Masking:} Each token can only attend to previous tokens, not future ones.
+    \item \textbf{Build Prefix:} The input is constructed as a single, coherent string that includes the question, schema, and a prompt for SQL generation, e.g., \texttt{question: "How many users are active?" schema: "CREATE TABLE users (id INT, name VARCHAR(50), active BOOLEAN);" SQL: }
+    \item \textbf{Continuation Generation:} The model treats this as a language modeling task, generating the next tokens that logically continue the sequence, which should be the SQL query.
+    \item \textbf{Causal Masking:} The self-attention mechanism ensures that each token can only attend to tokens before it in the sequence, enforcing left-to-right generation and preventing information leakage from future tokens.
 \end{enumerate}
+
+The pre-training on diverse text allows GPT-2 to learn patterns of language, including code-like structures, but it lacks the structured understanding provided by an encoder.
 
 \textbf{Key Differences from BART:}
 \begin{itemize}
-    \item \textbf{Unidirectional:} GPT-2 reads left-to-right only, while BART's encoder is bidirectional.
-    \item \textbf{Integrated Input-Output:} In GPT-2, everything is one sequence; in BART, input and output are separate.
-    \item \textbf{Prefix Masking:} In GPT-2 training, the prefix must be masked so loss is only on SQL generation.
+    \item \textbf{Unidirectional Processing:} GPT-2 processes the input strictly from left to right, which can lead to forgetting earlier parts of long schemas, whereas BART's bidirectional encoder captures the full context upfront.
+    \item \textbf{Integrated Input-Output Sequence:} Unlike BART's separate input encoding and output decoding, GPT-2 sees the entire prompt + SQL as one continuous sequence, which can blur the distinction between instruction and generation.
+    \item \textbf{Prefix Masking in Training:} To focus learning on SQL generation, the prefix (question + schema) is masked in the loss calculation, so the model only learns to predict the SQL tokens.
+    \item \textbf{Generation Control:} GPT-2 may continue generating beyond the SQL if not properly prompted, leading to verbose or off-topic outputs, whereas BART's decoder is more controlled.
 \end{itemize}
 
-We designed an appropriate input format for decoder-only models, providing question and schema as a specific prefix (e.g., \texttt{question: … schema: … SQL:}), and the model generates the SQL continuation. Then, we created a custom Dataset for causal LM that produces the full sequence (prefix + gold SQL + EOS) and masks the prefix in labels. GPT-2 was trained for one epoch, reporting loss and runtime. During evaluation, we removed the prefix from output and evaluated only the generated SQL. We reported Raw EM and Normalized EM on dev and test, and analyzed 5 samples from the model output.
+We designed an input format tailored for decoder-only models, using a structured prefix to guide generation. A custom Dataset class for causal language modeling was implemented to tokenize the full sequence (prefix + gold SQL + EOS token), and mask the prefix labels with -100 to exclude them from loss computation. GPT-2 was fine-tuned for one epoch, with reported metrics including training loss, runtime, and hyperparameters. During inference, the generated text had the prefix stripped, leaving only the SQL for evaluation. Raw and Normalized Exact Match scores were computed on dev and test sets, followed by analysis of 5 sample outputs, examining questions, predictions, gold standards, and identified errors.
 
 \subsubsection{Part 4: Final Comparison and Analysis}
 In this part, we compared BART and GPT-2 performance across various aspects. We provided a comprehensive analysis explaining what types of errors each model has, how they utilize the schema, and the reasons for different behaviors between the two architectures. Finally, we gave a brief summary stating which approach is more suitable under different conditions and suggested improvements for each model.
@@ -171,68 +174,76 @@ Figure \ref{fig:q1_errors} illustrates the distribution of error types.
 \end{itemize}
 
 \subsubsection{Schema Utilization}
-\textbf{BART:} Using cross-attention in the decoder, it can directly access different parts of the schema (table names, columns). This mechanism helps the model copy exact names and use them in SQL.
+Schema utilization refers to how effectively each model leverages the database structure information provided in the input to generate accurate SQL.
 
-\textbf{GPT-2:} Since the schema is linearly placed in the prefix and the model is unidirectional, it may "forget" initial parts of the schema in long queries. This is due to limited attention span.
+\textbf{BART:} The cross-attention mechanism in the decoder allows it to dynamically reference any part of the encoder's representation of the schema. This enables precise copying of table and column names, understanding relationships (e.g., foreign keys for JOINs), and maintaining schema awareness throughout generation. BART's bidirectional encoding ensures the entire schema is comprehended holistically, reducing errors in complex multi-table queries.
+
+\textbf{GPT-2:} The schema is embedded linearly in the prefix, and due to the unidirectional nature, the model may lose track of earlier schema elements in longer inputs. This "attention span" limitation can lead to forgetting table definitions or column types, resulting in hallucinations or incorrect references. GPT-2 relies on pattern recognition from pre-training rather than structured understanding, making it less robust for schema-heavy tasks.
 
 \subsubsection{Reasons for Different Behaviors}
-The differences stem from architectural distinctions:
+The architectural differences between Encoder-Decoder and Decoder-only models fundamentally influence their performance in Text-to-SQL:
 
 \begin{tabular}{|c|c|c|}
 \hline
-\textbf{Aspect} & \textbf{BART} & \textbf{GPT-2} \\
+\textbf{Aspect} & \textbf{BART (Encoder-Decoder)} & \textbf{GPT-2 (Decoder-only)} \\
 \hline
-Architecture & Separate Encoder-Decoder & Decoder-only \\
+Architecture & Separate Encoder-Decoder & Unified Decoder \\
 \hline
-Attention Direction & Encoder: Bidirectional, Decoder: Unidirectional & Unidirectional (left-to-right) \\
+Attention Direction & Encoder: Bidirectional, Decoder: Unidirectional & Unidirectional throughout \\
 \hline
-Input/Output & Separate & Integrated \\
+Input/Output Handling & Input encoded separately, output decoded independently & Input and output as single sequence \\
 \hline
-Specialization & Seq2Seq tasks & Language modeling \\
+Specialization & Optimized for seq2seq tasks like translation & Optimized for open-ended language generation \\
 \hline
-Output Control & Better (generates only SQL) & Weaker (may generate extra text) \\
+Context Retention & Strong for long inputs via bidirectional encoding & Weaker for long sequences due to unidirectional processing \\
+\hline
+Generation Control & More precise, focused on target sequence & Prone to verbosity or off-topic continuation \\
 \hline
 \end{tabular}
+
+These differences explain why BART excels in structured tasks requiring accurate mapping and control, while GPT-2, despite its fluency, struggles with precision and schema fidelity.
 
 \subsubsection{Normalization Impact}
 The gap between Raw and Normalized EM (approx. 7-13\%) highlights the importance of normalization. Models often generate valid SQL with different spacing or casing than the gold standard. Normalization ensures a fairer evaluation of the model's semantic understanding.
 
 \subsubsection{Conclusion and Recommendations}
-Based on the results, BART generally performs better than GPT-2 in Text-to-SQL tasks. The Encoder-Decoder architecture is more suitable as the problem is inherently sequence-to-sequence.
+Our experimental results demonstrate that BART significantly outperforms GPT-2 in Text-to-SQL generation, with higher Exact Match scores across both raw and normalized metrics. This superiority stems from the Encoder-Decoder architecture's alignment with sequence-to-sequence tasks, providing better control, accuracy, and schema utilization compared to the Decoder-only approach.
 
-\textbf{Choose BART if:}
+The Encoder-Decoder paradigm, as embodied by BART, separates input comprehension from output generation, allowing for precise mapping of natural language to SQL structures. In contrast, GPT-2's language modeling foundation, while versatile for open-ended tasks, introduces challenges in maintaining fidelity to schemas and controlling output boundaries in structured domains.
+
+\textbf{When to Choose BART:}
 \begin{itemize}
-    \item High accuracy is the primary priority.
-    \item You have complex schemas with multiple tables.
-    \item Queries are long with JOINs and subqueries.
-    \item You need precise control over output format.
+    \item \textbf{High Accuracy Requirements:} For applications demanding precise SQL generation, such as enterprise database interfaces or automated query systems.
+    \item \textbf{Complex Schemas:} When dealing with multi-table databases requiring JOINs, subqueries, and intricate relationships.
+    \item \textbf{Long Queries:} For extended questions involving multiple conditions, aggregations, and ordering.
+    \item \textbf{Controlled Output:} In scenarios needing strict adherence to SQL syntax without extraneous text.
 \end{itemize}
 
-\textbf{Choose GPT-2 if:}
+\textbf{When to Choose GPT-2:}
 \begin{itemize}
-    \item Computational resources are limited (lighter model).
-    \item Queries are simple with consistent patterns.
-    \item You want to use larger language models (GPT-3, GPT-4).
-    \item Few-shot learning is needed.
+    \item \textbf{Resource Constraints:} For edge deployments or low-compute environments where smaller models are preferable.
+    \item \textbf{Simple Queries:} In domains with repetitive, pattern-based questions that leverage GPT-2's pattern recognition.
+    \item \textbf{Large-Scale Models:} To utilize more advanced variants (e.g., GPT-4) with few-shot prompting for improved performance.
+    \item \textbf{Few-Shot Learning:} When adapting to new domains with minimal fine-tuning data.
 \end{itemize}
 
 \textbf{Improvement Suggestions:}
 
 \textbf{For BART:}
 \begin{itemize}
-    \item Use copy mechanism for exact copying of table/column names.
-    \item Add constraint checking to ensure valid SQL output.
-    \item Pre-train on larger SQL corpora.
-    \item Implement schema linking for better entity connections.
+    \item \textbf{Copy Mechanisms:} Integrate pointer networks or copy attention to directly copy schema elements, reducing naming errors.
+    \item \textbf{SQL Validation:} Incorporate runtime SQL checking during generation to ensure syntactic validity.
+    \item \textbf{Domain-Specific Pre-training:} Fine-tune on larger, diverse SQL corpora to enhance domain knowledge.
+    \item \textbf{Schema Linking:} Use entity linking techniques to better connect question entities with schema components.
 \end{itemize}
 
 \textbf{For GPT-2:}
 \begin{itemize}
-    \item Improve prompt engineering with few-shot examples.
-    \item Use special tokens to separate sections.
-    \item Fine-tune on larger datasets.
-    \item Implement post-processing to remove extra content.
-    \item Use larger models (GPT-2 Medium/Large) for bigger context windows.
+    \item \textbf{Prompt Engineering:} Develop structured prompts with examples (few-shot) to guide generation and reduce hallucinations.
+    \item \textbf{Special Tokens:} Introduce delimiters (e.g., <|schema|>, <|sql|>) to clearly separate input components.
+    \item \textbf{Larger Datasets:} Train on more extensive Text-to-SQL data to improve schema understanding.
+    \item \textbf{Post-Processing:} Implement output filtering to remove irrelevant continuations and standardize SQL.
+    \item \textbf{Larger Models:} Scale to GPT-2 Medium/Large or integrate with GPT-3/4 for better context handling.
 \end{itemize}
 
-For Text-to-SQL, the Encoder-Decoder architecture (BART) is preferable since the task is sequence-to-sequence. However, with advancements in large language models, GPT-style models with proper prompt engineering and few-shot learning can be competitive. The final choice depends on resources, accuracy requirements, and query complexity.
+In summary, while Encoder-Decoder models like BART remain the gold standard for Text-to-SQL due to their task-specific design, Decoder-only models like GPT-2 offer promising avenues with advancements in prompting and scaling. The choice ultimately depends on the trade-offs between accuracy, computational cost, and application requirements. Future work could explore hybrid approaches combining the strengths of both architectures.
