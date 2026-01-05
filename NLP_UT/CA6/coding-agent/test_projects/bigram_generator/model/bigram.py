@@ -55,3 +55,31 @@ class BigramModel:
             log_prob += math.log(p)
 
         return log_prob
+
+    def top_next(self, w1, n=3):
+        """Return the top-n most likely next words after w1.
+
+        Uses the model probabilities (with smoothing) to rank candidates.
+        """
+        # Consider full vocabulary
+        candidates = list(self.vocab)
+        # Compute probabilities for each candidate
+        probs = []
+        for w2 in candidates:
+            probs.append((w2, self.get_probability(w1, w2)))
+
+        # Sort by probability descending, then by word for deterministic order
+        probs.sort(key=lambda x: (-x[1], x[0]))
+        return [w for w, _ in probs[:n]]
+
+    def top_k_next_words(self, w1, k):
+        """
+        Returns the top-k next words by probability given a word w1.
+        """
+        if w1 not in self.bigram_counts:
+            return []
+        next_words = self.bigram_counts[w1]
+        sorted_next_words = sorted(
+            next_words.items(), key=lambda item: item[1], reverse=True
+        )
+        return [word for word, count in sorted_next_words[:k]]

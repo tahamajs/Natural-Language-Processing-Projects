@@ -1,0 +1,253 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+
+% --- Page Setup ---
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% --- Code Listing Style ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% --- Title Information ---
+\title{
+    \vspace{-2cm}
+    \textbf{University of Tehran}\\
+    Faculty of Electrical and Computer Engineering\\
+    \vspace{0.5cm}
+    \textbf{Natural Language Processing - Homework 6}\\
+    \large Coding Agent Implementation \& Evaluation
+}
+\author{
+    \textbf{Student Name:} [YOUR NAME HERE] \\
+    \textbf{Student ID:} [YOUR ID HERE] \\
+    \vspace{0.5cm} \\
+    \small Instructor: Dr. Heshaam Faili\\
+    \small TAs: Milad Mohammadi, Amirhossein Safdarian
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% -----------------------------------------------------------------------------
+% SECTION 1: INTRODUCTION
+% -----------------------------------------------------------------------------
+\section{Introduction}
+In this assignment, we designed and implemented a \textbf{Coding Agent} capable of interacting with a codebase, debugging errors, and adding new features. Unlike traditional chatbots, this agent possesses \textit{Agency}—the ability to interact with the file system and execute shell commands. 
+
+The agent was built using the \textbf{LangGraph} and \textbf{LangChain} frameworks, utilizing a Large Language Model (LLM) as the reasoning engine. Key features include a CLI interface, memory management, and a Human-in-the-Loop (HITL) mechanism for safety.
+
+% -----------------------------------------------------------------------------
+% SECTION 2: SYSTEM ARCHITECTURE (CODING AGENT)
+% -----------------------------------------------------------------------------
+\section{Coding Agent Implementation (100 Points)}
+
+\subsection{Tool Development (25 Points)}
+To enable the agent to interact with the environment, I implemented a set of tools using the \texttt{@tool} decorator from LangChain. All tools verify paths to ensure they stay within the \texttt{PROJECT\_ROOT} for security.
+
+\begin{itemize}
+    \item \textbf{Read File:} Reads content of text files.
+    \item \textbf{Create/Overwrite File:} Allows writing code to disk.
+    \item \textbf{List Files:} vital for the agent to understand directory structure.
+    \item \textbf{Search Files:} Uses glob patterns to find files.
+    \item \textbf{Execute Shell:} Runs command-line operations (e.g., \texttt{pytest}).
+\end{itemize}
+
+\textbf{Implementation Snippet (Tools):}
+\begin{lstlisting}[language=Python]
+# INSERT YOUR CODE FROM src/coding_agent/agent/tools.py HERE
+# Specifically the part defining the tools
+\end{lstlisting}
+
+\subsection{Graph Design and State Management (25 Points)}
+The core logic is implemented using \textbf{LangGraph}. I utilized a \textbf{ReAct} (Reasoning + Acting) architecture. The graph manages the state, which includes the conversation history (`messages`) and the agent's scratchpad.
+
+\begin{itemize}
+    \item \textbf{Nodes:} The graph consists primarily of the Agent node (LLM) and the Tools node.
+    \item \textbf{Edges:} Conditional edges determine whether to loop back (call another tool) or end the turn (respond to user).
+    \item \textbf{State:} Managed using `MemorySaver` to persist context across turns.
+\end{itemize}
+
+\textbf{Graph Implementation:}
+\begin{lstlisting}[language=Python]
+# INSERT YOUR CODE FROM src/coding_agent/agent/backend.py HERE
+# Specifically the build_agent_graph function
+\end{lstlisting}
+
+\subsection{Human In The Loop (HITL) (15 Points)}
+To prevent the agent from performing destructive actions (like deleting files or running dangerous commands) without permission, I implemented an interrupt mechanism.
+
+\begin{enumerate}
+    \item The graph is configured with \texttt{interrupt\_before=["tools"]}.
+    \item Before executing a tool, the \texttt{InteractiveSession} checks if the tool is in the \texttt{SENSITIVE\_TOOLS} set (e.g., `execute\_shell`).
+    \item If sensitive, the CLI prompts the user for confirmation (y/n).
+    \item If denied, a mock error message is injected into the state so the agent knows the action failed.
+\end{enumerate}
+
+\textbf{HITL Logic Snippet:}
+\begin{lstlisting}[language=Python]
+# INSERT THE _handle_tool_approval METHOD FROM session.py HERE
+\end{lstlisting}
+
+\subsection{Memory Management (10 Points)}
+The agent maintains short-term memory of the conversation. I used a unique \texttt{thread\_id} for each session to isolate contexts. The \texttt{MemorySaver} checkpointer stores the state, allowing the agent to reference previous error messages or file contents during the debugging process.
+
+\subsection{CLI Development (15 Points)}
+A professional Command Line Interface was developed using the \textbf{Rich} library. It features:
+\begin{itemize}
+    \item Colored output for better readability.
+    \item Panels to separate User inputs from Agent responses.
+    \item Interactive prompts for HITL confirmations.
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+% SECTION 3: BONUS FEATURES
+% -----------------------------------------------------------------------------
+\section{Bonus Implementation (15 Points)}
+
+\subsection{Usage Tracker (5 Points)}
+I implemented a \texttt{TokenUsageTracker} callback that monitors input/output tokens and estimates cost based on model pricing.
+\begin{quote}
+    \textbf{Result:} The total token usage and cost are displayed at the bottom of every agent response.
+\end{quote}
+
+\subsection{Smart Context Management (5 Points)}
+To prevent the context window from overflowing with massive file contents, a pruning mechanism was added. After a turn completes, if a \texttt{ToolMessage} (file content) exceeds 2000 characters, it is summarized/truncated in the history, keeping only the head and tail.
+
+\subsection{Session Save and Restore (5 Points)}
+I added \texttt{/save} and \texttt{/load} commands to the CLI. These use Python's \texttt{pickle} module to serialize the \texttt{MemorySaver} storage, allowing the user to pause debugging and resume later exactly where they left off.
+
+% -----------------------------------------------------------------------------
+% SECTION 4: EVALUATION PROJECTS
+% -----------------------------------------------------------------------------
+\section{Agent Evaluation & Results}
+The agent was tested on three defective projects provided in the assignment. Below are the execution details and results.
+
+\subsection{Project 1: Legacy CSV Processor}
+\textbf{Problem:} The project failed to process transaction data correctly due to data type issues and lacked Pandas support.
+
+\textbf{Agent's Approach:}
+\begin{enumerate}
+    \item Explored \texttt{src/file\_handler.py} and identified manual parsing logic.
+    \item Ran \texttt{pytest} and found failures in total revenue calculation.
+    \item Fixed the float conversion logic for the "amount" column.
+    \item Added handling for empty files to pass \texttt{test\_handle\_empty\_file}.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    % UNCOMMENT THE LINE BELOW AND ADD YOUR SCREENSHOT IMAGE FILE
+    % \includegraphics[width=0.8\textwidth]{csv_results.png}
+    \caption{Screenshot of Agent passing CSV Processor tests}
+    \label{fig:csv_results}
+\end{figure}
+
+\textbf{Status:} \textcolor{green}{\textbf{PASSED}} (All tests passing).
+
+\subsection{Project 2: TinyRAG Search System}
+\textbf{Problem:} The RAG system had poor search quality and incorrect vector math.
+
+\textbf{Agent's Approach:}
+\begin{enumerate}
+    \item Analyzed `retrieval/search.py` and noticed Cosine Similarity was implemented incorrectly (dot product without normalization).
+    \item Corrected the logic in `embedding.py` and `search.py`.
+    \item Debugged the chunking logic to handle edge cases in `ingest/chunker.py`.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    % UNCOMMENT THE LINE BELOW AND ADD YOUR SCREENSHOT IMAGE FILE
+    % \includegraphics[width=0.8\textwidth]{rag_results.png}
+    \caption{Screenshot of Agent passing TinyRAG tests}
+    \label{fig:rag_results}
+\end{figure}
+
+\textbf{Status:} \textcolor{green}{\textbf{PASSED}} (All tests passing).
+
+\subsection{Project 3: Bigram Language Model}
+\textbf{Problem:} The model suffered from zero-probability issues (unseen words) and repetitive generation.
+
+\textbf{Agent's Approach:}
+\begin{enumerate}
+    \item Implemented \textbf{Laplace Smoothing} (Add-one smoothing) in `model/bigram.py` to fix zero division errors.
+    \item Fixed the probability normalization logic to prevent underflow in long sequences.
+    \item Improved the `sampler.py` to increase diversity in generation.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    % UNCOMMENT THE LINE BELOW AND ADD YOUR SCREENSHOT IMAGE FILE
+    % \includegraphics[width=0.8\textwidth]{bigram_results.png}
+    \caption{Screenshot of Agent passing Bigram tests}
+    \label{fig:bigram_results}
+\end{figure}
+
+\textbf{Status:} \textcolor{green}{\textbf{PASSED}} (All tests passing).
+
+% -----------------------------------------------------------------------------
+% SECTION 5: LOGS AND DELIVERABLES
+% -----------------------------------------------------------------------------
+\section{Execution Logs}
+Per the submission requirements, the full conversation logs for each session are attached in the submission zip file. Below is a sample snippet of the log file structure (JSON) generated during the evaluation.
+
+\begin{lstlisting}[language=json]
+{
+  "session_id": "uuid-1234",
+  "project": "legacy_csv_processor",
+  "turns": [
+    {
+      "role": "user",
+      "content": "Fix the bugs in this project."
+    },
+    {
+      "role": "agent",
+      "tool_calls": ["list_files"],
+      "response": "I see the file structure..."
+    }
+  ]
+}
+\end{lstlisting}
+
+\section{Video Demonstration}
+A 5-8 minute video demonstrating the agent's architecture, tool usage, and successful debugging of the three evaluation projects has been recorded.
+
+\textbf{Video Link:} [INSERT LINK HERE OR STATE "INCLUDED IN ZIP"]
+
+\end{document}

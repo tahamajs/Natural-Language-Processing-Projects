@@ -56,5 +56,12 @@ class TestLanguageModel(unittest.TestCase):
         self.assertGreater(len(outputs), 1, 
             f"Greedy Sampling Detected: Generated 10 identical sentences:\n{list(outputs)[0]}\n")
 
+    def test_top_k_next_words(self):
+        """
+        Test that top_k_next_words returns at least 1 item for a known word.
+        """
+        next_words = self.model.top_k_next_words("the", 5)
+        self.assertGreater(len(next_words), 0, "Expected at least one next word.")
+
 if __name__ == "__main__":
     unittest.main()
