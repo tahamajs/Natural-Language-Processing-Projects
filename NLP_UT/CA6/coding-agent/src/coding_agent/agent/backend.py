@@ -83,13 +83,15 @@ def build_agent_graph(checkpointer=None):
 
     # Provide a stronger system prompt / state modifier for the agent to enforce agency
     system_message = (
-        "You are a professional coding agent.\n"
-        "RULES:\n"
-        "1. Before changing any code, CREATE or UPDATE a file named 'PLAN.md' "
-        "   outlining your step-by-step approach.\n"
-        "2. Always check directory structure first.\n"
-        "3. Use 'grep_code' to find function definitions.\n"
-        "4. If tests fail, update 'PLAN.md' with your hypothesis before trying again."
+        "You are an autonomous coding agent with PERMISSION to execute shell commands and modify files. "
+        "You have access to the following tools: "
+        "list_files, read_file, create_file, overwrite_file, search_files, execute_shell. "
+        "\n\n"
+        "RULES:"
+        "\n1. WHEN ASKED TO FIX A BUG: You MUST run the tests first using 'execute_shell'."
+        "\n2. DO NOT ask the user to run tests. YOU run them."
+        "\n3. IF TESTS FAIL: Read the code, plan a fix, use 'overwrite_file', and run tests again."
+        "\n4. DO NOT lie. If you didn't run a tool, do not say tests passed."
     )
 
     if create_react_agent is None:

@@ -117,6 +117,21 @@ class InteractiveSession:
         # Smart Context (Pruning)
         self._prune_context()
 
+        # --- FIX: Collect ALL tool calls from the current session history ---
+        all_tool_calls = []
+        try:
+            snapshot = self.graph.get_state(self.config)
+            messages = snapshot.values.get("messages", [])
+            for msg in messages:
+                # Look for AIMessages that have tool_calls
+                if getattr(msg, "tool_calls", None):
+                    for tc in msg.tool_calls:
+                        # Add to list if not already present (simple de-dupe)
+                        if tc not in all_tool_calls:
+                            all_tool_calls.append(tc)
+        except Exception:
+            pass
+
         # Save a log entry for this turn
         try:
             log_entry = {
@@ -128,19 +143,11 @@ class InteractiveSession:
                     "total_tokens": getattr(usage_tracker, "total_tokens", 0),
                     "cost_est": getattr(usage_tracker, "cost_est", 0.0),
                 },
+                "tool_calls": all_tool_calls  # <--- Now saves ALL tools used
             }
-            # include last tool calls if present
-            try:
-                snapshot = self.graph.get_state(self.config)
-                last_msg = snapshot.values.get("messages", [])[-1]
-                last_tool_calls = getattr(last_msg, "tool_calls", []) or []
-                exploration_calls = getattr(self, "_last_exploration_calls", []) or []
-                # Merge exploration calls (guaranteed) with any tool calls emitted by the agent
-                merged = exploration_calls + [c for c in last_tool_calls if c not in exploration_calls]
-                log_entry["tool_calls"] = merged
-            except Exception:
-                # If something goes wrong, fall back to exploration calls if available
-                log_entry["tool_calls"] = getattr(self, "_last_exploration_calls", []) or []
+            
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
         except Exception:
             # best-effort logging; do not fail the turn if logging errors occur
             pass

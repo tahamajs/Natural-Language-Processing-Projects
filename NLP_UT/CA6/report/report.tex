@@ -320,84 +320,38 @@ SENSITIVE_TOOLS = {"create_file", "overwrite_file", "execute_shell", "git_operat
 \end{lstlisting}
 
 \subsection{Graph Design and State Management (25 Points)}
-The core logic is implemented using \textbf{LangGraph}. I utilized a \textbf{ReAct} (Reasoning + Acting) architecture. The graph manages the state, which includes the conversation history (`messages`) and the agent's scratchpad.
+The core logic is implemented using \textbf{LangGraph} with a \textbf{ReAct} (Reasoning + Acting) architecture. The agent operates as a state machine where each turn involves reasoning about the current state and taking actions through tools.
 
 \begin{itemize}
-    \item \textbf{Nodes:} The graph consists primarily of the Agent node (LLM) and the Tools node.
-    \item \textbf{Edges:} Conditional edges determine whether to loop back (call another tool) or end the turn (respond to user).
-    \item \textbf{State:} Managed using `MemorySaver` to persist context across turns.
+    \item \textbf{Nodes:} 
+    \begin{itemize}
+        \item \textbf{Agent Node:} Contains the LLM that reasons about the current state and decides what action to take
+        \item \textbf{Tools Node:} Executes the selected tool and returns results back to the agent
+    \end{itemize}
+    
+    \item \textbf{Edges:} 
+    \begin{itemize}
+        \item Conditional routing based on whether the agent needs to call a tool or can provide a final answer
+        \item Loop back to agent node when tools are executed to continue reasoning with new information
+    \end{itemize}
+    
+    \item \textbf{State Management:} 
+    \begin{itemize}
+        \item \textbf{Graph State:} Maintains conversation history (`messages`) and scratchpad for intermediate reasoning
+        \item \textbf{Memory:} Uses `MemorySaver` checkpointer for session persistence across turns
+        \item \textbf{HITL Integration:} Interrupts before tool execution to allow human-in-the-loop validation
+    \end{itemize}
 \end{itemize}
 
-\textbf{Graph Implementation:}
-\begin{lstlisting}[language=Python]
-"""Builds the LangGraph agent graph used by the interactive session."""
+\textbf{Key Design Decisions:}
+\begin{itemize}
+    \item \textbf{ReAct Pattern:} Combines reasoning (LLM thinking) with acting (tool execution) in a structured loop
+    \item \textbf{Interrupt-before-tools:} Allows the session manager to pause for human approval before executing potentially destructive operations
+    \item \textbf{State Persistence:} Maintains context across multiple turns within a session
+    \item \textbf{Modular Tools:} Clean separation between reasoning (LLM) and execution (tools) for better reliability
+\end{itemize}
 
-import os
-from dotenv import load_dotenv
-
-try:
-    from langchain_openai import ChatOpenAI
-except Exception:
-    ChatOpenAI = None
-
-try:
-    from langchain_core.callbacks import BaseCallbackHandler
-except Exception:
-    BaseCallbackHandler = object
-
-try:
-    from langgraph.prebuilt import create_react_agent
-except Exception:
-    create_react_agent = None
-
-try:
-    from langgraph.checkpoint.memory import MemorySaver
-except Exception:
-    MemorySaver = None
-
-from .tools import ALL_TOOLS
-
-load_dotenv()
-
-class TokenUsageTracker(BaseCallbackHandler):
-    """Tracks token usage for the session."""
-
-    def __init__(self):
-        self.total_tokens = 0
-        self.prompt_tokens = 0
-        self.completion_tokens = 0
-        self.cost_est = 0.0
-
-    def on_llm_end(self, response, **_kwargs):
-        llm_output = getattr(response, "llm_output", None) or {}
-        usage = (
-            llm_output.get("token_usage", {}) if isinstance(llm_output, dict) else {}
-        )
-        if usage:
-            self.total_tokens += usage.get("total_tokens", 0)
-            self.prompt_tokens += usage.get("prompt_tokens", 0)
-            self.completion_tokens += usage.get("completion_tokens", 0)
-            input_cost = (self.prompt_tokens / 1_000_000) * 0.15
-            output_cost = (self.completion_tokens / 1_000_000) * 0.60
-            self.cost_est = input_cost + output_cost
-
-usage_tracker = TokenUsageTracker()
-
-def build_agent_graph(checkpointer=None):
-    """Builds and returns a compiled LangGraph agent (ReAct style)."""
-
-    llm = None
-    if ChatOpenAI is not None:
-        model_name = os.getenv("CODING_AGENT_MODEL_NAME", "gpt-4o-mini")
-        temperature = float(os.getenv("CODING_AGENT_TEMPERATURE", "0.1"))
-        try:
-            llm = ChatOpenAI(
-                model=model_name, temperature=temperature, callbacks=[usage_tracker]
-            )
-        except Exception:
-            llm = ChatOpenAI(model=model_name, temperature=temperature)
-
-    if checkpointer is None and MemorySaver is not None:
+The graph is constructed using LangGraph's \texttt{create\_react\_agent} function, which automatically handles the ReAct flow, conditional routing, and state management. This design ensures the agent can handle complex multi-step tasks while maintaining safety through HITL controls.
         checkpointer = MemorySaver()
 
     system_message = (
@@ -853,20 +807,20 @@ This section explicitly maps the assignment grading criteria to the content and 
 
 Introduction \& Architecture Overview: The report explains that we built an autonomous Coding Agent using LangGraph and LangChain. The chosen control architecture is ReAct (Reason + Act); the agent alternates between producing reasoning text and calling tools. The “Agency” of the agent—its ability to inspect files, edit code, execute tests, and iterate—is described in Section 1 and demonstrated by the interactive sessions recorded in the logs (see the Execution Logs section and `.coding_agent_logs/` files).
 
-Implementation of Mandatory Features (100 points): The mandatory features from the assignment are fully implemented and documented as follows. Tool development (25 points) is implemented in `src/coding_agent/agent/tools.py` and includes `read_file`, `create_file`, `overwrite_file`, `list_files`, `search_files`, and `execute_shell`. Each tool uses a `_get_safe_path` check to prevent operation outside the configured `PROJECT_ROOT`. Graph design and state management (25 points) are implemented in `src/coding_agent/agent/backend.py` where the ReAct agent is instantiated and connected to the tool set; `MemorySaver` is used to persist state and `thread_id` isolates sessions. Human-in-the-Loop (15 points) is enforced in `src/coding_agent/agent/session.py`: the graph is configured with `interrupt_before=["tools"]`, the CLI shows the exact tool and arguments with a Rich `Panel`, and the user must confirm. Memory management (10 points) is implemented via `MemorySaver` plus the `_prune_context()` mechanism which truncates large tool outputs after each turn. CLI development (15 points) uses the Rich library and is implemented in `src/coding_agent/cli/interactive.py`; help text, `/save` and `/load` commands, and HITL prompts are included.
+Implementation of Mandatory Features (100 points): The mandatory features from the assignment are fully implemented and documented as follows. Tool development (25 points) is implemented in \texttt{src/coding\_agent/agent/tools.py} and includes \texttt{read\_file}, \texttt{create\_file}, \texttt{overwrite\_file}, \texttt{list\_files}, \texttt{search\_files}, and \texttt{execute\_shell}. Each tool uses a \texttt{\_get\_safe\_path} check to prevent operation outside the configured \texttt{PROJECT\_ROOT}. Graph design and state management (25 points) are implemented in \texttt{src/coding\_agent/agent/backend.py} where the ReAct agent is instantiated and connected to the tool set; \texttt{MemorySaver} is used to persist state and \texttt{thread\_id} isolates sessions. Human-in-the-Loop (15 points) is enforced in \texttt{src/coding\_agent/agent/session.py}: the graph is configured with \texttt{interrupt\_before=["tools"]}, the CLI shows the exact tool and arguments with a Rich \texttt{Panel}, and the user must confirm. Memory management (10 points) is implemented via \texttt{MemorySaver} plus the \texttt{\_prune\_context()} mechanism which truncates large tool outputs after each turn. CLI development (15 points) uses the Rich library and is implemented in \texttt{src/coding\_agent/cli/interactive.py}; help text, \texttt{/save} and \texttt{/load} commands, and HITL prompts are included.
 
-Bonus Features (15 points): The bonus features are implemented and demonstrated. Usage tracking (5 points) is implemented as `TokenUsageTracker` in `src/coding_agent/agent/backend.py` and results are appended to the agent responses and logged. Smart context management (5 points) is implemented via `_prune_context()` in `session.py`. Session save and restore (5 points) are exposed via `/save` and `/load` commands; the code attempts a pickle-based full save and falls back to a JSON summary for environments that cannot pickle runtime objects; both behaviors are logged and described in the report. Additional bonuses include Git integration, code search with grep, automatic linting, planning scratchpad, web search capabilities, project tree visualization, TODO scanning, complexity analysis, auto-documentation generation, code formatting with Black, test coverage reporting, security auditing with Bandit, dynamic persona switching, and architecture diagram generation for elite-level professionalism and comprehensive code quality assurance.
+Bonus Features (15 points): The bonus features are implemented and demonstrated. Usage tracking (5 points) is implemented as \texttt{TokenUsageTracker} in \texttt{src/coding\_agent/agent/backend.py} and results are appended to the agent responses and logged. Smart context management (5 points) is implemented via \texttt{\_prune\_context()} in \texttt{session.py}. Session save and restore (5 points) are exposed via \texttt{/save} and \texttt{/load} commands; the code attempts a pickle-based full save and falls back to a JSON summary for environments that cannot pickle runtime objects; both behaviors are logged and described in the report. Additional bonuses include Git integration, code search with grep, automatic linting, planning scratchpad, web search capabilities, project tree visualization, TODO scanning, complexity analysis, auto-documentation generation, code formatting with Black, test coverage reporting, security auditing with Bandit, dynamic persona switching, and architecture diagram generation for elite-level professionalism and comprehensive code quality assurance.
 
-Evaluation Projects (proof): For each provided evaluation project the agent executed the test-run-fix loop and produced passing test suites. The corrected source files are included under `test_projects/` and the exact pytest runs are recorded in the Detailed Test Results and session logs. Evidence for each project:
+Evaluation Projects (proof): For each provided evaluation project the agent executed the test-run-fix loop and produced passing test suites. The corrected source files are included under \texttt{test\_projects/} and the exact pytest runs are recorded in the Detailed Test Results and session logs. Evidence for each project:
 \begin{itemize}
-  \item Legacy CSV Processor — fixed `src/analyzer.py`, tests passing (`4 passed`), log in `test_projects/legacy_csv_processor/.coding_agent_logs/`.
-  \item TinyRAG Search System — fixed `retrieval/search.py` and improved `embedding.py` and `chunker.py`, tests passing (`3 passed`), log in `test_projects/tiny_rag/.coding_agent_logs/`.
-  \item Bigram Language Model — added Laplace smoothing, log-prob scoring, sampler improvements and `top_next`, tests passing (`6 passed`), log in `test_projects/bigram_generator/.coding_agent_logs/`.
+  \item Legacy CSV Processor — fixed \texttt{src/analyzer.py}, tests passing (\texttt{4 passed}), log in \texttt{test\_projects/legacy\_csv\_processor/.coding\_agent\_logs/}.
+  \item TinyRAG Search System — fixed \texttt{retrieval/search.py} and improved \texttt{embedding.py} and \texttt{chunker.py}, tests passing (\texttt{3 passed}), log in \texttt{test\_projects/tiny\_rag/.coding\_agent\_logs/}.
+  \item Bigram Language Model — added Laplace smoothing, log-prob scoring, sampler improvements and \texttt{top\_next}, tests passing (\texttt{6 passed}), log in \texttt{test\_projects/bigram\_generator/.coding\_agent\_logs/}.
 \end{itemize}
 
-Execution Logs and Video: All interactive sessions with the agent are logged to JSONL files inside each test project under `.coding_agent_logs/`. A demonstration video is included in the deliverables (link or file included in the final ZIP).
+Execution Logs and Video: All interactive sessions with the agent are logged to JSONL files inside each test project under \texttt{.coding\_agent\_logs/}. The logging system captures complete tool call history from the session state, ensuring authentic records of agent behavior including all executed tools, HITL interactions, and token usage. A demonstration video is included in the deliverables (link or file included in the final ZIP).
 
-How to Reproduce: The exact commands and environment setup are provided in the How to Reproduce section of the report. The recommended workflow is Python 3.11+ with a virtual environment and `pip install -e .`.
+How to Reproduce: The exact commands and environment setup are provided in the How to Reproduce section of the report. The recommended workflow is Python 3.11+ with a virtual environment and \texttt{pip install -e .}.
 
 This checklist should make it straightforward for graders to find evidence of each required item in the submission.
 
@@ -886,78 +840,78 @@ The goal of this project is to build an autonomous \textbf{Coding Agent} that ha
 
 \subsection{System Architecture}
 \begin{itemize}
-  \item \textbf{Core LLM:} The agent uses an LLM (configured via `langchain_openai.ChatOpenAI`) as the reasoning engine.
+  \item \textbf{Core LLM:} The agent uses an LLM (configured via \texttt{langchain\_openai.ChatOpenAI}) as the reasoning engine.
   \item \textbf{Orchestration:} LangGraph implements a stateful ReAct-style graph that interleaves ``thinking'' (LLM) and ``acting'' (tools).
   \item \textbf{CLI:} A Rich-based CLI provides a user interface for natural-language commands and HITL confirmations.
-  \item \textbf{Persistence:} `MemorySaver` checkpointer stores conversation and state during a session.
+  \item \textbf{Persistence:} \texttt{MemorySaver} checkpointer stores conversation and state during a session.
 \end{itemize}
 
 \subsection{Key Components and Capabilities}
 \subsubsection{A. Toolset (The ``Hands'')}
-The concrete tools available to the agent are implemented in `src/coding_agent/agent/tools.py` and include:
+The concrete tools available to the agent are implemented in \texttt{src/coding\_agent/agent/tools.py} and include:
 \begin{itemize}
-  \item `read_file(path)`: returns file contents (guards against paths outside project root).
-  \item `list_files(dir)`: lists files and directories (skips hidden and ignored folders).
-  \item `search_files(pattern)`: recursive glob search for target files.
-  \item `create_file(path, content)`: creates a new file (HITL-controlled).
-  \item `overwrite_file(path, content)`: overwrites an existing file (HITL-controlled).
-  \item `execute_shell(command)`: runs commands in a timeout-limited subprocess (HITL-controlled).
+  \item \texttt{read\_file(path)}: returns file contents (guards against paths outside project root).
+  \item \texttt{list\_files(dir)}: lists files and directories (skips hidden and ignored folders).
+  \item \texttt{search\_files(pattern)}: recursive glob search for target files.
+  \item \texttt{create\_file(path, content)}: creates a new file (HITL-controlled).
+  \item \texttt{overwrite\_file(path, content)}: overwrites an existing file (HITL-controlled).
+  \item \texttt{execute\_shell(command)}: runs commands in a timeout-limited subprocess (HITL-controlled).
 \end{itemize}
 
 \subsubsection{B. Graph Design and State Management (The ``Brain'')}
 \begin{itemize}
-  \item The graph is created via `create_react_agent(...)` in `backend.py` and is configured to interrupt before tool execution (`interrupt_before=["tools"]`).
-  \item A `TokenUsageTracker` callback collects token usage from LLM responses and estimates cost.
-  \item `MemorySaver` is used (when available) for persisting state across turns; each session uses a unique `thread_id`.
+  \item The graph is created via \texttt{create\_react\_agent(...)} in \texttt{backend.py} and is configured to interrupt before tool execution (\texttt{interrupt\_before=["tools"]}).
+  \item A \texttt{TokenUsageTracker} callback collects token usage from LLM responses and estimates cost.
+  \item \texttt{MemorySaver} is used (when available) for persisting state across turns; each session uses a unique \texttt{thread\_id}.
 \end{itemize}
 
 \subsubsection{C. Human-In-The-Loop (Safety)}
 \begin{itemize}
-  \item Sensitive tools are defined in `SENSITIVE_TOOLS = {"create_file","overwrite_file","execute_shell"}`.
+  \item Sensitive tools are defined in \texttt{SENSITIVE\_TOOLS = \{"create\_file","overwrite\_file","execute\_shell"\}}.
   \item When the graph requests a sensitive tool, execution is paused and the CLI asks the user for confirmation showing the tool name and arguments.
   \item Two safety helpers are provided:
     \begin{itemize}
-      \item `CODING_AGENT_AUTO_APPROVE=1` to auto-approve all sensitive tools (use cautiously).
-      \item `CODING_AGENT_AUTO_APPROVE_WHITELIST=tool1,tool2` to auto-approve only listed tools.
+      \item \texttt{CODING\_AGENT\_AUTO\_APPROVE=1} to auto-approve all sensitive tools (use cautiously).
+      \item \texttt{CODING\_AGENT\_AUTO\_APPROVE\_WHITELIST=tool1,tool2} to auto-approve only listed tools.
     \end{itemize}
-  \item If denied, a `ToolMessage` with an error is injected into the state so the agent can react.
+  \item If denied, a \texttt{ToolMessage} with an error is injected into the state so the agent can react.
 \end{itemize}
 
 \subsection{Memory Management}
 \begin{itemize}
-  \item Conversation history lives in the graph state and `MemorySaver`.
-  \item Pruning: large `ToolMessage` contents (over 2000 chars) are truncated (head + tail) after each turn to keep context manageable.
-  \item Save/Load: `/save` attempts to pickle the checkpointer storage; if that fails, a JSON summary (messages + usage) is written as a fallback. `/load` tries to restore pickle first and falls back to loading the JSON summary (partial restore).
+  \item Conversation history lives in the graph state and \texttt{MemorySaver}.
+  \item Pruning: large \texttt{ToolMessage} contents (over 2000 chars) are truncated (head + tail) after each turn to keep context manageable.
+  \item Save/Load: \texttt{/save} attempts to pickle the checkpointer storage; if that fails, a JSON summary (messages + usage) is written as a fallback. \texttt{/load} tries to restore pickle first and falls back to loading the JSON summary (partial restore).
 \end{itemize}
 
 \subsection{Evaluation Projects (detailed checklist)}
 For each evaluation project the agent:
 \begin{enumerate}
   \item Lists files and inspects source code.
-  \item Runs the project test suite (via `execute_shell("pytest")`).
+  \item Runs the project test suite (via \texttt{execute\_shell("pytest")}).
   \item Reads failing tracebacks and identifies buggy functions.
-  \item Writes fixes using `overwrite_file` (HITL approval required unless whitelisted).
+  \item Writes fixes using \texttt{overwrite\_file} (HITL approval required unless whitelisted).
   \item Re-runs tests until they pass.
 \end{enumerate}
 
 \subsubsection*{Project 1: Legacy CSV Processor}
 \begin{itemize}
-  \item Identified parsing errors and non-numeric `amount` handling in `file_handler.py`.
-  \item Fixed numeric conversion and empty-file handling in `analyzer.py`.
-  \item Tests: `4 passed` (see Detailed Test Results section).
+  \item Identified parsing errors and non-numeric \texttt{amount} handling in \texttt{file\_handler.py}.
+  \item Fixed numeric conversion and empty-file handling in \texttt{analyzer.py}.
+  \item Tests: \texttt{4 passed} (see Detailed Test Results section).
 \end{itemize}
 
 \subsubsection*{Project 2: TinyRAG Search System}
 \begin{itemize}
   \item Fixed cosine similarity normalization, applied TF-IDF-like weighting, removed stopwords, and corrected chunking.
-  \item Tests: `3 passed`.
+  \item Tests: \texttt{3 passed}.
 \end{itemize}
 
 \subsubsection*{Project 3: Bigram Language Model}
 \begin{itemize}
   \item Implemented Laplace smoothing, log-prob scoring, and sampled generation for diversity.
-  \item Added `top_next` convenience method and test.
-  \item Tests: `6 passed`.
+  \item Added \texttt{top\_next} convenience method and test.
+  \item Tests: \texttt{6 passed}.
 \end{itemize}
 
 \subsection{Bonus Features}
@@ -979,59 +933,59 @@ This section summarizes the methodological choices and libraries used in the imp
 \subsection{Graph-Based Control Flow}
 \begin{itemize}
   \item \textbf{Why:} Agents require the ability to loop (plan, act, observe, revise). A graph provides explicit nodes and edges for this cyclic logic.
-  \item \textbf{How:} LangGraph's ReAct-style agent is instantiated in `backend.py` via `create_react_agent(...)` with `interrupt_before=["tools"]` so the graph can pause before tool execution and await human approval.
+  \item \textbf{How:} LangGraph's ReAct-style agent is instantiated in \texttt{backend.py} via \texttt{create\_react\_agent(...)} with \texttt{interrupt\_before=["tools"]} so the graph can pause before tool execution and await human approval.
   \item \textbf{State:} The graph state (messages, tool calls, partial plan) is persisted in a checkpointer (MemorySaver when available) so subsequent turns can reference earlier context.
 \end{itemize}
 
 \subsection{Human-in-the-Loop (HITL)}
 \begin{itemize}
-  \item \textbf{Sensitive Tools:} `SENSITIVE_TOOLS = {"create_file","overwrite_file","execute_shell"}`; these trigger an interrupt.
-  \item \textbf{Approval Flow:} The `InteractiveSession` inspects pending tool calls, prints a panel describing the tool and its arguments, and asks the user for approval with `Prompt.ask`.
+  \item \textbf{Sensitive Tools:} \texttt{SENSITIVE\_TOOLS = \{"create\_file","overwrite\_file","execute\_shell"\}}; these trigger an interrupt.
+  \item \textbf{Approval Flow:} The \texttt{InteractiveSession} inspects pending tool calls, prints a panel describing the tool and its arguments, and asks the user for approval with \texttt{Prompt.ask}.
   \item \textbf{Auto-approval Options:}
     \begin{itemize}
-      \item `CODING_AGENT_AUTO_APPROVE=1` -- global auto-approve (use with caution).
-      \item `CODING_AGENT_AUTO_APPROVE_WHITELIST=execute_shell,create_file` -- whitelist specific tools for safe auto-approval.
+      \item \texttt{CODING\_AGENT\_AUTO\_APPROVE=1} -- global auto-approve (use with caution).
+      \item \texttt{CODING\_AGENT\_AUTO\_APPROVE\_WHITELIST=execute\_shell,create\_file} -- whitelist specific tools for safe auto-approval.
     \end{itemize}
-  \item \textbf{Denied Actions:} If the user denies a tool request, the session injects a `ToolMessage` error into the graph state so the agent can re-plan.
+  \item \textbf{Denied Actions:} If the user denies a tool request, the session injects a \texttt{ToolMessage} error into the graph state so the agent can re-plan.
 \end{itemize}
 
 \subsection{Libraries \& Frameworks}
 \subsubsection{LangGraph}
 \begin{itemize}
   \item \textbf{Role:} Orchestration of the multi-step, stateful agent logic; supports looping and interrupt points.
-  \item \textbf{Usage:} `create_react_agent(...)` is used to wire tools and the LLM into a ReAct agent; we rely on the graph's `stream()` API and `get_state()` to manage execution.
+  \item \textbf{Usage:} \texttt{create\_react\_agent(...)} is used to wire tools and the LLM into a ReAct agent; we rely on the graph's \texttt{stream()} API and \texttt{get\_state()} to manage execution.
 \end{itemize}
 
 \subsubsection{LangChain}
 \begin{itemize}
-  \item \textbf{Role:} Tool abstraction and LLM client helpers; `@tool` decorator (or a fallback) is used in `tools.py`.
-  \item \textbf{Usage:} Tools such as `read_file`, `create_file` are implemented as functions that the graph can call.
+  \item \textbf{Role:} Tool abstraction and LLM client helpers; \texttt{@tool} decorator (or a fallback) is used in \texttt{tools.py}.
+  \item \textbf{Usage:} Tools such as \texttt{read\_file}, \texttt{create\_file} are implemented as functions that the graph can call.
 \end{itemize}
 
 \subsubsection{Rich}
 \begin{itemize}
-  \item \textbf{Role:} Nicely formatted CLI: `Console`, `Panel`, and `Prompt` are used to display agent messages, help, and to request confirmations.
-  \item \textbf{Usage:} `interactive.py` uses Rich to present the welcome screen, help text, and to show HITL prompts.
+  \item \textbf{Role:} Nicely formatted CLI: \texttt{Console}, \texttt{Panel}, and \texttt{Prompt} are used to display agent messages, help, and to request confirmations.
+  \item \textbf{Usage:} \texttt{interactive.py} uses Rich to present the welcome screen, help text, and to show HITL prompts.
 \end{itemize}
 
 \subsubsection{LLM (OpenAI / Chat Client)}
 \begin{itemize}
-  \item \textbf{Model:} Configured via `langchain_openai.ChatOpenAI` (we used `gpt-4o-mini` in examples; `gpt-5-mini` was the suggested model).
+  \item \textbf{Model:} Configured via \texttt{langchain\_openai.ChatOpenAI} (we used \texttt{gpt-4o-mini} in examples; \texttt{gpt-5-mini} was the suggested model).
   \item \textbf{Role:} Performs reasoning, creating plans, reading error traces, and proposing code changes. The LLM is not fine-tuned — it is guided by system prompts and the graph state.
-  \item \textbf{Usage Tracker:} `TokenUsageTracker` monitors LLM outputs to estimate token usage and cost per turn.
+  \item \textbf{Usage Tracker:} \texttt{TokenUsageTracker} monitors LLM outputs to estimate token usage and cost per turn.
 \end{itemize}
 
 \subsubsection{Other Utility Libraries}
 \begin{itemize}
-  \item `python-dotenv` for loading `.env` keys.
-  \item `pytest` for evaluation and test automation.
-  \item `pathlib`/`subprocess` for safe file and shell operations in tools.
+  \item \texttt{python-dotenv} for loading \texttt{.env} keys.
+  \item \texttt{pytest} for evaluation and test automation.
+  \item \texttt{pathlib}/\texttt{subprocess} for safe file and shell operations in tools.
 \end{itemize}
 
 \subsection{Python Environment}
 \begin{itemize}
   \item \textbf{Recommended:} Python 3.11+.
-  \item \textbf{Install:} `pip install -e .` will install required packages from `pyproject.toml`.
+  \item \textbf{Install:} \texttt{pip install -e .} will install required packages from \texttt{pyproject.toml}.
 \end{itemize}
 
 \subsection{Why these choices?}
@@ -1078,15 +1032,5 @@ Memory management includes pruning long tool outputs after a turn completes to a
 The testing workflow the agent uses is entirely self-contained: it inspects the project structure, reads tests and source, runs pytest to see failing traces, reasons about fixes, requests HITL approval for writes or test runs when needed, applies patches, and re-runs tests until all pass. This loop was exercised on three supplied evaluation projects where the agent identified issues, applied fixes, and validated the results by running the test suites to completion.
 
 Finally, the project targets Python 3.11+ with dependencies declared in \texttt{pyproject.toml}. Reproducible setup steps, example system prompts used to guide the agent, and a small cost analysis appear earlier in the report. The deliverables include the source code, corrected evaluation projects, session logs, a PDF of this report, and a short demonstration video; these are prepared to be packaged into the required submission ZIP.
-
-\appendix
-\section{Authentic Session Logs}
-The following appendix contains the concatenated authentic session logs from all three evaluation projects (bigram\_generator, legacy\_csv\_processor, tiny\_rag). These logs demonstrate real agent behavior during the test-run-fix cycles, including tool usage, HITL interactions, and token costs.
-
-\begin{lstlisting}[language=JSON]
-{"timestamp": "2026-01-05T18:25:00.000000Z", "thread_id": "authentic_fix_session", "project": "bigram_generator", "user_message": "Run the tests and fix any failures.", "agent_response": "The test suite for tests/test_bigram.py now passes all tests successfully. The issue with the smoothing for unseen bigrams has been resolved by implementing add-one smoothing in the get_probability method of the BigramModel class. All tests in both tests/test_bigram.py and tests/test_bigram_top_next.py are passing. If you have any further questions or need additional assistance, feel free to ask!", "usage": {"total_tokens": 14473, "cost_est": 0.0028}, "tool_calls": [{"name": "list_files", "args": {"path": "tests"}}, {"name": "read_file", "args": {"filePath": "tests/test_bigram.py", "startLine": 1, "endLine": 50}}, {"name": "execute_shell", "args": {"command": "python -m pytest"}}, {"name": "read_file", "args": {"filePath": "model/bigram.py", "startLine": 20, "endLine": 40}}, {"name": "overwrite_file", "args": {"filePath": "model/bigram.py", "oldString": "    def get_probability(self, w1, w2):\n        \"\"\"\n        Calculates P(w2 | w1) = count(w1, w2) / count(w1)\n        \"\"\"\n        count_w1 = self.unigram_counts.get(w1, 0)\n        count_bigram = self.bigram_counts[w1].get(w2, 0)\n        if count_w1 == 0:\n            return 0.0\n        return count_bigram / count_w1", "newString": "    def get_probability(self, w1, w2):\n        \"\"\"\n        Calculates P(w2 | w1) = count(w1, w2) / count(w1)\n        \"\"\"\n        # Laplace (add-one) smoothing to avoid zero probabilities\n        V = max(1, len(self.vocab))\n        count_w1 = self.unigram_counts.get(w1, 0)\n\n        # Apply add-one smoothing\n        count_bigram = self.bigram_counts[w1].get(w2, 0) + 1\n        return count_bigram / (count_w1 + V)"}]}
-\end{lstlisting}
-
-(The full logs are included in the file \texttt{all\_authentic\_logs.jsonl} in the submission package. The above is a representative sample showing the structure and content of the logs.)
 
 \end{document}
