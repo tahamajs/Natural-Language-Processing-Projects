@@ -52,11 +52,13 @@ def chat(
 @cli.command()
 @click.option("--no-aggregate", is_flag=True, default=False, help="Do not aggregate generated logs into a single summary")
 @click.option("--output", type=click.Path(file_okay=True, dir_okay=False, path_type=Path), default=None, help="Output path for aggregated summary (JSONL)")
-def generate_logs(no_aggregate: bool, output: Path | None):
+@click.option("--format", "fmt", type=click.Choice(["jsonl", "csv", "md"], case_sensitive=False), default="jsonl", help="Export format for aggregated summary")
+@click.option("--no-full", is_flag=True, default=False, help="Do not include full file contents in generated logs (use truncation)")
+def generate_logs(no_aggregate: bool, output: Path | None, fmt: str, no_full: bool):
     """Generate simulated 'good' logs for test projects and optionally aggregate them."""
     try:
         from coding_agent.scripts.generate_good_logs import main as gen_main
-        gen_main(aggregate=not no_aggregate, output=str(output) if output else None)
+        gen_main(aggregate=not no_aggregate, output=str(output) if output else None, output_format=fmt, full=not no_full)
     except Exception as e:
         console.print(f"\n[bold red]Error generating logs:[/bold red] {e}")
         raise click.Abort()

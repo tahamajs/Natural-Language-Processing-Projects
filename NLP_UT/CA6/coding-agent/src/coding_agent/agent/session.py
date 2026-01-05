@@ -387,21 +387,27 @@ class InteractiveSession:
             # Best-effort only; do not fail the turn
             self._last_exploration_calls = []
 
-    async def simulate_agent_run(self, user_message: str = "Fix the failing tests") -> dict:
+    async def simulate_agent_run(self, user_message: str = "Fix the failing tests", full: bool = False) -> dict:
         """Simulate an agent run using the available tools and write a representative log entry.
 
         This helper runs a deterministic sequence of tools (list/search/read/run tests)
         and writes a JSONL entry to the session log so you can inspect 'good' logs for
-        your report or video. It does NOT call the LLM.
+        your report or video. It does NOT call the LLM by default. Set `full=True` to
+        include full file contents in the logged results (no truncation).
         Returns the log entry written.
         """
         from .tools import list_files, search_files, read_file, execute_shell
+
+        def maybe_truncate(s: str) -> str:
+            if full:
+                return s
+            return (s[:2000] + "...") if isinstance(s, str) and len(s) > 2000 else s
 
         calls = []
         # 1) list files
         try:
             lf = list_files.run(".")
-            calls.append({"name": "list_files", "args": {"directory": "."}, "result": (lf[:2000] + "...") if isinstance(lf, str) else str(lf)})
+            calls.append({"name": "list_files", "args": {"directory": "."}, "result": maybe_truncate(lf)})
         except Exception as e:
             calls.append({"name": "list_files", "args": {"directory": "."}, "error": str(e)})
 
@@ -409,7 +415,7 @@ class InteractiveSession:
         sf = ""
         try:
             sf = search_files.run("*.py")
-            calls.append({"name": "search_files", "args": {"pattern": "*.py"}, "result": (sf[:2000] + "...") if isinstance(sf, str) else str(sf)})
+            calls.append({"name": "search_files", "args": {"pattern": "*.py"}, "result": maybe_truncate(sf)})
         except Exception as e:
             calls.append({"name": "search_files", "args": {"pattern": "*.py"}, "error": str(e)})
 
