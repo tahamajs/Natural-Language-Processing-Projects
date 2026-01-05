@@ -1,0 +1,6 @@
+The cat sat on the mat.
+The dog sat on the log.
+The bird flew over the mat.
+I like to eat apples and bananas.
+I like to code python and java.
+The cat likes to eat fish.

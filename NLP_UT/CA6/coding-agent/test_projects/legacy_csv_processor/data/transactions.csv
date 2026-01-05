@@ -1,0 +1,8 @@
+id,amount,currency,status
+1,100.50,USD,completed
+2,200.00,USD,completed
+3,,USD,failed
+4,1000.00,USD,completed
+5,300.50,EUR,pending
+6,invalid,USD,error
+7,50.00,USD,completed
