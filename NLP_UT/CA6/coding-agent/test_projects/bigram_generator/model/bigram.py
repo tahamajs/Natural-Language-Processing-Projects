@@ -1,6 +1,7 @@
 from collections import defaultdict, Counter
 import math
 
+
 class BigramModel:
     def __init__(self):
         # Stores counts of (word_i)
@@ -13,13 +14,13 @@ class BigramModel:
         """Builds counts from a list of tokens."""
         for i in range(len(tokens) - 1):
             w1 = tokens[i]
-            w2 = tokens[i+1]
-            
+            w2 = tokens[i + 1]
+
             self.unigram_counts[w1] += 1
             self.bigram_counts[w1][w2] += 1
             self.vocab.add(w1)
             self.vocab.add(w2)
-            
+
         if tokens:
             self.unigram_counts[tokens[-1]] += 1
             self.vocab.add(tokens[-1])

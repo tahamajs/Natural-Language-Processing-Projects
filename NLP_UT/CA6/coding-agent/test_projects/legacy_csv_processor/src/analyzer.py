@@ -2,8 +2,8 @@ def calculate_total_revenue(transactions):
     """Calculates sum of all completed transactions."""
     total = 0.0
     for t in transactions:
-        if t.get('status') == 'completed':
-            amt = t.get('amount')
+        if t.get("status") == "completed":
+            amt = t.get("amount")
             if isinstance(amt, (int, float)):
                 total += float(amt)
             else:
@@ -14,10 +14,11 @@ def calculate_total_revenue(transactions):
                     continue
     return total
 
+
 def get_average_transaction(transactions):
     """Calculates average transaction amount."""
-    valid_transactions = [t for t in transactions if t['status'] == 'completed']
-    
+    valid_transactions = [t for t in transactions if t["status"] == "completed"]
+
     total = calculate_total_revenue(transactions)
 
     if len(valid_transactions) == 0:
