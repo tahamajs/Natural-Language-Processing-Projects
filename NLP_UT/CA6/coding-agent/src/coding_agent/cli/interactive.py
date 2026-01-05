@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import subprocess
 from pathlib import Path
 
 from rich.console import Console
@@ -9,6 +10,10 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.rule import Rule
 from rich.markdown import Markdown
+from rich.tree import Tree
+from rich.filesize import decimal
+from rich.table import Table
+from rich import box
 
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
@@ -80,9 +85,17 @@ class InteractiveCLI:
 [cyan]/help[/cyan]        - Show this help message
 [cyan]/save[/cyan]        - Save current session (Bonus)
 [cyan]/load [file][/cyan] - Load session from file (Bonus)
-[cyan]/clear[/cyan]       - Clear the terminal screen (New)
-[cyan]/history[/cyan]     - Show conversation history (New)
-[cyan]/paste[/cyan]       - Enter multi-line paste mode (New)
+[cyan]/clear[/cyan]       - Clear the terminal screen
+[cyan]/history[/cyan]     - Show conversation history
+[cyan]/paste[/cyan]       - Enter multi-line paste mode
+[cyan]/context[/cyan]     - Show context statistics
+[cyan]/mode[/cyan]        - Toggle auto/safe mode
+[cyan]/test[/cyan]        - Run test suite
+[cyan]/retry[/cyan]       - Rewind last turn
+[cyan]/tree[/cyan]        - Show project tree visualization
+[cyan]/todos[/cyan]       - Scan for TODO/FIXME comments
+[cyan]/complexity [file][/cyan] - Analyze code complexity
+[cyan]/doc [file][/cyan]  - Auto-generate documentation
 [cyan]/exit[/cyan]        - Exit the session
 
 [bold]Tips:[/bold]
@@ -280,6 +293,96 @@ class InteractiveCLI:
                     console.print("[red]Cannot rewind further.[/red]")
             except Exception as e:
                 console.print(f"[red]Retry failed: {e}[/red]")
+
+        elif cmd == "/tree":
+            # Create the root of the tree
+            tree = Tree(
+                f":open_file_folder: [bold]{self.session.project_root.name}[/bold]",
+                guide_style="bold bright_blue",
+            )
+
+            def build_tree(path, tree_node):
+                # Sort: Directories first, then files
+                paths = sorted(
+                    path.iterdir(), 
+                    key=lambda p: (not p.is_dir(), p.name.lower())
+                )
+                for p in paths:
+                    # Skip hidden/git
+                    if p.name.startswith(".") or p.name == "__pycache__":
+                        continue
+                    
+                    if p.is_dir():
+                        branch = tree_node.add(f":open_file_folder: [bold]{p.name}[/bold]")
+                        build_tree(p, branch)
+                    else:
+                        size = decimal(p.stat().st_size)
+                        tree_node.add(f":page_facing_up: {p.name} [dim]({size})[/dim]")
+
+            build_tree(self.session.project_root, tree)
+            console.print(tree)
+
+        elif cmd == "/todos":
+            console.print("[bold yellow]Scanning for TODOs...[/bold yellow]")
+            found_todos = []
+            
+            # Simple recursive scan
+            for path in self.session.project_root.rglob("*.py"):
+                if ".git" in path.parts or "__pycache__" in path.parts: continue
+                
+                try:
+                    lines = path.read_text(encoding="utf-8").splitlines()
+                    for i, line in enumerate(lines):
+                        if "TODO" in line or "FIXME" in line:
+                            clean_line = line.strip()
+                            found_todos.append((path.name, i+1, clean_line))
+                except Exception:
+                    pass
+
+            if found_todos:
+                table = Table(title="Tech Debt Detected", box=box.SIMPLE)
+                table.add_column("File", style="cyan")
+                table.add_column("Line", style="magenta")
+                table.add_column("Task", style="yellow")
+                
+                for fname, line, task in found_todos:
+                    table.add_row(fname, str(line), task)
+                console.print(table)
+                
+                # Optional: Prompt to auto-fix?
+                console.print("[dim]Tip: Ask agent 'Fix all items in the TODO list'[/dim]")
+            else:
+                console.print("[green]No TODOs found! Clean code.[/green]")
+
+        elif cmd.startswith("/complexity"):
+            # Usage: /complexity src/analyzer.py
+            parts = command.split()
+            target = parts[1] if len(parts) > 1 else "."
+            
+            try:
+                # Run radon cc (Cyclomatic Complexity)
+                cmd = ["radon", "cc", target, "-a", "-s"]
+                res = subprocess.run(cmd, capture_output=True, text=True, cwd=self.session.project_root)
+                console.print(Panel(res.stdout, title="Cyclomatic Complexity Report", border_style="magenta"))
+            except FileNotFoundError:
+                console.print("[red]Radon not installed. Run `pip install radon`[/red]")
+            except Exception as e:
+                console.print(f"[red]Error running complexity analysis: {e}[/red]")
+
+        elif cmd.startswith("/doc"):
+            # Usage: /doc model/bigram.py
+            parts = command.split()
+            if len(parts) < 2:
+                console.print("[red]Usage: /doc <filename>[/red]")
+            else:
+                filename = parts[1]
+                console.print(f"[cyan]Generating documentation for {filename}...[/cyan]")
+                prompt = (
+                    f"Please read '{filename}' and add high-quality Python docstrings "
+                    "to all classes and methods that are missing them. "
+                    "Do not change any logic, just add comments."
+                )
+                await self._process_turn(prompt)
 
         elif cmd == "/exit" or cmd == "/quit" or cmd == "/q":
             console.print("\n[cyan]Exiting session...[/cyan]")

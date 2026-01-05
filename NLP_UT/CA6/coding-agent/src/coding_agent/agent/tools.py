@@ -14,6 +14,11 @@ except Exception:  # pragma: no cover - fall back for environments without langc
             return lambda f: f
         return func
 
+try:
+    from langchain_community.tools import DuckDuckGoSearchRun
+except ImportError:
+    DuckDuckGoSearchRun = None
+
 # Global variable to store the project root, set during initialization
 PROJECT_ROOT = Path.cwd()
 
@@ -195,8 +200,36 @@ def run_linter(file_path: str = ".") -> str:
         return f"Linter error: {str(e)}"
 
 
+@tool
+def search_web(query: str) -> str:
+    """Search the web for documentation or error fixes (DuckDuckGo)."""
+    try:
+        if DuckDuckGoSearchRun is None:
+            return "DuckDuckGo search not available. Install langchain-community."
+        search = DuckDuckGoSearchRun()
+        return search.invoke(query)
+    except Exception as e:
+        return f"Search failed: {str(e)}"
+
+
+@tool
+def format_code(file_path: str = ".") -> str:
+    """Format Python code using 'black'. usage: format_code("src/main.py")"""
+    try:
+        path = _get_safe_path(file_path)
+        # Run black
+        cmd = ["black", str(path)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if res.returncode == 0:
+            return "Code formatted successfully."
+        return f"Formatting failed:\n{res.stderr}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+
 # List of tools exported for the agent
-ALL_TOOLS = [list_files, read_file, create_file, overwrite_file, search_files, execute_shell, git_operations, grep_code, run_linter]
+ALL_TOOLS = [list_files, read_file, create_file, overwrite_file, search_files, execute_shell, git_operations, grep_code, run_linter, search_web, format_code]
 # Tools that require Human-in-the-Loop confirmation
 SENSITIVE_TOOLS = {"create_file", "overwrite_file", "execute_shell", "git_operations"}
 
