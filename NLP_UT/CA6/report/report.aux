@@ -2,77 +2,245 @@
 \providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Related Work}{1}{subsection.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Contributions}{2}{subsection.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Methods}{2}{section.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Agent Architecture}{2}{subsection.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Language Model Core}{2}{subsubsection.2.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Tool Integration}{2}{subsubsection.2.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Human-in-the-Loop Safety}{2}{subsubsection.2.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Evaluation Framework}{2}{subsection.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Legacy CSV Processor}{3}{subsubsection.2.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}TinyRAG System}{3}{subsubsection.2.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.3}Bigram Language Model}{3}{subsubsection.2.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Assessment Metrics}{3}{subsection.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Results}{3}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Project 1: Legacy CSV Processor}{3}{subsection.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Date Parsing Enhancement}{3}{subsubsection.3.1.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Enhanced Date Parsing Implementation}}{3}{lstlisting.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}Statistical Analysis Improvements}{3}{subsubsection.3.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Project 2: TinyRAG Vector Search}{4}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Cosine Similarity Correction}{4}{subsubsection.3.2.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Corrected Cosine Similarity}}{4}{lstlisting.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}TF-IDF Integration}{4}{subsubsection.3.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Project 3: Bigram Language Model}{4}{subsection.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Laplace Smoothing Implementation}{4}{subsubsection.3.3.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Laplace Smoothing for Bigram Probabilities}}{4}{lstlisting.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Temperature Sampling}{4}{subsubsection.3.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Quantitative Performance}{5}{subsection.3.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Agent Performance Across Projects}}{5}{table.caption.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{5}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Related Work}{5}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Contributions}{5}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Methods}{5}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Agent Architecture}{5}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Language Model Core}{5}{subsubsection.2.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Tool Integration}{5}{subsubsection.2.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Human-in-the-Loop Safety}{6}{subsubsection.2.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Evaluation Framework}{6}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Legacy CSV Processor}{6}{subsubsection.2.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}TinyRAG System}{6}{subsubsection.2.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.3}Bigram Language Model}{6}{subsubsection.2.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Assessment Metrics}{6}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Results}{6}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Project 1: Legacy CSV Processor}{6}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Date Parsing Enhancement}{7}{subsubsection.3.1.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Enhanced Date Parsing Implementation}}{7}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}Statistical Analysis Improvements}{7}{subsubsection.3.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Project 2: TinyRAG Vector Search}{7}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Cosine Similarity Correction}{7}{subsubsection.3.2.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Corrected Cosine Similarity}}{7}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}TF-IDF Integration}{7}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Project 3: Bigram Language Model}{7}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Laplace Smoothing Implementation}{8}{subsubsection.3.3.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Laplace Smoothing for Bigram Probabilities}}{8}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Temperature Sampling}{8}{subsubsection.3.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Quantitative Performance}{8}{subsection.3.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Agent Performance Across Projects}}{8}{table.caption.1}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tab:performance}{{1}{5}{Agent Performance Across Projects}{table.caption.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Detailed Agent Reasoning Analysis}{5}{subsection.3.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.1}Problem Identification and Initial Assessment}{5}{subsubsection.3.5.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Initial Problem Assessment Framework}}{5}{lstlisting.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.2}Root Cause Analysis and Pattern Recognition}{5}{subsubsection.3.5.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Cross-Domain Pattern Recognition}}{5}{lstlisting.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.3}Solution Design and Implementation Strategy}{6}{subsubsection.3.5.3}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces Multi-layered Implementation Strategy}}{6}{lstlisting.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.4}Adaptive Execution and Real-time Strategy Adjustment}{7}{subsubsection.3.5.4}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}{\ignorespaces Adaptive Execution Monitoring}}{7}{lstlisting.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.5}Comprehensive Validation and Quality Assurance}{7}{subsubsection.3.5.5}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}{\ignorespaces Comprehensive Validation Framework}}{7}{lstlisting.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.6}Meta-Learning and Process Improvement}{8}{subsubsection.3.5.6}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}{\ignorespaces Meta-Learning and Process Improvement}}{8}{lstlisting.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.7}Quantitative Analysis of Agent Performance}{8}{subsubsection.3.5.7}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Detailed Agent Performance Metrics}}{8}{table.caption.2}\protected@file@percent }
-\newlabel{tab:detailed_performance}{{2}{8}{Detailed Agent Performance Metrics}{table.caption.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion}{9}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Agent Capabilities Analysis}{9}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Mathematical Reasoning}{9}{subsubsection.4.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Systematic Debugging}{9}{subsubsection.4.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.3}Code Quality Enhancement}{9}{subsubsection.4.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Detailed Reasoning Process Analysis}{9}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Problem Decomposition and Strategy Formulation}{9}{subsubsection.4.2.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}{\ignorespaces Problem Decomposition Strategy}}{9}{lstlisting.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Adaptive Learning from Debugging Patterns}{10}{subsubsection.4.2.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}{\ignorespaces Adaptive Learning Framework}}{10}{lstlisting.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Multi-Modal Reasoning Integration}{11}{subsubsection.4.2.3}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}{\ignorespaces Multi-Modal Reasoning Integration}}{11}{lstlisting.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.4}Error Recovery and Resilience Patterns}{11}{subsubsection.4.2.4}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}{\ignorespaces Error Recovery and Resilience Framework}}{11}{lstlisting.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.5}Performance Optimization Reasoning}{12}{subsubsection.4.2.5}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}{\ignorespaces Performance Optimization Framework}}{12}{lstlisting.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.6}Knowledge Integration and Synthesis}{13}{subsubsection.4.2.6}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}{\ignorespaces Knowledge Integration Framework}}{13}{lstlisting.15}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.7}Quantitative Reasoning Metrics}{13}{subsubsection.4.2.7}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Advanced Agent Reasoning Metrics}}{13}{table.caption.3}\protected@file@percent }
-\newlabel{tab:reasoning_metrics}{{3}{13}{Advanced Agent Reasoning Metrics}{table.caption.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Limitations and Future Work}{14}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Current Limitations}{14}{subsubsection.4.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Future Enhancements}{14}{subsubsection.4.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Implications for Software Engineering}{14}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{14}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}References}{15}{section.6}\protected@file@percent }
-\gdef \@abspage@last{15}
+\newlabel{tab:performance}{{1}{8}{Agent Performance Across Projects}{table.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Detailed Agent Reasoning Analysis}{8}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.1}Problem Identification and Initial Assessment}{8}{subsubsection.3.5.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Initial Problem Assessment Framework}}{8}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.2}Root Cause Analysis and Pattern Recognition}{9}{subsubsection.3.5.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Cross-Domain Pattern Recognition}}{9}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.3}Solution Design and Implementation Strategy}{9}{subsubsection.3.5.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces Multi-layered Implementation Strategy}}{9}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.4}Adaptive Execution and Real-time Strategy Adjustment}{10}{subsubsection.3.5.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}{\ignorespaces Adaptive Execution Monitoring}}{10}{lstlisting.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.5}Comprehensive Validation and Quality Assurance}{10}{subsubsection.3.5.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}{\ignorespaces Comprehensive Validation Framework}}{11}{lstlisting.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.6}Meta-Learning and Process Improvement}{11}{subsubsection.3.5.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}{\ignorespaces Meta-Learning and Process Improvement}}{11}{lstlisting.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.7}Quantitative Analysis of Agent Performance}{12}{subsubsection.3.5.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Detailed Agent Performance Metrics}}{12}{table.caption.2}\protected@file@percent }
+\newlabel{tab:detailed_performance}{{2}{12}{Detailed Agent Performance Metrics}{table.caption.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion}{12}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Agent Capabilities Analysis}{12}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Mathematical Reasoning}{12}{subsubsection.4.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Systematic Debugging}{12}{subsubsection.4.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.3}Code Quality Enhancement}{12}{subsubsection.4.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Detailed Reasoning Process Analysis}{13}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Problem Decomposition and Strategy Formulation}{13}{subsubsection.4.2.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}{\ignorespaces Problem Decomposition Strategy}}{13}{lstlisting.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Adaptive Learning from Debugging Patterns}{13}{subsubsection.4.2.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}{\ignorespaces Adaptive Learning Framework}}{13}{lstlisting.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Multi-Modal Reasoning Integration}{14}{subsubsection.4.2.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}{\ignorespaces Multi-Modal Reasoning Integration}}{14}{lstlisting.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.4}Error Recovery and Resilience Patterns}{15}{subsubsection.4.2.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}{\ignorespaces Error Recovery and Resilience Framework}}{15}{lstlisting.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.5}Performance Optimization Reasoning}{15}{subsubsection.4.2.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}{\ignorespaces Performance Optimization Framework}}{15}{lstlisting.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.6}Knowledge Integration and Synthesis}{16}{subsubsection.4.2.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}{\ignorespaces Knowledge Integration Framework}}{16}{lstlisting.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.7}Quantitative Reasoning Metrics}{17}{subsubsection.4.2.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Advanced Agent Reasoning Metrics}}{17}{table.caption.3}\protected@file@percent }
+\newlabel{tab:reasoning_metrics}{{3}{17}{Advanced Agent Reasoning Metrics}{table.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Limitations and Future Work}{17}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Current Limitations}{17}{subsubsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Future Enhancements}{17}{subsubsection.4.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Implications for Software Engineering}{17}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{17}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}References}{18}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Introduction}{18}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Coding Agent Implementation (100 Points)}{18}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Tool Development (25 Points)}{18}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Graph Design and State Management (25 Points)}{23}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Human In The Loop (HITL) (15 Points)}{24}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Memory Management (10 Points)}{26}{subsection.8.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}CLI Development (15 Points)}{26}{subsection.8.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.6}Agent Debugging and Fixes}{27}{subsection.8.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Bonus Implementation (15 Points)}{27}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Usage Tracker (5 Points)}{27}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Smart Context Management (5 Points)}{27}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Session Save and Restore (5 Points)}{27}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Git Integration (Bonus)}{27}{subsection.9.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5}Code Search with Grep (Bonus)}{28}{subsection.9.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.6}Automatic Linting (Bonus)}{28}{subsection.9.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.7}Planning Scratchpad (Bonus)}{28}{subsection.9.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Agent Evaluation and Results}{28}{section.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.1}Project 1: Legacy CSV Processor - Comprehensive Analysis}{28}{subsection.10.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.1}Problem Statement and Initial Assessment}{28}{subsubsection.10.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.2}Detailed Code Analysis and Agent Debugging Process}{28}{subsubsection.10.1.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {16}{\ignorespaces Original Vulnerable Code in file_handler.py}}{29}{lstlisting.16}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {17}{\ignorespaces Agent Session Log - File Handler Analysis}}{29}{lstlisting.17}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {18}{\ignorespaces Agent-Enhanced File Handler with Error Recovery}}{29}{lstlisting.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.3}Analyzer Module Enhancement (\texttt  {src/analyzer.py})}{31}{subsubsection.10.1.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {19}{\ignorespaces Enhanced Revenue Calculation with Robust Type Handling}}{31}{lstlisting.19}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {20}{\ignorespaces Agent Testing Session - Revenue Calculation Validation}}{31}{lstlisting.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.4}Date Processing Feature Addition}{31}{subsubsection.10.1.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {21}{\ignorespaces Date Parsing and Range Filtering Implementation}}{31}{lstlisting.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.5}Statistical Functions Enhancement}{33}{subsubsection.10.1.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {22}{\ignorespaces Enhanced Statistical Functions with Edge Case Handling}}{33}{lstlisting.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.6}Comprehensive Testing Strategy}{34}{subsubsection.10.1.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {23}{\ignorespaces Comprehensive Test Suite Implementation}}{34}{lstlisting.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.7}Agent's Problem-Solving Methodology}{35}{subsubsection.10.1.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.1.8}Final Test Results and Validation}{36}{subsubsection.10.1.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Final test execution showing all 7 tests passing}}{36}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:csv_final_tests}{{1}{36}{Final test execution showing all 7 tests passing}{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2}Project 2: TinyRAG Search System - Vector Retrieval Analysis}{36}{subsection.10.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.1}Problem Statement and Vector Search Fundamentals}{36}{subsubsection.10.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.2}Mathematical Foundation of Vector Search}{37}{subsubsection.10.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.3}Phase 1: Cosine Similarity Correction}{37}{subsubsection.10.2.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {24}{\ignorespaces Original Flawed Cosine Similarity Implementation}}{37}{lstlisting.24}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {25}{\ignorespaces Agent Investigation - Vector Math Analysis}}{37}{lstlisting.25}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {26}{\ignorespaces Mathematically Correct Cosine Similarity}}{38}{lstlisting.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.4}Phase 2: TF-IDF Weighting and Text Preprocessing}{38}{subsubsection.10.2.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {27}{\ignorespaces Original Naive Term Frequency Counting}}{38}{lstlisting.27}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {28}{\ignorespaces Advanced TF-IDF with Normalization and Preprocessing}}{39}{lstlisting.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.5}Phase 3: Intelligent Chunking Strategy}{40}{subsubsection.10.2.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {29}{\ignorespaces Original Problematic Fixed-Size Chunking}}{40}{lstlisting.29}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {30}{\ignorespaces Improved Word-Based Chunking with Overlap}}{40}{lstlisting.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.6}Vector Search Integration and Testing}{41}{subsubsection.10.2.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {31}{\ignorespaces Complete Vector Search Implementation}}{41}{lstlisting.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.7}Comprehensive Testing and Validation}{42}{subsubsection.10.2.7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {32}{\ignorespaces Comprehensive Vector Search Test Suite}}{42}{lstlisting.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.8}Agent's Technical Analysis and Session Logs}{43}{subsubsection.10.2.8}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {33}{\ignorespaces Agent Technical Analysis - Vector Math Debugging}}{43}{lstlisting.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.2.9}Final Validation Results}{44}{subsubsection.10.2.9}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Comprehensive test results showing all vector search improvements validated}}{44}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:rag_comprehensive_tests}{{2}{44}{Comprehensive test results showing all vector search improvements validated}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3}Project 3: Bigram Language Model - Probabilistic Text Generation}{44}{subsection.10.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.1}Problem Statement and Language Modeling Fundamentals}{44}{subsubsection.10.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.2}Mathematical Foundation of N-Gram Models}{45}{subsubsection.10.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.3}Phase 1: Laplace Smoothing Implementation}{45}{subsubsection.10.3.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {34}{\ignorespaces Original Maximum Likelihood Estimation - Zero Probability Issue}}{45}{lstlisting.34}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {35}{\ignorespaces Agent Analysis - Zero Probability Detection}}{46}{lstlisting.35}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {36}{\ignorespaces Laplace (Add-One) Smoothing Implementation}}{46}{lstlisting.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.4}Phase 2: Log-Probability Scoring for Numerical Stability}{46}{subsubsection.10.3.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {37}{\ignorespaces Log-Probability Implementation for Numerical Stability}}{46}{lstlisting.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.5}Phase 3: Temperature Sampling for Text Diversity}{47}{subsubsection.10.3.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {38}{\ignorespaces Original Greedy Sampling - Repetitive Output}}{47}{lstlisting.38}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {39}{\ignorespaces Temperature-Controlled Sampling for Diversity}}{48}{lstlisting.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.6}Phase 4: Top-N Analysis Feature}{49}{subsubsection.10.3.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {40}{\ignorespaces Top-N Word Prediction for Model Analysis}}{49}{lstlisting.40}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.7}Training and Vocabulary Management}{49}{subsubsection.10.3.7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {41}{\ignorespaces Enhanced Training with Vocabulary Management}}{49}{lstlisting.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.8}Comprehensive Testing and Validation}{50}{subsubsection.10.3.8}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {42}{\ignorespaces Comprehensive Probabilistic Model Testing}}{50}{lstlisting.42}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.9}Agent's Probabilistic Reasoning and Session Logs}{52}{subsubsection.10.3.9}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {43}{\ignorespaces Agent Probabilistic Analysis - Smoothing Implementation}}{52}{lstlisting.43}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {10.3.10}Final Validation and Quality Assessment}{53}{subsubsection.10.3.10}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Comprehensive probabilistic model validation showing all enhancements working correctly}}{53}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:bigram_comprehensive_tests}{{3}{53}{Comprehensive probabilistic model validation showing all enhancements working correctly}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {11}Execution Logs}{53}{section.11}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {44}{\ignorespaces Excerpt from Agent Session Log (Bigram Fix)}}{54}{lstlisting.44}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12}Video Demonstration}{54}{section.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13}Detailed Test Results}{54}{section.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {14}Files Modified / Created}{55}{section.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {15}Usage Report}{56}{section.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {16}How to Reproduce}{56}{section.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {17}Deliverables}{56}{section.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {18}Grading Criteria Mapping and Checklist}{58}{section.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {19}Comprehensive Project Description (Appendix)}{59}{section.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.1}Project Overview}{59}{subsection.19.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.2}System Architecture}{59}{subsection.19.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.3}Key Components and Capabilities}{60}{subsection.19.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {19.3.1}A. Toolset (The ``Hands'')}{60}{subsubsection.19.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {19.3.2}B. Graph Design and State Management (The ``Brain'')}{60}{subsubsection.19.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {19.3.3}C. Human-In-The-Loop (Safety)}{60}{subsubsection.19.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.4}Memory Management}{61}{subsection.19.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.5}Evaluation Projects (detailed checklist)}{61}{subsection.19.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.6}Bonus Features}{62}{subsection.19.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {19.7}Reproducibility and Deliverables}{62}{subsection.19.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {20}Methods and Libraries (Implementation Details)}{62}{section.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {20.1}Graph-Based Control Flow}{62}{subsection.20.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {20.2}Human-in-the-Loop (HITL)}{62}{subsection.20.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {20.3}Libraries \& Frameworks}{63}{subsection.20.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {20.3.1}LangGraph}{63}{subsubsection.20.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {20.3.2}LangChain}{63}{subsubsection.20.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {20.3.3}Rich}{63}{subsubsection.20.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {20.3.4}LLM (OpenAI / Chat Client)}{63}{subsubsection.20.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {20.3.5}Other Utility Libraries}{63}{subsubsection.20.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {20.4}Python Environment}{63}{subsection.20.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {20.5}Why these choices?}{64}{subsection.20.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {21}Expanded Methods and Libraries (Paragraph Form)}{64}{section.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {22}Comprehensive Log Analysis: Agent Reasoning and Debugging Processes}{66}{section.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {22.1}Agent's Systematic Problem-Solving Framework}{66}{subsection.22.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.1}Phase 1: Problem Identification and Initial Assessment}{66}{subsubsection.22.1.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {45}{\ignorespaces Initial Problem Assessment - Systematic Analysis Framework}}{66}{lstlisting.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.2}Phase 2: Root Cause Analysis and Pattern Recognition}{66}{subsubsection.22.1.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {46}{\ignorespaces Root Cause Analysis - Pattern Recognition Across Projects}}{66}{lstlisting.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.3}Phase 3: Solution Design and Implementation Strategy}{67}{subsubsection.22.1.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {47}{\ignorespaces Solution Design - Multi-layered Implementation Strategy}}{67}{lstlisting.47}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.4}Phase 4: Implementation Execution and Real-time Adaptation}{68}{subsubsection.22.1.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {48}{\ignorespaces Adaptive Execution - Real-time Strategy Adjustment}}{68}{lstlisting.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.5}Phase 5: Validation and Quality Assurance}{69}{subsubsection.22.1.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {49}{\ignorespaces Comprehensive Validation - Multi-layer Testing Strategy}}{69}{lstlisting.49}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.6}Phase 6: Documentation and Knowledge Transfer}{70}{subsubsection.22.1.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {50}{\ignorespaces Documentation Strategy - Knowledge Transfer and Educational Value}}{70}{lstlisting.50}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.1.7}Phase 7: Continuous Learning and Improvement}{71}{subsubsection.22.1.7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {51}{\ignorespaces Meta-Learning - Process Improvement and Adaptation}}{71}{lstlisting.51}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {22.2}Agent's Cognitive Architecture Analysis}{71}{subsection.22.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.2.1}Reasoning Patterns and Decision Trees}{71}{subsubsection.22.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.2.2}Multi-Modal Information Processing}{72}{subsubsection.22.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.2.3}Adaptive Learning and Strategy Refinement}{72}{subsubsection.22.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {22.3}Quantitative Analysis of Agent Performance}{72}{subsection.22.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.3.1}Problem-Solving Efficiency Metrics}{72}{subsubsection.22.3.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Agent Performance Metrics Across Projects}}{72}{table.caption.7}\protected@file@percent }
+\newlabel{tab:agent_performance_metrics}{{4}{72}{Agent Performance Metrics Across Projects}{table.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.3.2}Quality Improvement Measurements}{73}{subsubsection.22.3.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Quality Improvements Achieved}}{73}{table.caption.8}\protected@file@percent }
+\newlabel{tab:quality_improvements}{{5}{73}{Quality Improvements Achieved}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.3.3}Debugging Strategy Effectiveness}{73}{subsubsection.22.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {22.4}Agent's Unique Value Proposition Demonstrated}{73}{subsection.22.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.4.1}Autonomous Research and Analysis}{73}{subsubsection.22.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.4.2}Human-Level Problem Solving}{73}{subsubsection.22.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {22.4.3}Educational and Collaborative Intelligence}{74}{subsubsection.22.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {23}Comprehensive Assessment: Agent Capabilities and Project Impact}{75}{section.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.1}Agent's Problem-Solving Methodology}{75}{subsection.23.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.1.1}Systematic Root Cause Analysis}{75}{subsubsection.23.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.1.2}Mathematical Rigor in Algorithmic Corrections}{75}{subsubsection.23.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.1.3}Comprehensive Testing Strategy}{75}{subsubsection.23.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.2}Technical Excellence Demonstrated}{76}{subsection.23.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.2.1}Code Quality Improvements}{76}{subsubsection.23.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.2.2}Architectural Understanding}{76}{subsubsection.23.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.3}Interactive and Analytical Capabilities}{76}{subsection.23.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.3.1}Human-Agent Collaboration}{76}{subsubsection.23.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.3.2}Analytical Depth}{76}{subsubsection.23.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.4}Project Impact and Learning Outcomes}{77}{subsection.23.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.4.1}Quantitative Improvements}{77}{subsubsection.23.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.4.2}Qualitative Advancements}{77}{subsubsection.23.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.5}Final Validation and Quality Assurance}{77}{subsection.23.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.5.1}Comprehensive Testing Results}{77}{subsubsection.23.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.5.2}Code Quality Standards}{77}{subsubsection.23.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.6}Agent's Unique Value Proposition}{78}{subsection.23.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.6.1}Autonomous Problem Solving}{78}{subsubsection.23.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.6.2}Human-AI Collaboration}{78}{subsubsection.23.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {23.6.3}Comprehensive Documentation}{78}{subsubsection.23.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {23.7}Conclusion: Agent as a Sophisticated Development Partner}{78}{subsection.23.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {24}Prose Summary (Lists Converted to Paragraphs)}{80}{section.24}\protected@file@percent }
+\gdef \@abspage@last{81}
