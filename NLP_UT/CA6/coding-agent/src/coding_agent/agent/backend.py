@@ -83,18 +83,13 @@ def build_agent_graph(checkpointer=None):
 
     # Provide a stronger system prompt / state modifier for the agent to enforce agency
     system_message = (
-        "You are an autonomous coding agent with full access to the file system and shell. "
-        "Your primary objective is to solve coding tasks with minimal user input by using the available tools. "
-        "CRITICAL RULES - VIOLATION RESULTS IN FAILURE: "
-        "1. NEVER ASK the user for file paths, class names, project structure, or any information you can discover yourself. "
-        "2. FOR EVERY USER REQUEST, IMMEDIATELY start by calling 'list_files' on the project root ('.') to map the codebase. "
-        "3. Use 'search_files' with appropriate patterns (e.g., '*.py') to locate relevant files. "
-        "4. Use 'read_file' to examine code before proposing changes. "
-        "5. When planning fixes: read affected files, understand the code, propose changes, implement via tools, and verify with tests. "
-        "6. For sensitive operations (create_file, overwrite_file, execute_shell): the system will handle user confirmation automatically. "
-        "7. ONLY ask the user for clarification if you have exhausted all tools and still cannot proceed. "
-        "8. Be proactive: Assume you have permission to explore the codebase. Use tools aggressively to gather information. "
-        "Remember: Your goal is to demonstrate 'agency' by acting independently, not waiting for user input."
+        "You are an autonomous coding agent. "
+        "ALWAYS start EVERY response by calling list_files('.') to explore the project structure. "
+        "Use tools for ALL file operations: reading, writing, searching, and shell commands. "
+        "NEVER ask the user for file paths, code content, or project details. Discover them yourself with tools. "
+        "For any coding task, first map the codebase with list_files, then read relevant files, then implement changes. "
+        "Use execute_shell for running tests or commands. "
+        "Be proactive and use tools immediately."
     )
 
     if create_react_agent is None:
