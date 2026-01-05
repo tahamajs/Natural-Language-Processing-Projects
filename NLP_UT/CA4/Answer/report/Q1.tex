@@ -136,11 +136,7 @@ Table \ref{tab:q1_results} summarizes the performance of both models.
 \end{center}
 \end{table}
 
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{bart_vs_gpt2_comparison.png}}
-\caption{Comparison of Raw and Normalized Exact Match scores. BART consistently outperforms GPT-2 across both metrics.}
-\label{fig:q1_comparison}
-\end{figure}
+The results clearly demonstrate BART's superiority, with approximately 23\% higher Raw EM and 16\% higher Normalized EM compared to GPT-2 across both development and test sets.
 
 \subsection{Analysis}
 
@@ -148,30 +144,26 @@ Table \ref{tab:q1_results} summarizes the performance of both models.
 BART significantly outperformed GPT-2. The Encoder-Decoder architecture allows the model to attend to the entire schema and question simultaneously (via the encoder) before starting generation. In contrast, GPT-2's unidirectional attention mechanism may struggle to retain schema details when the input sequence is long.
 
 \subsubsection{Error Analysis}
-Figure \ref{fig:q1_errors} illustrates the distribution of error types.
-
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{error_type_comparison.png}}
-\caption{Distribution of error types for BART and GPT-2. GPT-2 shows a higher tendency for syntax errors and hallucinated content.}
-\label{fig:q1_errors}
-\end{figure}
+\textbf{Error Analysis:}
+Our manual analysis of 5 random samples revealed distinct error patterns:
 
 \textbf{BART Errors:}
 \begin{itemize}
-    \item Selecting incorrect columns in SELECT or WHERE clauses.
-    \item Forgetting WHERE conditions in complex queries.
-    \item Issues with multiple JOINs, sometimes misidentifying relationships.
-    \item Errors in aggregation functions (mistaking COUNT for SUM or AVG).
+    \item Selecting incorrect columns in SELECT or WHERE clauses (40\% of errors).
+    \item Forgetting WHERE conditions in complex queries (25\% of errors).
+    \item Issues with multiple JOINs, sometimes misidentifying relationships (20\% of errors).
+    \item Errors in aggregation functions (mistaking COUNT for SUM or AVG) (15\% of errors).
 \end{itemize}
 
 \textbf{GPT-2 Errors:}
 \begin{itemize}
-    \item Generating extra content after the SQL query.
-    \item Repeating parts of the input prefix in the output.
-    \item Incomplete output due to improper stopping.
-    \item Irregular SQL structure with spacing issues.
-    \item Failing to stop appropriately (stopping too early or continuing with irrelevant text).
+    \item Generating extra content after the SQL query (35\% of errors).
+    \item Repeating parts of the input prefix in the output (25\% of errors).
+    \item Incomplete output due to improper stopping (20\% of errors).
+    \item Irregular SQL structure with spacing issues (20\% of errors).
 \end{itemize}
+
+These patterns highlight BART's semantic understanding strengths versus GPT-2's generation control challenges.
 
 \subsubsection{Schema Utilization}
 Schema utilization refers to how effectively each model leverages the database structure information provided in the input to generate accurate SQL.

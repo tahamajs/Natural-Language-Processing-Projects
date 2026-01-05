@@ -37,11 +37,11 @@
 Text-to-SQL Generation and Instruction-Following\\
 in Large Language Models}
 
-\author{\IEEEauthorblockN{Student Name}
+\author{\IEEEauthorblockN{Mohammad Mahdi Salmani Zarchi}
 \IEEEauthorblockA{\textit{Department of Computer Engineering} \\
-\textit{University Name}\\
-Student ID: XXXXXXXXX \\
-Email: student@university.ac.ir}
+\textit{University of Tehran}\\
+Student ID: 810100XXX \\
+Email: m.salmani@ut.ac.ir}
 }
 
 \maketitle
@@ -71,6 +71,22 @@ Each section provides detailed methodology, implementation details, experimental
 \input{Q1}
 \input{Q2}
 
+\section{Related Work}
+
+\subsection{Text-to-SQL Generation}
+The field of Text-to-SQL has evolved significantly since its inception. Early approaches relied on rule-based systems and semantic parsing \cite{zhong2017seq2sql}. The introduction of neural models marked a paradigm shift, with sequence-to-sequence architectures becoming prevalent \cite{yu2018spider}.
+
+\textbf{Encoder-Decoder Architectures:} BART \cite{lewis2019bart} and T5 \cite{raffel2019exploring} have been widely adopted for Text-to-SQL tasks. PICARD \cite{scholak2021picard} introduced constrained decoding to ensure syntactic validity. Our work extends these findings by directly comparing Encoder-Decoder and Decoder-only approaches on the same dataset.
+
+\textbf{Decoder-only Models:} Recent work has explored GPT-series models for Text-to-SQL. \cite{rajkumar2022evaluating} demonstrated GPT-3's capabilities with few-shot prompting. Our study provides a controlled comparison using the same training data and evaluation metrics.
+
+\subsection{Instruction-Following Fine-Tuning}
+The instruction-following paradigm has gained prominence with the development of chat-optimized LLMs. Early work focused on supervised fine-tuning with curated datasets \cite{ouyang2022training}.
+
+\textbf{Parameter-Efficient Fine-Tuning:} LoRA \cite{hu2021lora} revolutionized fine-tuning efficiency. Subsequent works like QLoRA \cite{dettmers2023qlora} extended this to quantized models. Our implementation demonstrates LoRA's effectiveness for instruction-following on compact models.
+
+\textbf{Evaluation Benchmarks:} IFEval \cite{zhou2023instruction} provides a standardized evaluation framework. Our results align with findings that PEFT methods can achieve significant improvements with minimal computational cost.
+
 \section{Conclusion}
 This assignment provided hands-on experience with two critical aspects of modern NLP:
 
@@ -92,8 +108,32 @@ This assignment provided hands-on experience with two critical aspects of modern
 
 \textbf{Overall Impact:} These experiments demonstrate the importance of choosing appropriate architectures and training methodologies based on task requirements. The combination of theoretical understanding and practical implementation provides valuable insights for future NLP projects.
 
+\section{Future Work and Limitations}
+
+\subsection{Limitations}
+While our experiments provide valuable insights, several limitations should be acknowledged:
+
+\textbf{Dataset Constraints:} The synthetic Text-to-SQL dataset, while useful for controlled experimentation, may not capture the full complexity of real-world schemas and queries. Performance on diverse, domain-specific databases requires further validation.
+
+\textbf{Model Scale:} Our study focused on base-sized models (BART-base, GPT-2, TinyLlama-1.1B). Larger variants might exhibit different behavior patterns, particularly for GPT-2 where scale significantly impacts capabilities.
+
+\textbf{Evaluation Scope:} IFEval provides comprehensive instruction-following assessment, but additional benchmarks covering multilingual scenarios and domain-specific constraints would enhance evaluation completeness.
+
+\subsection{Future Directions}
+Several promising avenues for future research emerge from this work:
+
+\textbf{Hybrid Architectures:} Combining Encoder-Decoder and Decoder-only approaches could leverage the strengths of both paradigms. For instance, using an encoder for schema understanding while employing a decoder for flexible generation.
+
+\textbf{Multilingual Text-to-SQL:} Extending our tokenizer analysis findings to develop multilingual Text-to-SQL systems, particularly for languages with complex morphologies.
+
+\textbf{Advanced PEFT Methods:} Exploring combinations of LoRA with other techniques like prompt tuning or adapter fusion for even more efficient fine-tuning.
+
+\textbf{Interactive Systems:} Integrating Text-to-SQL with instruction-following capabilities for conversational database interfaces that can handle clarification requests and complex multi-step queries.
+
+\textbf{Robust Evaluation:} Developing more sophisticated evaluation frameworks that assess not just accuracy but also efficiency, robustness to schema variations, and user satisfaction metrics.
+
 \section*{Acknowledgment}
-The author would like to thank the course instructor and teaching assistants for their guidance and support throughout this assignment.
+The author would like to thank the course instructor and teaching assistants for their guidance and support throughout this assignment. Special thanks to the open-source community for providing the models, datasets, and tools that made this research possible.
 
 \begin{thebibliography}{00}
 \bibitem{b1} Lewis, M., et al. (2019). "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension." arXiv:1910.13461.
