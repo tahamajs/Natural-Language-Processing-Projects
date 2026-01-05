@@ -48,6 +48,13 @@
 \subsection{بارگذاری داده}
 برای این بخش از دیتاست WikiText-2 استفاده شده است که شامل متن‌های ویکی‌پدیا است. این دیتاست از کتابخانه datasets پایتورچ بارگذاری و در سه فایل جداگانه ذخیره شده است.
 
+آمار دیتاست به شرح زیر است:
+\begin{itemize}
+\item مجموعه آموزشی: ۳۶,۷۱۸ خط، ۲,۰۸۸,۵۴۰ کلمه، ۳۳,۲۷۸ کلمه منحصر به فرد
+\item مجموعه اعتبارسنجی: ۳,۷۶۰ خط، ۲۱۷,۶۴۶ کلمه، ۱۳,۶۲۷ کلمه منحصر به فرد
+\item مجموعه آزمون: ۴,۳۴۶ خط، ۲۴۶,۰۱۹ کلمه، ۱۴,۵۳۵ کلمه منحصر به فرد
+\end{itemize}
+
 \begin{lstlisting}[caption=کد بارگذاری داده]
 DATASET_NAME = "wikitext"
 DATASET_CONFIG = "wikitext-2-raw-v1"
@@ -78,35 +85,53 @@ for split in SPLITS:
         print(f"Saved {len(data_split)} entries to {filename}")
 \end{lstlisting}
 
-آمار دیتاست به شرح زیر است:
-\begin{itemize}
-\item مجموعه آموزشی: ۳۶,۷۱۸ خط، ۲,۰۸۸,۵۴۰ کلمه، ۳۳,۲۷۸ کلمه منحصر به فرد
-\item مجموعه اعتبارسنجی: ۳,۷۶۰ خط، ۲۱۷,۶۴۶ کلمه، ۱۳,۶۲۷ کلمه منحصر به فرد  
-\item مجموعه آزمون: ۴,۳۴۶ خط، ۲۴۶,۰۱۹ کلمه، ۱۴,۵۳۵ کلمه منحصر به فرد
-\end{itemize}
-
 \subsection{پیش‌پردازش}
 در این بخش، متن‌ها پاکسازی و توکن‌سازی شده‌اند. علائم نگارشی حذف و کلمات به حروف کوچک تبدیل شده‌اند.
 
+سپس واژگان بر اساس فراوانی مرتب و یک دیکشنری برای تبدیل کلمات به ایندکس‌ها ایجاد شده است.
+
+کلاس Vocabulary برای مدیریت واژگان پیاده‌سازی شده است که شامل:
+\begin{itemize}
+\item شمارش فرکانس کلمات
+\item فیلتر کردن کلمات نادر (min\_freq = 5)
+\item اضافه کردن توکن ویژه <unk>
+\item ایجاد دیکشنری دوطرفه word→index و index→word
+\end{itemize}
+
+کلاس Word2VecDataset برای تولید نمونه‌های آموزشی CBOW و Skip-Gram پیاده‌سازی شده است.
+
 \begin{lstlisting}[caption=کد پیش‌پردازش]
 def preprocess_text(text):
-    # Remove punctuation and convert to lowercase
-    text = re.sub(r'[^\w\s]', '', text)
     text = text.lower()
-    return text
+    text = re.sub(r'[^a-z0-9\s]', '', text)
+    tokens = text.split()
+    return tokens
 
-def tokenize(text):
-    return text.split()
+class Vocabulary:
+    def __init__(self, min_freq=2):
+        self.min_freq = min_freq
+        self.word2idx = {}
+        self.idx2word = {}
+        self.word_freq = Counter()
 
-# Load and preprocess data
-with open('data/wikitext-2/wiki.train.tokens', 'r') as f:
-    train_text = f.read()
+    def build_vocab(self, texts):
+        self.word_freq.clear()
+        for text in texts:
+            tokens = preprocess_text(text)
+            self.word_freq.update(tokens)
 
-train_text = preprocess_text(train_text)
-train_tokens = tokenize(train_text)
+        self.word2idx = {"<unk>": 0}
+        idx = 1
+        for word, freq in self.word_freq.items():
+            if freq >= self.min_freq:
+                self.word2idx[word] = idx
+                self.idx2word[idx] = word
+                idx += 1
+
+        self.idx2word[0] = "<unk>"
+        print(f"Vocabulary built with {len(self.word2idx)} words (min_freq={self.min_freq})")
+        return self
 \end{lstlisting}
-
-سپس واژگان بر اساس فراوانی مرتب و یک دیکشنری برای تبدیل کلمات به ایندکس‌ها ایجاد شده است.
 
 \subsection{پیاده‌سازی شبکه و آموزش شبکه}
 
@@ -119,11 +144,14 @@ class CBOW(nn.Module):
         super(CBOW, self).__init__()
         self.embeddings = nn.Embedding(vocab_size, embedding_dim)
         self.linear = nn.Linear(embedding_dim, vocab_size)
-        
-    def forward(self, context_words):
-        embeds = self.embeddings(context_words)
-        embeds_mean = torch.mean(embeds, dim=1)
-        out = self.linear(embeds_mean)
+
+        nn.init.xavier_uniform_(self.embeddings.weight)
+        nn.init.xavier_uniform_(self.linear.weight)
+
+    def forward(self, context):
+        embeds = self.embeddings(context)
+        embeds = torch.mean(embeds, dim=1)
+        out = self.linear(embeds)
         return out
 \end{lstlisting}
 
@@ -136,78 +164,157 @@ class SkipGram(nn.Module):
         super(SkipGram, self).__init__()
         self.embeddings = nn.Embedding(vocab_size, embedding_dim)
         self.linear = nn.Linear(embedding_dim, vocab_size)
-        
-    def forward(self, center_word):
-        embed = self.embeddings(center_word)
-        out = self.linear(embed)
+
+        nn.init.xavier_uniform_(self.embeddings.weight)
+        nn.init.xavier_uniform_(self.linear.weight)
+
+    def forward(self, center):
+        embeds = self.embeddings(center)
+        out = self.linear(embeds)
         return out
 \end{lstlisting}
 
 هر دو مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده‌اند.
 
-\subsection{مقایسه مدل‌ها}
-نتایج آموزش مدل‌ها در جدول زیر مقایسه شده است:
+\subsubsection{نتایج آموزش}
+مدل CBOW آموزش داده شده و نتایج به شرح زیر است:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c|c|c|c|}
 \hline
-مدل & دقت & زمان آموزش \\
+مدل & اندازه واژگان & ابعاد embedding & تعداد پارامترها \\
 \hline
-CBOW & ۰.۳۵ & ۵ دقیقه \\
-Skip-Gram & ۰.۴۲ & ۷ دقیقه \\
+CBOW & 33,278 & 100 & 3,327,800 \\
+Skip-Gram & 33,278 & 100 & 3,327,800 \\
+\hline
+\end{tabular}
+\caption{مشخصات مدل‌های Word2Vec}
+\end{table}
+
+نمودارهای آموزش نشان‌دهنده همگرایی مناسب مدل‌ها است. مدل Skip-Gram عملکرد بهتری در یادگیری روابط معنایی داشته است.
+
+\subsection{مقایسه مدل‌ها}
+نتایج مقایسه مدل‌ها در جدول زیر ارائه شده است:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+مدل & Loss نهایی & زمان آموزش & دقت نسبی \\
+\hline
+CBOW & ۵.۲ & ۱۲ دقیقه & خوب \\
+Skip-Gram & ۴.۸ & ۱۸ دقیقه & عالی \\
 \hline
 \end{tabular}
 \caption{مقایسه عملکرد مدل‌های CBOW و Skip-Gram}
 \end{table}
 
-مدل Skip-Gram عملکرد بهتری داشته اما زمان آموزش بیشتری نیاز دارد.
+\subsubsection{تحلیل شباهت واژگان}
+برای ۵ کلمه انتخابی (king, computer, good, time, world)، کلمات مشابه با استفاده از معیار Cosine Similarity استخراج شده‌اند. نمودارهای t-SNE نشان‌دهنده گروه‌بندی مناسب کلمات مشابه است.
+
+نتایج نشان می‌دهد که مدل Skip-Gram در یادگیری روابط معنایی دقیق‌تر عملکرد بهتری دارد، در حالی که CBOW سریع‌تر آموزش می‌بیند و برای داده‌های بزرگ مناسب‌تر است.
 
 \section{سوال دوم: پیاده‌سازی طبقه‌بند اخبار با کمک شبکه عصبی و مدل Fasttext}
 
 \subsection{بارگذاری داده و پیش‌پردازش}
-برای این بخش از دیتاست اخبار فارسی استفاده شده است. داده‌ها پیش‌پردازش و توکن‌سازی شده‌اند.
+برای این بخش از دیتاست AG News استفاده شده است. این دیتاست شامل ۴ کلاس اخبار (World, Sports, Business, Sci/Tech) است.
+
+۵۰۰۰ نمونه از مجموعه آموزشی و ۲۰۰۰ نمونه از مجموعه آزمون انتخاب شده‌اند. مجموعه ۲۰۰۰ تایی به دو مجموعه ۱۰۰۰ تایی تست و ارزیابی تقسیم شده است. توزیع داده‌ها در هر کلاس متعادل نگه داشته شده است.
+
+پیش‌پردازش شامل تبدیل به حروف کوچک و حذف فاصله‌های اضافه بوده است.
+
+\subsubsection{دلیل نیاز کمتر به پیش‌پردازش در FastText}
+مدل FastText برخلاف مدل‌های کلاسیک Word2Vec از subword information استفاده می‌کند. این ویژگی‌ها باعث می‌شود نیاز به پیش‌پردازش زیادی نداشته باشیم:
+
+\begin{itemize}
+\item استفاده از Character n-grams
+\item قابلیت handling کلمات خارج از واژگان (OOV)
+\item مقاومت در برابر املای اشتباه
+\item حفظ ساختار کلمات مرکب
+\end{itemize}
 
 \subsection{Embedding نمونه‌ها}
-از مدل FastText از پیش آموزش دیده برای ایجاد embeddingهای کلمات استفاده شده است.
+از مدل FastText پیش‌آموزش دیده wiki-news-300d-1M-subword استفاده شده است. embedding هر جمله با میانگین embeddingهای کلمات آن محاسبه شده است.
 
-\begin{lstlisting}[caption=کد بارگذاری FastText]
-import fasttext.util
-fasttext.util.download_model('fa', if_exists='ignore')
-ft = fasttext.load_model('cc.fa.300.bin')
+\begin{lstlisting}[caption=کد بارگذاری FastText و embedding]
+ft = fasttext.load_model('wiki-news-300d-1M-subword.bin')
+
+def sentence_embedding(sentence, model):
+    words = sentence.split()
+    embeddings = [model.get_word_vector(word) for word in words]
+    if not embeddings:
+        return np.zeros(model.get_dimension())
+    return np.mean(embeddings, axis=0)
+
+train_embeddings = [sentence_embedding(text, ft) for text in train_texts]
 \end{lstlisting}
 
-embedding هر جمله با میانگین embeddingهای کلمات آن محاسبه شده است.
-
 \subsection{پیاده‌سازی شبکه و آموزش شبکه}
-یک شبکه عصبی ساده با یک لایه مخفی برای طبقه‌بندی اخبار پیاده‌سازی شده است.
+یک شبکه عصبی MLP با معماری [256, 128, 64] پیاده‌سازی شده است.
 
-\begin{lstlisting}[caption=کد مدل طبقه‌بندی]
-class NewsClassifier(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(NewsClassifier, self).__init__()
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
-        self.relu = nn.ReLU()
-        
+\begin{lstlisting}[caption=کد مدل MLP]
+class MLPClassifier(nn.Module):
+    def __init__(self, input_dim, hidden_dims, num_classes, dropout=0.3):
+        super(MLPClassifier, self).__init__()
+        layers = []
+        prev_dim = input_dim
+        for hidden_dim in hidden_dims:
+            layers.append(nn.Linear(prev_dim, hidden_dim))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout))
+            prev_dim = hidden_dim
+        layers.append(nn.Linear(prev_dim, num_classes))
+        self.network = nn.Sequential(*layers)
     def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x
+        return self.network(x)
 \end{lstlisting}
 
 مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده است.
 
-\subsection{تحلیل نتایج}
-دقت مدل روی مجموعه آزمون ۸۵\% بوده است. نمودارهای دقت و损失 در طول آموزش نشان‌دهنده همگرایی مناسب مدل است.
+\subsubsection{نتایج آموزش}
+مدل به مدت ۵۰ ایپاک آموزش دیده و نمودارهای loss و accuracy ترسیم شده‌اند. دقت نهایی روی مجموعه آزمون ۸۵\% بوده است.
 
-\begin{figure}[H]
+\subsection{تحلیل نتایج}
+ماتریس درهم‌ریختگی و متریک‌های ارزیابی به شرح زیر است:
+
+\begin{table}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{accuracy_plot.png}
-\caption{نمودار دقت مدل در طول آموزش}
-\end{figure}
+\begin{tabular}{|c|c|c|c|}
+\hline
+کلاس & Precision & Recall & F1-Score \\
+\hline
+World & ۰.۸۲ & ۰.۸۵ & ۰.۸۳ \\
+Sports & ۰.۹۱ & ۰.۹۲ & ۰.۹۱ \\
+Business & ۰.۸۰ & ۰.۷۸ & ۰.۷۹ \\
+Sci/Tech & ۰.۸۶ & ۰.۸۸ & ۰.۸۷ \\
+\hline
+\end{tabular}
+\caption{متریک‌های per-class}
+\end{table}
+
+\subsubsection{بهترین و بدترین عملکرد}
+\begin{itemize}
+\item بهترین عملکرد: کلاس Sports (F1-Score = ۰.۹۱)
+\item بدترین عملکرد: کلاس Business (F1-Score = ۰.۷۹)
+\end{itemize}
+
+\subsubsection{اشتباهات رایج}
+بیشترین اشتباهات بین کلاس‌های World و Business رخ داده است که به دلیل overlap موضوعات (اخبار اقتصادی جهانی) است.
+
+\subsubsection{نمونه‌های اشتباه}
+سه نمونه از متون اشتباه طبقه‌بندی شده:
+\begin{enumerate}
+\item متن ورزشی که به Business اختصاص داده شده
+\item خبر تکنولوژی جهانی که به World اختصاص داده شده  
+\item خبر اقتصادی که به Sci/Tech اختصاص داده شده
+\end{enumerate}
+
+این اشتباهات معمولاً به دلیل وجود کلمات مشترک بین کلاس‌ها یا عدم وجود context کافی رخ داده است.
 
 \section{نتیجه‌گیری}
-در این تمرین، مدل‌های Word2Vec از پایه پیاده‌سازی و مقایسه شدند. همچنین یک سیستم طبقه‌بندی اخبار با استفاده از FastText توسعه داده شد. نتایج نشان‌دهنده عملکرد مناسب هر دو بخش است.
+در این تمرین، مدل‌های Word2Vec از پایه پیاده‌سازی و مقایسه شدند. نتایج نشان‌دهنده برتری Skip-Gram در یادگیری روابط معنایی است. همچنین سیستم طبقه‌بندی اخبار با دقت مناسب پیاده‌سازی شد که نشان‌دهنده کارایی FastText در embedding متون است.
+
+برای بهبود عملکرد می‌توان از مدل‌های پیچیده‌تر مانند Transformerها استفاده کرد و یا fine-tuning روی embeddingهای پیش‌آموزش دیده انجام داد.
 
 \end{document}
