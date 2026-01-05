@@ -132,43 +132,70 @@ class InteractiveSession:
         return final_response + stats
 
     async def _handle_tool_approval(self, tool_calls) -> str:
-        """Handle user approval for sensitive tools."""
+        """Handle user approval for sensitive tools.
+
+        Auto-approval is controlled by environment variables:
+        - CODING_AGENT_AUTO_APPROVE: if truthy, auto-approve all sensitive tools (backwards-compatible)
+        - CODING_AGENT_AUTO_APPROVE_WHITELIST: comma-separated tool names allowed to auto-approve
+        """
+        auto_all = os.environ.get("CODING_AGENT_AUTO_APPROVE", "").lower() in {
+            "1",
+            "y",
+            "yes",
+            "true",
+        }
+        wl_raw = os.environ.get("CODING_AGENT_AUTO_APPROVE_WHITELIST", "")
+        whitelist = {w.strip() for w in wl_raw.split(",") if w.strip()}
+
         for tc in tool_calls:
-            if tc.get("name") in SENSITIVE_TOOLS:
+            name = tc.get("name")
+            args = tc.get("args")
+
+            if name in SENSITIVE_TOOLS:
+                # Global auto-approve
+                if auto_all:
+                    continue
+
+                # Whitelist-based auto-approve
+                if name in whitelist:
+                    continue
+
                 console.print(
                     Panel(
-                        f"[bold yellow]Tool:[/bold yellow] {tc.get('name')}\n[bold]Args:[/bold] {tc.get('args')}",
+                        f"[bold yellow]Tool:[/bold yellow] {name}\n[bold]Args:[/bold] {args}",
                         title="Permission Required",
                         border_style="yellow",
                     )
                 )
-                allow = await self._get_user_confirmation()
+                allow = await self._get_user_confirmation(name)
                 if not allow:
                     denied_msg = ToolMessage(
-                        tool_call_id=tc.get("id"),
-                        content=f"Error: User denied {tc.get('name')}.",
+                        tool_call_id=tc.get("id"), content=f"Error: User denied {name}."
                     )
-                    # Update state to simulate denial
                     try:
                         self.graph.update_state(
                             self.config, {"messages": [denied_msg]}, as_node="tools"
                         )
                     except Exception:
-                        # best-effort; continue
                         pass
                     return "denied"
+
         return "approved"
 
-    async def _get_user_confirmation(self) -> bool:
-        # Allow automatic approval via environment variable for non-interactive runs.
+    async def _get_user_confirmation(self, tool_name: str | None = None) -> bool:
+        """Ask user for confirmation via Rich prompt. Shows tool name if provided."""
         auto = os.environ.get("CODING_AGENT_AUTO_APPROVE", "").lower()
         if auto in {"1", "y", "yes", "true"}:
             return True
         if auto in {"0", "n", "no", "false"}:
             return False
 
+        prompt_text = "Allow execution?"
+        if tool_name:
+            prompt_text = f"Allow execution of '{tool_name}'?"
+
         res = await asyncio.to_thread(
-            Prompt.ask, "Allow?", choices=["y", "n"], default="n"
+            Prompt.ask, prompt_text, choices=["y", "n"], default="n"
         )
         return res == "y"
 

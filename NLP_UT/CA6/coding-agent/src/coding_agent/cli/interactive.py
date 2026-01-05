@@ -80,6 +80,10 @@ class InteractiveCLI:
 - The agent remembers your conversation history
 - Recently accessed files are tracked automatically
 - Use natural language to describe tasks
+
+[bold]Environment variables (HITL):[/bold]
+- `CODING_AGENT_AUTO_APPROVE=1` : auto-approve all sensitive tools (use with caution)
+- `CODING_AGENT_AUTO_APPROVE_WHITELIST=tool1,tool2` : comma-separated tools to auto-approve
 """
         console.print(Panel(help_text, border_style="blue", title="Help"))
 
