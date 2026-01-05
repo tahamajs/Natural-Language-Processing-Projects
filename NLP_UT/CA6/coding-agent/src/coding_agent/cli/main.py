@@ -50,6 +50,19 @@ def chat(
 
 
 @cli.command()
+@click.option("--no-aggregate", is_flag=True, default=False, help="Do not aggregate generated logs into a single summary")
+@click.option("--output", type=click.Path(file_okay=True, dir_okay=False, path_type=Path), default=None, help="Output path for aggregated summary (JSONL)")
+def generate_logs(no_aggregate: bool, output: Path | None):
+    """Generate simulated 'good' logs for test projects and optionally aggregate them."""
+    try:
+        from coding_agent.scripts.generate_good_logs import main as gen_main
+        gen_main(aggregate=not no_aggregate, output=str(output) if output else None)
+    except Exception as e:
+        console.print(f"\n[bold red]Error generating logs:[/bold red] {e}")
+        raise click.Abort()
+
+
+@cli.command()
 def version():
     """Display version information."""
     console.print("[bold cyan]Coding Agent[/bold cyan] version 0.1.0")
