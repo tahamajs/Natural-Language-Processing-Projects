@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 from langchain_core.messages import HumanMessage, ToolMessage
+import os
 
 from .tools import set_project_root, SENSITIVE_TOOLS
 from .backend import build_agent_graph, usage_tracker
@@ -159,6 +160,13 @@ class InteractiveSession:
         return "approved"
 
     async def _get_user_confirmation(self) -> bool:
+        # Allow automatic approval via environment variable for non-interactive runs.
+        auto = os.environ.get("CODING_AGENT_AUTO_APPROVE", "").lower()
+        if auto in {"1", "y", "yes", "true"}:
+            return True
+        if auto in {"0", "n", "no", "false"}:
+            return False
+
         res = await asyncio.to_thread(
             Prompt.ask, "Allow?", choices=["y", "n"], default="n"
         )

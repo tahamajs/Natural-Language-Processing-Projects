@@ -1,9 +1,13 @@
 """Builds the LangGraph agent graph used by the interactive session."""
+
 import os
 from dotenv import load_dotenv
+
 try:
     from langchain_openai import ChatOpenAI
-except Exception:  # pragma: no cover - imported name fallback for environments without the package
+except (
+    Exception
+):  # pragma: no cover - imported name fallback for environments without the package
     ChatOpenAI = None
 
 try:
@@ -26,6 +30,7 @@ from .tools import ALL_TOOLS
 # Load environment variables (API Keys)
 load_dotenv()
 
+
 # --- Bonus: Usage Tracker ---
 class TokenUsageTracker(BaseCallbackHandler):  # type: ignore[misc]
     """Tracks token usage for the session."""
@@ -38,7 +43,9 @@ class TokenUsageTracker(BaseCallbackHandler):  # type: ignore[misc]
 
     def on_llm_end(self, response, **_kwargs):
         llm_output = getattr(response, "llm_output", None) or {}
-        usage = llm_output.get("token_usage", {}) if isinstance(llm_output, dict) else {}
+        usage = (
+            llm_output.get("token_usage", {}) if isinstance(llm_output, dict) else {}
+        )
         if usage:
             self.total_tokens += usage.get("total_tokens", 0)
             self.prompt_tokens += usage.get("prompt_tokens", 0)
@@ -53,6 +60,7 @@ class TokenUsageTracker(BaseCallbackHandler):  # type: ignore[misc]
 # Global tracker instance
 usage_tracker = TokenUsageTracker()
 
+
 def build_agent_graph(checkpointer=None):
     """Builds and returns a compiled LangGraph agent (ReAct style)."""
 
@@ -61,7 +69,9 @@ def build_agent_graph(checkpointer=None):
     if ChatOpenAI is not None:
         # Attach the usage tracker callback if the LLM supports callbacks
         try:
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, callbacks=[usage_tracker])
+            llm = ChatOpenAI(
+                model="gpt-4o-mini", temperature=0, callbacks=[usage_tracker]
+            )
         except Exception:
             llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
@@ -81,16 +91,17 @@ def build_agent_graph(checkpointer=None):
 
     if create_react_agent is None:
         # Fallback: if LangGraph isn't installed, raise a clear error
-        raise RuntimeError("LangGraph 'create_react_agent' is not available in this environment.")
-
+        raise RuntimeError(
+            "LangGraph 'create_react_agent' is not available in this environment."
+        )
+    # Note: different LangGraph versions accept different parameters.
+    # Avoid passing `state_modifier` which may not be supported; rely on LLM/system-level prompts if needed.
     graph = create_react_agent(
         llm,
         tools=ALL_TOOLS,
-        state_modifier=system_message,
         checkpointer=checkpointer,
         # We interrupt before tools so the session can do HITL checks
         interrupt_before=["tools"],
     )
 
     return graph
-
