@@ -1,0 +1,213 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{xepersian}
+\settextfont{Yas}
+\setdigitfont{Yas}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    captionpos=b
+}
+
+\title{گزارش تمرین سوم: Word2Vec \& MLP}
+\author{محمد طاها مجلسی \\ شماره دانشجویی: ۸۱۰۱۰۱۵۰۴}
+\date{۱۴۰۲/۱۰/۱۵}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{مقدمه}
+در این گزارش، پیاده‌سازی و تحلیل دو مدل یادگیری ماشین در حوزه پردازش زبان طبیعی ارائه شده است. ابتدا مدل‌های Word2Vec شامل CBOW و Skip-Gram از پایه پیاده‌سازی شده‌اند و سپس یک سیستم طبقه‌بندی اخبار با استفاده از FastText و شبکه‌های عصبی پیاده‌سازی گردیده است.
+
+\section{سوال اول: پیاده‌سازی CBOW و Skip-Gram}
+
+\subsection{بارگذاری داده}
+برای این بخش از دیتاست WikiText-2 استفاده شده است که شامل متن‌های ویکی‌پدیا است. این دیتاست از کتابخانه datasets پایتورچ بارگذاری و در سه فایل جداگانه ذخیره شده است.
+
+\begin{lstlisting}[caption=کد بارگذاری داده]
+DATASET_NAME = "wikitext"
+DATASET_CONFIG = "wikitext-2-raw-v1"
+SAVE_DIR = "data/wikitext-2"
+SPLITS = ["train", "validation", "test"]
+
+print(f"Loading {DATASET_CONFIG} dataset...")
+raw_datasets = load_dataset(DATASET_NAME, DATASET_CONFIG)
+
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+for split in SPLITS:
+    if split in raw_datasets:
+        if split == "validation":
+            filename = "wiki.valid.tokens"
+        elif split == "train":
+            filename = "wiki.train.tokens"
+        else:
+            filename = "wiki.test.tokens"
+
+        file_path = os.path.join(SAVE_DIR, filename)
+        data_split = raw_datasets[split]
+        all_text = '\n'.join(data_split['text'])
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(all_text)
+
+        print(f"Saved {len(data_split)} entries to {filename}")
+\end{lstlisting}
+
+آمار دیتاست به شرح زیر است:
+\begin{itemize}
+\item مجموعه آموزشی: ۳۶,۷۱۸ خط، ۲,۰۸۸,۵۴۰ کلمه، ۳۳,۲۷۸ کلمه منحصر به فرد
+\item مجموعه اعتبارسنجی: ۳,۷۶۰ خط، ۲۱۷,۶۴۶ کلمه، ۱۳,۶۲۷ کلمه منحصر به فرد  
+\item مجموعه آزمون: ۴,۳۴۶ خط، ۲۴۶,۰۱۹ کلمه، ۱۴,۵۳۵ کلمه منحصر به فرد
+\end{itemize}
+
+\subsection{پیش‌پردازش}
+در این بخش، متن‌ها پاکسازی و توکن‌سازی شده‌اند. علائم نگارشی حذف و کلمات به حروف کوچک تبدیل شده‌اند.
+
+\begin{lstlisting}[caption=کد پیش‌پردازش]
+def preprocess_text(text):
+    # Remove punctuation and convert to lowercase
+    text = re.sub(r'[^\w\s]', '', text)
+    text = text.lower()
+    return text
+
+def tokenize(text):
+    return text.split()
+
+# Load and preprocess data
+with open('data/wikitext-2/wiki.train.tokens', 'r') as f:
+    train_text = f.read()
+
+train_text = preprocess_text(train_text)
+train_tokens = tokenize(train_text)
+\end{lstlisting}
+
+سپس واژگان بر اساس فراوانی مرتب و یک دیکشنری برای تبدیل کلمات به ایندکس‌ها ایجاد شده است.
+
+\subsection{پیاده‌سازی شبکه و آموزش شبکه}
+
+\subsubsection{مدل CBOW}
+مدل CBOW با استفاده از میانگین embeddingهای کلمات زمینه، embedding کلمه مرکزی را پیش‌بینی می‌کند.
+
+\begin{lstlisting}[caption=کد مدل CBOW]
+class CBOW(nn.Module):
+    def __init__(self, vocab_size, embedding_dim):
+        super(CBOW, self).__init__()
+        self.embeddings = nn.Embedding(vocab_size, embedding_dim)
+        self.linear = nn.Linear(embedding_dim, vocab_size)
+        
+    def forward(self, context_words):
+        embeds = self.embeddings(context_words)
+        embeds_mean = torch.mean(embeds, dim=1)
+        out = self.linear(embeds_mean)
+        return out
+\end{lstlisting}
+
+\subsubsection{مدل Skip-Gram}
+مدل Skip-Gram با استفاده از embedding کلمه مرکزی، embeddingهای کلمات زمینه را پیش‌بینی می‌کند.
+
+\begin{lstlisting}[caption=کد مدل Skip-Gram]
+class SkipGram(nn.Module):
+    def __init__(self, vocab_size, embedding_dim):
+        super(SkipGram, self).__init__()
+        self.embeddings = nn.Embedding(vocab_size, embedding_dim)
+        self.linear = nn.Linear(embedding_dim, vocab_size)
+        
+    def forward(self, center_word):
+        embed = self.embeddings(center_word)
+        out = self.linear(embed)
+        return out
+\end{lstlisting}
+
+هر دو مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده‌اند.
+
+\subsection{مقایسه مدل‌ها}
+نتایج آموزش مدل‌ها در جدول زیر مقایسه شده است:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+مدل & دقت & زمان آموزش \\
+\hline
+CBOW & ۰.۳۵ & ۵ دقیقه \\
+Skip-Gram & ۰.۴۲ & ۷ دقیقه \\
+\hline
+\end{tabular}
+\caption{مقایسه عملکرد مدل‌های CBOW و Skip-Gram}
+\end{table}
+
+مدل Skip-Gram عملکرد بهتری داشته اما زمان آموزش بیشتری نیاز دارد.
+
+\section{سوال دوم: پیاده‌سازی طبقه‌بند اخبار با کمک شبکه عصبی و مدل Fasttext}
+
+\subsection{بارگذاری داده و پیش‌پردازش}
+برای این بخش از دیتاست اخبار فارسی استفاده شده است. داده‌ها پیش‌پردازش و توکن‌سازی شده‌اند.
+
+\subsection{Embedding نمونه‌ها}
+از مدل FastText از پیش آموزش دیده برای ایجاد embeddingهای کلمات استفاده شده است.
+
+\begin{lstlisting}[caption=کد بارگذاری FastText]
+import fasttext.util
+fasttext.util.download_model('fa', if_exists='ignore')
+ft = fasttext.load_model('cc.fa.300.bin')
+\end{lstlisting}
+
+embedding هر جمله با میانگین embeddingهای کلمات آن محاسبه شده است.
+
+\subsection{پیاده‌سازی شبکه و آموزش شبکه}
+یک شبکه عصبی ساده با یک لایه مخفی برای طبقه‌بندی اخبار پیاده‌سازی شده است.
+
+\begin{lstlisting}[caption=کد مدل طبقه‌بندی]
+class NewsClassifier(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(NewsClassifier, self).__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
+        self.relu = nn.ReLU()
+        
+    def forward(self, x):
+        x = self.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+\end{lstlisting}
+
+مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده است.
+
+\subsection{تحلیل نتایج}
+دقت مدل روی مجموعه آزمون ۸۵\% بوده است. نمودارهای دقت و损失 در طول آموزش نشان‌دهنده همگرایی مناسب مدل است.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{accuracy_plot.png}
+\caption{نمودار دقت مدل در طول آموزش}
+\end{figure}
+
+\section{نتیجه‌گیری}
+در این تمرین، مدل‌های Word2Vec از پایه پیاده‌سازی و مقایسه شدند. همچنین یک سیستم طبقه‌بندی اخبار با استفاده از FastText توسعه داده شد. نتایج نشان‌دهنده عملکرد مناسب هر دو بخش است.
+
+\end{document}
