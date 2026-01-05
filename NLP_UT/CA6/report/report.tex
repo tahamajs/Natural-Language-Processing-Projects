@@ -1054,15 +1054,16 @@ def calculate_cosine_similarity(vec_a, vec_b):
     vector magnitude. This prevents longer documents from artificially 
     scoring higher due to word count alone.
     
-    Formula: cos(θ) = (a·b) / (||a|| * ||b||)
+    Mathematical foundation: cos(theta) = (a*b) / (|a| * |b|)
+    where a*b is the dot product and |a| is the L2 norm.
     """
     if len(vec_a) != len(vec_b):
         raise ValueError("Vectors must be of same length")
 
-    # Compute dot product: ∑(a_i * b_i)
+    # Compute dot product: sum(a_i * b_i for all i)
     dot_product = sum(a * b for a, b in zip(vec_a, vec_b))
     
-    # Compute L2 norms: √∑(a_i²) and √∑(b_i²)
+    # Compute L2 norms: sqrt(sum(a_i^2)) and sqrt(sum(b_i^2))
     norm_a = sum(a * a for a in vec_a) ** 0.5
     norm_b = sum(b * b for b in vec_b) ** 0.5
     
@@ -1502,8 +1503,8 @@ def get_probability(self, w1, w2):
     probability is ever exactly zero. This provides robustness for sparse
     data and prevents generation failures.
     
-    Formula: P_smooth(w2|w1) = (C(w1,w2) + 1) / (C(w1) + V)
-    Where V is vocabulary size (smoothing parameter)
+    Mathematical foundation: P_smooth(w2|w1) = (C(w1,w2) + 1) / (C(w1) + V)
+    where V is vocabulary size (smoothing parameter)
     """
     V = max(1, len(self.vocab))  # Vocabulary size for smoothing
     
