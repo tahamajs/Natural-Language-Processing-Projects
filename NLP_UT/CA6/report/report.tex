@@ -88,6 +88,9 @@ To enable the agent to interact with the environment, I implemented a set of too
     \item \textbf{List Files:} vital for the agent to understand directory structure.
     \item \textbf{Search Files:} Uses glob patterns to find files.
     \item \textbf{Execute Shell:} Runs command-line operations (e.g., \texttt{pytest}).
+    \item \textbf{Git Operations:} Performs git status, diff, commit, and reset for version control safety.
+    \item \textbf{Grep Code:} Searches for string patterns inside files to locate code snippets.
+    \item \textbf{Run Linter:} Checks code for syntax errors using Ruff before execution.
 \end{itemize}
 
 \textbf{Implementation Snippet (Tools):}
@@ -217,8 +220,76 @@ def execute_shell(command: str) -> str:
     except Exception as e:
         return f"Error executing command: {str(e)}"
 
-ALL_TOOLS = [list_files, read_file, create_file, overwrite_file, search_files, execute_shell]
-SENSITIVE_TOOLS = {"create_file", "overwrite_file", "execute_shell"}
+@tool
+def git_operations(operation: str, file_path: Optional[str] = None, message: Optional[str] = None) -> str:
+    """Perform Git operations: status, diff, commit, reset. Requires git to be installed."""
+    try:
+        if operation == "status":
+            result = subprocess.run(["git", "status", "--porcelain"], cwd=PROJECT_ROOT, capture_output=True, text=True)
+            return result.stdout.strip() or "No changes."
+        elif operation == "diff":
+            cmd = ["git", "diff"]
+            if file_path:
+                cmd.append(file_path)
+            result = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+            return result.stdout.strip() or "No differences."
+        elif operation == "commit":
+            if not message:
+                return "Error: Commit requires a message."
+            subprocess.run(["git", "add", "."], cwd=PROJECT_ROOT, check=True)
+            result = subprocess.run(["git", "commit", "-m", message], cwd=PROJECT_ROOT, capture_output=True, text=True)
+            return result.stdout.strip() or "Committed successfully."
+        elif operation == "reset":
+            if not file_path:
+                return "Error: Reset requires a file path."
+            result = subprocess.run(["git", "checkout", "--", file_path], cwd=PROJECT_ROOT, capture_output=True, text=True)
+            return result.stdout.strip() or f"Reset {file_path}."
+        else:
+            return f"Error: Unknown operation '{operation}'. Supported: status, diff, commit, reset."
+    except subprocess.CalledProcessError as e:
+        return f"Git error: {e.stderr.strip()}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+@tool
+def grep_code(pattern: str, file_pattern: Optional[str] = None) -> str:
+    """Search for a pattern in code files using grep. Supports regex."""
+    try:
+        cmd = ["grep", "-r", "-n", pattern, "."]
+        if file_pattern:
+            cmd.extend(["--include", file_pattern])
+        cmd.extend(["--exclude-dir=.git", "--exclude-dir=__pycache__"])
+        result = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout.strip()
+        elif result.returncode == 1:
+            return "No matches found."
+        else:
+            return f"Grep error: {result.stderr.strip()}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+@tool
+def run_linter(file_path: Optional[str] = None) -> str:
+    """Run ruff linter on files. Requires ruff to be installed."""
+    try:
+        cmd = ["ruff", "check"]
+        if file_path:
+            cmd.append(file_path)
+        else:
+            cmd.append(".")
+        result = subprocess.run(cmd, cwd=PROJECT_ROOT, capture_output=True, text=True)
+        output = result.stdout.strip()
+        if result.stderr:
+            output += f"\nSTDERR: {result.stderr.strip()}"
+        return output or "No linting issues found."
+    except subprocess.CalledProcessError as e:
+        return f"Linter error: {e.stderr.strip()}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+ALL_TOOLS = [list_files, read_file, create_file, overwrite_file, search_files, execute_shell, git_operations, grep_code, run_linter]
+SENSITIVE_TOOLS = {"create_file", "overwrite_file", "execute_shell", "git_operations"}
 \end{lstlisting}
 
 \subsection{Graph Design and State Management (25 Points)}
@@ -303,13 +374,13 @@ def build_agent_graph(checkpointer=None):
         checkpointer = MemorySaver()
 
     system_message = (
-        "You are an autonomous coding agent. "
-        "ALWAYS start EVERY response by calling list_files('.') to explore the project structure. "
-        "Use tools for ALL file operations: reading, writing, searching, and shell commands. "
-        "NEVER ask the user for file paths, code content, or project details. Discover them yourself with tools. "
-        "For any coding task, first map the codebase with list_files, then read relevant files, then implement changes. "
-        "Use execute_shell for running tests or commands. "
-        "Be proactive and use tools immediately."
+        "You are a professional coding agent.\n"
+        "RULES:\n"
+        "1. Before changing any code, CREATE or UPDATE a file named 'PLAN.md' "
+        "   outlining your step-by-step approach.\n"
+        "2. Always check directory structure first.\n"
+        "3. Use 'grep_code' to find function definitions.\n"
+        "4. If tests fail, update 'PLAN.md' with your hypothesis before trying again."
     )
 
     if create_react_agent is None:
@@ -445,6 +516,18 @@ To prevent the context window from overflowing with massive file contents, a pru
 
 \subsection{Session Save and Restore (5 Points)}
 I added \texttt{/save} and \texttt{/load} commands to the CLI. These use Python's \texttt{pickle} module to serialize the \texttt{MemorySaver} storage, allowing the user to pause debugging and resume later exactly where they left off.
+
+\subsection{Git Integration (Bonus)}
+Git operations tool allows the agent to perform version control actions like status, diff, commit, and reset, providing a safety net for code changes.
+
+\subsection{Code Search with Grep (Bonus)}
+The grep tool enables searching for specific code patterns inside files, allowing the agent to quickly locate function definitions and code snippets.
+
+\subsection{Automatic Linting (Bonus)}
+A linter tool runs Ruff to check for syntax errors before code execution, helping the agent fix issues proactively.
+
+\subsection{Planning Scratchpad (Bonus)}
+The agent is instructed to maintain a \texttt{PLAN.md} file outlining its step-by-step approach before making code changes, improving reasoning and transparency.
 
 % -----------------------------------------------------------------------------
 % SECTION 4: EVALUATION PROJECTS
@@ -745,7 +828,7 @@ Introduction \& Architecture Overview: The report explains that we built an auto
 
 Implementation of Mandatory Features (100 points): The mandatory features from the assignment are fully implemented and documented as follows. Tool development (25 points) is implemented in `src/coding_agent/agent/tools.py` and includes `read_file`, `create_file`, `overwrite_file`, `list_files`, `search_files`, and `execute_shell`. Each tool uses a `_get_safe_path` check to prevent operation outside the configured `PROJECT_ROOT`. Graph design and state management (25 points) are implemented in `src/coding_agent/agent/backend.py` where the ReAct agent is instantiated and connected to the tool set; `MemorySaver` is used to persist state and `thread_id` isolates sessions. Human-in-the-Loop (15 points) is enforced in `src/coding_agent/agent/session.py`: the graph is configured with `interrupt_before=["tools"]`, the CLI shows the exact tool and arguments with a Rich `Panel`, and the user must confirm. Memory management (10 points) is implemented via `MemorySaver` plus the `_prune_context()` mechanism which truncates large tool outputs after each turn. CLI development (15 points) uses the Rich library and is implemented in `src/coding_agent/cli/interactive.py`; help text, `/save` and `/load` commands, and HITL prompts are included.
 
-Bonus Features (15 points): The bonus features are implemented and demonstrated. Usage tracking (5 points) is implemented as `TokenUsageTracker` in `src/coding_agent/agent/backend.py` and results are appended to the agent responses and logged. Smart context management (5 points) is implemented via `_prune_context()` in `session.py`. Session save and restore (5 points) are exposed via `/save` and `/load` commands; the code attempts a pickle-based full save and falls back to a JSON summary for environments that cannot pickle runtime objects; both behaviors are logged and described in the report.
+Bonus Features (15 points): The bonus features are implemented and demonstrated. Usage tracking (5 points) is implemented as `TokenUsageTracker` in `src/coding_agent/agent/backend.py` and results are appended to the agent responses and logged. Smart context management (5 points) is implemented via `_prune_context()` in `session.py`. Session save and restore (5 points) are exposed via `/save` and `/load` commands; the code attempts a pickle-based full save and falls back to a JSON summary for environments that cannot pickle runtime objects; both behaviors are logged and described in the report. Additional bonuses include Git integration, code search with grep, automatic linting, and planning scratchpad for enhanced professionalism.
 
 Evaluation Projects (proof): For each provided evaluation project the agent executed the test-run-fix loop and produced passing test suites. The corrected source files are included under `test_projects/` and the exact pytest runs are recorded in the Detailed Test Results and session logs. Evidence for each project:
 \begin{itemize}

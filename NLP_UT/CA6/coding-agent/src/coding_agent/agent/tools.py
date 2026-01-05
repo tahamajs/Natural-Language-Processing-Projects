@@ -134,8 +134,69 @@ def execute_shell(command: str) -> str:
         return f"Error executing command: {str(e)}"
 
 
+@tool
+def git_operations(action: str, message: str = "") -> str:
+    """Perform git operations.
+    Args:
+        action: One of 'status', 'diff', 'commit', 'reset'
+        message: Commit message (required for 'commit')
+    """
+    try:
+        if action == "status":
+            res = subprocess.run(["git", "status", "--short"], cwd=PROJECT_ROOT, capture_output=True, text=True)
+            return res.stdout or "No changes."
+        elif action == "diff":
+            res = subprocess.run(["git", "diff"], cwd=PROJECT_ROOT, capture_output=True, text=True)
+            return res.stdout or "No diffs."
+        elif action == "commit":
+            subprocess.run(["git", "add", "."], cwd=PROJECT_ROOT, check=True)
+            subprocess.run(["git", "commit", "-m", message], cwd=PROJECT_ROOT, check=True)
+            return f"Committed with message: {message}"
+        elif action == "reset":
+            subprocess.run(["git", "reset", "--hard"], cwd=PROJECT_ROOT, check=True)
+            return "Hard reset performed. All uncommitted changes discarded."
+        return "Invalid action."
+    except Exception as e:
+        return f"Git error: {str(e)}"
+
+
+@tool
+def grep_code(query: str, directory: str = ".") -> str:
+    """Search for a string pattern INSIDE files (like grep).
+    Returns 'file_path:line_number: content'.
+    """
+    try:
+        # grep -rn "query" .
+        cmd = ["grep", "-rn", query, str(_get_safe_path(directory))]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        
+        lines = res.stdout.splitlines()
+        # Limit output to prevent context overflow
+        if len(lines) > 20:
+            return "\n".join(lines[:20]) + f"\n... ({len(lines)-20} more matches)"
+        return res.stdout or "No matches found."
+    except Exception as e:
+        return f"Grep error: {str(e)}"
+
+
+@tool
+def run_linter(file_path: str = ".") -> str:
+    """Run a linter (Ruff) on the code to check for syntax errors."""
+    try:
+        # Using ruff as it's fast, but you can use 'flake8' or 'pylint'
+        cmd = ["ruff", "check", str(_get_safe_path(file_path))]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode == 0:
+            return "No linting errors found."
+        return f"Linting Errors:\n{res.stdout}"
+    except FileNotFoundError:
+        return "Ruff is not installed. Run 'pip install ruff'."
+    except Exception as e:
+        return f"Linter error: {str(e)}"
+
+
 # List of tools exported for the agent
-ALL_TOOLS = [list_files, read_file, create_file, overwrite_file, search_files, execute_shell]
+ALL_TOOLS = [list_files, read_file, create_file, overwrite_file, search_files, execute_shell, git_operations, grep_code, run_linter]
 # Tools that require Human-in-the-Loop confirmation
-SENSITIVE_TOOLS = {"create_file", "overwrite_file", "execute_shell"}
+SENSITIVE_TOOLS = {"create_file", "overwrite_file", "execute_shell", "git_operations"}
 

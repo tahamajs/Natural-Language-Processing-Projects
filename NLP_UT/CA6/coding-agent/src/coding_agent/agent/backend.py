@@ -83,13 +83,13 @@ def build_agent_graph(checkpointer=None):
 
     # Provide a stronger system prompt / state modifier for the agent to enforce agency
     system_message = (
-        "You are an autonomous coding agent. "
-        "ALWAYS start EVERY response by calling list_files('.') to explore the project structure. "
-        "Use tools for ALL file operations: reading, writing, searching, and shell commands. "
-        "NEVER ask the user for file paths, code content, or project details. Discover them yourself with tools. "
-        "For any coding task, first map the codebase with list_files, then read relevant files, then implement changes. "
-        "Use execute_shell for running tests or commands. "
-        "Be proactive and use tools immediately."
+        "You are a professional coding agent.\n"
+        "RULES:\n"
+        "1. Before changing any code, CREATE or UPDATE a file named 'PLAN.md' "
+        "   outlining your step-by-step approach.\n"
+        "2. Always check directory structure first.\n"
+        "3. Use 'grep_code' to find function definitions.\n"
+        "4. If tests fail, update 'PLAN.md' with your hypothesis before trying again."
     )
 
     if create_react_agent is None:
