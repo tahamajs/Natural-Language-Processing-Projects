@@ -1,0 +1,13 @@
+Test session completed successfully.
+
+============================= test session starts ==============================
+platform darwin -- Python 3.11.7, pytest-9.0.2, pluggy-1.6.0
+rootdir: /Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA6/coding-agent
+configfile: pyproject.toml
+plugins: anyio-4.12.0, asyncio-1.3.0, langsmith-0.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 3 items
+
+tests/test_tinyrag.py ...                                                [100%]
+
+============================== 3 passed in 0.02s ===============================

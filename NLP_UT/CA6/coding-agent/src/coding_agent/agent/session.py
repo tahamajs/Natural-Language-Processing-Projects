@@ -236,11 +236,45 @@ class InteractiveSession:
         try:
             if self.checkpointer is None:
                 return "Save not available: no checkpointer."
+            storage = getattr(self.checkpointer, "storage", None)
+            try:
+                # Try binary pickle first
+                with open(filename, "wb") as f:
+                    pickle.dump(storage, f)
+                return f"Session saved to {filename}"
+            except Exception:
+                # Fallback: save a JSON summary of messages and usage
+                try:
+                    snapshot = self.graph.get_state(self.config)
+                    messages = snapshot.values.get("messages", [])
+                    serial_msgs = []
+                    for m in messages:
+                        try:
+                            serial_msgs.append(
+                                {
+                                    "type": getattr(m, "type", None),
+                                    "content": getattr(m, "content", str(m)),
+                                }
+                            )
+                        except Exception:
+                            serial_msgs.append({"content": str(m)})
 
-            with open(filename, "wb") as f:
-                pickle.dump(getattr(self.checkpointer, "storage", None), f)
-
-            return f"Session saved to {filename}"
+                    summary = {
+                        "thread_id": self.thread_id,
+                        "messages": serial_msgs,
+                        "usage": {
+                            "total_tokens": getattr(usage_tracker, "total_tokens", 0),
+                            "cost_est": getattr(usage_tracker, "cost_est", 0.0),
+                        },
+                    }
+                    json_filename = (
+                        filename if filename.endswith(".json") else f"{filename}.json"
+                    )
+                    with open(json_filename, "w", encoding="utf-8") as fjson:
+                        json.dump(summary, fjson, ensure_ascii=False, indent=2)
+                    return f"Session saved to {json_filename} (summary)"
+                except Exception as e:
+                    return f"Error saving session fallback: {str(e)}"
         except Exception as e:
             return f"Error saving session: {str(e)}"
 
@@ -252,16 +286,34 @@ class InteractiveSession:
 
             if self.checkpointer is None:
                 return "Load not available: no checkpointer."
-
-            with open(filename, "rb") as f:
-                storage = pickle.load(f)
-
+            # Try to load binary pickle
             try:
-                self.checkpointer.storage = storage
+                with open(filename, "rb") as f:
+                    storage = pickle.load(f)
+                try:
+                    self.checkpointer.storage = storage
+                except Exception:
+                    setattr(self.checkpointer, "storage", storage)
+                return "Session loaded successfully (pickle)"
             except Exception:
-                # best-effort assignment
-                setattr(self.checkpointer, "storage", storage)
-
-            return "Session loaded successfully."
+                # Try JSON summary format
+                try:
+                    json_filename = (
+                        filename if filename.endswith(".json") else f"{filename}.json"
+                    )
+                    if not Path(json_filename).exists():
+                        return "No compatible session file found."
+                    with open(json_filename, "r", encoding="utf-8") as fjson:
+                        summary = json.load(fjson)
+                    # Restore minimal info into checkpointer.storage if possible
+                    try:
+                        setattr(
+                            self.checkpointer, "storage", summary.get("messages", [])
+                        )
+                    except Exception:
+                        pass
+                    return "Session loaded from summary (partial restore)"
+                except Exception as e:
+                    return f"Error loading session fallback: {str(e)}"
         except Exception as e:
             return f"Error loading session: {str(e)}"
