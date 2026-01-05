@@ -1,12 +1,16 @@
 """Interactive CLI mode for multi-turn conversations."""
 
 import asyncio
+import os
 from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.rule import Rule
+from rich.markdown import Markdown
+
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 
 from coding_agent.agent.session import InteractiveSession
 
@@ -59,13 +63,15 @@ class InteractiveCLI:
 
     def _print_welcome(self) -> None:
         """Print welcome message."""
-        console.print(Panel(
-            "[bold cyan]Coding Agent[/bold cyan]\n\n"
-            f"Project: {self.session.project_root}\n"
-            "Type your coding tasks or questions. Use /help for commands.",
-            border_style="cyan",
-            title="Welcome",
-        ))
+        console.print(
+            Panel(
+                "[bold cyan]Coding Agent[/bold cyan]\n\n"
+                f"Project: {self.session.project_root}\n"
+                "Type your coding tasks or questions. Use /help for commands.",
+                border_style="cyan",
+                title="Welcome",
+            )
+        )
 
     def _print_help(self) -> None:
         """Print help message."""
@@ -74,6 +80,9 @@ class InteractiveCLI:
 [cyan]/help[/cyan]        - Show this help message
 [cyan]/save[/cyan]        - Save current session (Bonus)
 [cyan]/load [file][/cyan] - Load session from file (Bonus)
+[cyan]/clear[/cyan]       - Clear the terminal screen (New)
+[cyan]/history[/cyan]     - Show conversation history (New)
+[cyan]/paste[/cyan]       - Enter multi-line paste mode (New)
 [cyan]/exit[/cyan]        - Exit the session
 
 [bold]Tips:[/bold]
@@ -89,13 +98,15 @@ class InteractiveCLI:
 
     def _print_goodbye(self) -> None:
         """Print goodbye message."""
-        
-        console.print(Panel(
-            "[bold cyan]Session Ended[/bold cyan]\n\n"
-            "Thank you for using Coding Agent!",
-            border_style="cyan",
-            title="Goodbye",
-        ))
+
+        console.print(
+            Panel(
+                "[bold cyan]Session Ended[/bold cyan]\n\n"
+                "Thank you for using Coding Agent!",
+                border_style="cyan",
+                title="Goodbye",
+            )
+        )
 
     async def _get_input(self) -> str:
         """Get user input.
@@ -119,16 +130,22 @@ class InteractiveCLI:
         """
 
         try:
-            # Process the turn
-            turn_result = await self.session.process_turn(user_message)
+            # Show spinner while agent processes the turn
+            with console.status(
+                "[bold green]Agent is thinking...[/bold green]", spinner="dots"
+            ):
+                turn_result = await self.session.process_turn(user_message)
 
-            # Display response
+            # Display response with Markdown rendering and syntax highlighting
             console.print(f"\n[bold blue]Agent[/bold blue]:")
-            console.print(Panel(
-                turn_result,
-                border_style="blue",
-                title="Response",
-            ))
+            md_response = Markdown(turn_result)
+            console.print(
+                Panel(
+                    md_response,
+                    border_style="blue",
+                    title="Response",
+                )
+            )
 
         except Exception as e:
             console.print(f"[red]Error processing turn: {str(e)}[/red]")
@@ -159,6 +176,110 @@ class InteractiveCLI:
                 console.print(f"[green]{result}[/green]")
             except Exception as e:
                 console.print(f"[red]Error loading session: {e}[/red]")
+
+        elif cmd == "/clear":
+            # Clear terminal and reprint welcome
+            os.system("cls" if os.name == "nt" else "clear")
+            self._print_welcome()
+
+        elif cmd == "/history":
+            try:
+                snapshot = self.session.graph.get_state(self.session.config)
+                messages = snapshot.values.get("messages", []) or []
+                console.print("\n[bold]Conversation History:[/bold]")
+                for msg in messages:
+                    mtype = getattr(msg, "type", None)
+                    content = getattr(msg, "content", "") or str(msg)
+                    if mtype and mtype.lower().startswith("human"):
+                        console.print(f"[green]You:[/green] {content}")
+                    elif mtype and mtype.lower().startswith("ai"):
+                        preview = content[:200] + ("..." if len(content) > 200 else "")
+                        console.print(f"[blue]Agent:[/blue] {preview}")
+                    else:
+                        # ToolMessage or unknown
+                        name = getattr(msg, "name", "tool")
+                        console.print(f"[dim]Tool ({name}): {len(content)} chars[/dim]")
+            except Exception as e:
+                console.print(f"[red]Could not retrieve history: {e}[/red]")
+
+        elif cmd == "/paste":
+            console.print(
+                "[yellow]Entering multi-line mode. Type 'EOF' on a new line to send.[/yellow]"
+            )
+            lines = []
+            while True:
+                try:
+                    line = await asyncio.to_thread(Prompt.ask, "")
+                except EOFError:
+                    break
+                if line.strip().upper() == "EOF":
+                    break
+                lines.append(line)
+
+            full_message = "\n".join(lines)
+            if full_message.strip():
+                await self._process_turn(full_message)
+        elif cmd == "/context":
+            try:
+                state = self.session.graph.get_state(self.session.config)
+                msgs = state.values.get("messages", []) or []
+                file_content_size = 0
+                for m in msgs:
+                    if isinstance(m, ToolMessage):
+                        content = getattr(m, "content", "")
+                        if isinstance(content, str):
+                            file_content_size += len(content)
+
+                console.print(
+                    Panel(
+                        f"Total Messages: [bold]{len(msgs)}[/bold]\n"
+                        f"File Content in Memory: [bold]{file_content_size} chars[/bold]\n"
+                        f"Thread ID: {self.session.thread_id}",
+                        title="Context Inspector",
+                        border_style="magenta",
+                    )
+                )
+            except Exception as e:
+                console.print(f"[red]Could not inspect context: {e}[/red]")
+
+        elif cmd == "/mode":
+            # Toggle runtime auto_mode for safety vs. auto
+            try:
+                self.session.auto_mode = not getattr(self.session, "auto_mode", False)
+                status = (
+                    "[bold red]AUTO (Dangerous)[/bold red]"
+                    if self.session.auto_mode
+                    else "[bold green]SAFE (HITL)[/bold green]"
+                )
+                console.print(f"Switched to {status} mode.")
+            except Exception as e:
+                console.print(f"[red]Could not toggle mode: {e}[/red]")
+
+        elif cmd == "/test":
+            console.print("[dim]Injecting test command...[/dim]")
+            await self._process_turn(
+                "Run the full test suite using pytest and report results."
+            )
+
+        elif cmd == "/retry":
+            try:
+                state = self.session.graph.get_state(self.session.config)
+                msgs = state.values.get("messages", []) or []
+                if len(msgs) > 2:
+                    new_msgs = msgs[:-2]
+                    try:
+                        self.session.graph.update_state(
+                            self.session.config, {"messages": new_msgs}
+                        )
+                        console.print(
+                            "[green]Rewound last turn. Try phrasing your request differently.[/green]"
+                        )
+                    except Exception as e:
+                        console.print(f"[red]Failed to rewind state: {e}[/red]")
+                else:
+                    console.print("[red]Cannot rewind further.[/red]")
+            except Exception as e:
+                console.print(f"[red]Retry failed: {e}[/red]")
 
         elif cmd == "/exit" or cmd == "/quit" or cmd == "/q":
             console.print("\n[cyan]Exiting session...[/cyan]")

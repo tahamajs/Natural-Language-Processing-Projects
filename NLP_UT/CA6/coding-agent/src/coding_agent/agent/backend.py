@@ -67,26 +67,34 @@ def build_agent_graph(checkpointer=None):
     # Initialize the LLM
     llm = None
     if ChatOpenAI is not None:
+        model_name = os.getenv("CODING_AGENT_MODEL_NAME", "gpt-4o-mini")
+        temperature = float(os.getenv("CODING_AGENT_TEMPERATURE", "0.1"))
         # Attach the usage tracker callback if the LLM supports callbacks
         try:
             llm = ChatOpenAI(
-                model="gpt-4o-mini", temperature=0, callbacks=[usage_tracker]
+                model=model_name, temperature=temperature, callbacks=[usage_tracker]
             )
         except Exception:
-            llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+            llm = ChatOpenAI(model=model_name, temperature=temperature)
 
     # Memory for the graph state (short-term session memory)
     if checkpointer is None and MemorySaver is not None:
         checkpointer = MemorySaver()
 
-    # Provide a helpful system prompt / state modifier for the agent
+    # Provide a stronger system prompt / state modifier for the agent to enforce agency
     system_message = (
-        "You are a professional coding agent. "
-        "You have access to a file system and shell. "
-        "Always check the directory structure using list_files before starting. "
-        "When fixing bugs, read the file, plan the fix, write a test if missing, "
-        "modify the code, and run the test to verify. "
-        "Be concise and efficient."
+        "You are an autonomous coding agent with full access to the file system and shell. "
+        "Your primary objective is to solve coding tasks with minimal user input by using the available tools. "
+        "CRITICAL RULES - VIOLATION RESULTS IN FAILURE: "
+        "1. NEVER ASK the user for file paths, class names, project structure, or any information you can discover yourself. "
+        "2. FOR EVERY USER REQUEST, IMMEDIATELY start by calling 'list_files' on the project root ('.') to map the codebase. "
+        "3. Use 'search_files' with appropriate patterns (e.g., '*.py') to locate relevant files. "
+        "4. Use 'read_file' to examine code before proposing changes. "
+        "5. When planning fixes: read affected files, understand the code, propose changes, implement via tools, and verify with tests. "
+        "6. For sensitive operations (create_file, overwrite_file, execute_shell): the system will handle user confirmation automatically. "
+        "7. ONLY ask the user for clarification if you have exhausted all tools and still cannot proceed. "
+        "8. Be proactive: Assume you have permission to explore the codebase. Use tools aggressively to gather information. "
+        "Remember: Your goal is to demonstrate 'agency' by acting independently, not waiting for user input."
     )
 
     if create_react_agent is None:

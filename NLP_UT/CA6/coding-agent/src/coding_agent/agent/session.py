@@ -13,6 +13,8 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from langchain_core.messages import HumanMessage, ToolMessage
 import os
+import difflib
+from rich.syntax import Syntax
 
 from .tools import set_project_root, SENSITIVE_TOOLS
 from .backend import build_agent_graph, usage_tracker
@@ -35,6 +37,8 @@ class InteractiveSession:
         self.graph = build_agent_graph(self.checkpointer)
         self.thread_id = str(uuid.uuid4())
         self.config = {"configurable": {"thread_id": self.thread_id}}
+        # Safety mode: when True, auto-approve all sensitive tools (runtime toggle)
+        self.auto_mode = False
         # Log file for conversation and intermediate states
         try:
             log_dir = Path(self.project_root) / ".coding_agent_logs"
@@ -86,7 +90,6 @@ class InteractiveSession:
                     tool_calls = getattr(last_message, "tool_calls", []) or []
                     if not tool_calls:
                         break
-
                     resume_signal = await self._handle_tool_approval(tool_calls)
                     if resume_signal == "denied":
                         current_inputs = None
@@ -152,13 +155,68 @@ class InteractiveSession:
             args = tc.get("args")
 
             if name in SENSITIVE_TOOLS:
-                # Global auto-approve
+                # Respect runtime auto_mode toggle
+                if getattr(self, "auto_mode", False):
+                    continue
+
+                # Global auto-approve via env var
                 if auto_all:
                     continue
 
                 # Whitelist-based auto-approve
                 if name in whitelist:
                     continue
+
+                # Show a live diff for overwrite_file to help review changes
+                if name == "overwrite_file":
+                    try:
+                        file_path = (
+                            args.get("file_path")
+                            or args.get("path")
+                            or args.get("file")
+                        )
+                        new_content = args.get("content", "")
+                        target = (Path(self.project_root) / file_path).resolve()
+                        if target.exists():
+                            old_content = target.read_text(encoding="utf-8")
+                            diff_iter = difflib.unified_diff(
+                                old_content.splitlines(),
+                                new_content.splitlines(),
+                                fromfile=f"a/{file_path}",
+                                tofile=f"b/{file_path}",
+                                lineterm="",
+                            )
+                            diff_text = "\n".join(list(diff_iter))
+                            console.print(
+                                Panel(
+                                    Syntax(
+                                        diff_text,
+                                        "diff",
+                                        theme="monokai",
+                                        line_numbers=True,
+                                    ),
+                                    title=f"Proposed Changes for {file_path}",
+                                    border_style="bold yellow",
+                                )
+                            )
+                        else:
+                            console.print(
+                                "[dim]File does not exist locally; showing new file preview.[/dim]"
+                            )
+                            preview = Syntax(
+                                new_content[:2000], "python", theme="monokai"
+                            )
+                            console.print(
+                                Panel(
+                                    preview,
+                                    title=f"New file preview: {file_path}",
+                                    border_style="yellow",
+                                )
+                            )
+                    except Exception:
+                        console.print(
+                            "[dim]Could not generate diff (new file or error)[/dim]"
+                        )
 
                 console.print(
                     Panel(
@@ -184,6 +242,10 @@ class InteractiveSession:
 
     async def _get_user_confirmation(self, tool_name: str | None = None) -> bool:
         """Ask user for confirmation via Rich prompt. Shows tool name if provided."""
+        # If runtime auto_mode is enabled, approve automatically
+        if getattr(self, "auto_mode", False):
+            return True
+
         auto = os.environ.get("CODING_AGENT_AUTO_APPROVE", "").lower()
         if auto in {"1", "y", "yes", "true"}:
             return True

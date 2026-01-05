@@ -1,0 +1,4 @@
+tiny_rag: 3 passed
+legacy_csv_processor: 4 passed
+bigram_generator: 6 passed
+Note: top-level pytest from repo root fails during collection due to module import paths; run per-project tests from each test_projects subfolder or set PYTHONPATH accordingly.
