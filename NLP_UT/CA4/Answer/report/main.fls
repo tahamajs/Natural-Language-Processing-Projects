@@ -1,0 +1,6 @@
+PWD /Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report
+INPUT /usr/local/texlive/2025basic/texmf.cnf
+INPUT /usr/local/texlive/2025basic/texmf-dist/web2c/texmf.cnf
+INPUT /usr/local/texlive/2025basic/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT /Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report/main.tex
+OUTPUT main.log

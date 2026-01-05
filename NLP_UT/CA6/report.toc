@@ -1,0 +1,44 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}Coding Agent Implementation (100 Points)}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Tool Development (25 Points)}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Graph Design and State Management (25 Points)}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Human In The Loop (HITL) (15 Points)}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Memory Management (10 Points)}{3}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}CLI Development (15 Points)}{3}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Bonus Implementation (15 Points)}{3}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Usage Tracker (5 Points)}{3}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Smart Context Management (5 Points)}{3}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Session Save and Restore (5 Points)}{4}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Agent Evaluation & Results}{4}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Project 1: Legacy CSV Processor}{4}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Project 2: TinyRAG Search System}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Project 3: Bigram Language Model}{6}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Execution Logs}{7}{section.5}%
+\contentsline {section}{\numberline {6}Video Demonstration}{7}{section.6}%
+\contentsline {section}{\numberline {7}Detailed Test Results}{7}{section.7}%
+\contentsline {section}{\numberline {8}Files Modified / Created}{8}{section.8}%
+\contentsline {section}{\numberline {9}Usage Report}{9}{section.9}%
+\contentsline {section}{\numberline {10}How to Reproduce}{9}{section.10}%
+\contentsline {section}{\numberline {11}Deliverables}{9}{section.11}%
+\contentsline {section}{\numberline {12}Comprehensive Project Description (Appendix)}{10}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Project Overview}{10}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}System Architecture}{10}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Key Components and Capabilities}{10}{subsection.12.3}%
+\contentsline {subsubsection}{\numberline {12.3.1}A. Toolset (The ``Hands'')}{10}{subsubsection.12.3.1}%
+\contentsline {subsubsection}{\numberline {12.3.2}B. Graph Design and State Management (The ``Brain'')}{11}{subsubsection.12.3.2}%
+\contentsline {subsubsection}{\numberline {12.3.3}C. Human-In-The-Loop (Safety)}{11}{subsubsection.12.3.3}%
+\contentsline {subsection}{\numberline {12.4}Memory Management}{11}{subsection.12.4}%
+\contentsline {subsection}{\numberline {12.5}Evaluation Projects (detailed checklist)}{11}{subsection.12.5}%
+\contentsline {subsection}{\numberline {12.6}Bonus Features}{12}{subsection.12.6}%
+\contentsline {subsection}{\numberline {12.7}Reproducibility and Deliverables}{12}{subsection.12.7}%
+\contentsline {section}{\numberline {13}Methods and Libraries (Implementation Details)}{13}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Graph-Based Control Flow}{13}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}Human-in-the-Loop (HITL)}{13}{subsection.13.2}%
+\contentsline {subsection}{\numberline {13.3}Libraries \& Frameworks}{13}{subsection.13.3}%
+\contentsline {subsubsection}{\numberline {13.3.1}LangGraph}{13}{subsubsection.13.3.1}%
+\contentsline {subsubsection}{\numberline {13.3.2}LangChain}{14}{subsubsection.13.3.2}%
+\contentsline {subsubsection}{\numberline {13.3.3}Rich}{14}{subsubsection.13.3.3}%
+\contentsline {subsubsection}{\numberline {13.3.4}LLM (OpenAI / Chat Client)}{14}{subsubsection.13.3.4}%
+\contentsline {subsubsection}{\numberline {13.3.5}Other Utility Libraries}{14}{subsubsection.13.3.5}%
+\contentsline {subsection}{\numberline {13.4}Python Environment}{14}{subsection.13.4}%
+\contentsline {subsection}{\numberline {13.5}Why these choices?}{14}{subsection.13.5}%

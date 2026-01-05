@@ -415,4 +415,179 @@ The final submission bundle will include:
   \item Short usage report and the recorded demonstration video
 \end{itemize}
 
+\newpage
+\section{Comprehensive Project Description (Appendix)}
+This appendix contains a complete, ordered description of the Coding Agent project, mirroring the assignment requirements and the implementation details used in this submission.
+
+\subsection{Project Overview}
+The goal of this project is to build an autonomous \textbf{Coding Agent} that has \textbf{Agency} — i.e., the ability to explore a codebase, edit code, execute tests and shell commands, and iterate until the requested task is completed.
+
+\subsubsection*{Primary Capabilities}
+\begin{enumerate}
+  \item \textbf{Explore:} Inspect and list project files and folders to understand structure.
+  \item \textbf{Edit:} Create and overwrite files to implement fixes or new features.
+  \item \textbf{Execute:} Run shell commands such as `pytest` to verify changes.
+  \item \textbf{Iterate:} Read test failures, update code, and re-run tests until green.
+\end{enumerate}
+
+\subsection{System Architecture}
+\begin{itemize}
+  \item \textbf{Core LLM:} The agent uses an LLM (configured via `langchain_openai.ChatOpenAI`) as the reasoning engine.
+  \item \textbf{Orchestration:} LangGraph implements a stateful ReAct-style graph that interleaves ``thinking'' (LLM) and ``acting'' (tools).
+  \item \textbf{CLI:} A Rich-based CLI provides a user interface for natural-language commands and HITL confirmations.
+  \item \textbf{Persistence:} `MemorySaver` checkpointer stores conversation and state during a session.
+\end{itemize}
+
+\subsection{Key Components and Capabilities}
+\subsubsection{A. Toolset (The ``Hands'')}
+The concrete tools available to the agent are implemented in `src/coding_agent/agent/tools.py` and include:
+\begin{itemize}
+  \item `read_file(path)`: returns file contents (guards against paths outside project root).
+  \item `list_files(dir)`: lists files and directories (skips hidden and ignored folders).
+  \item `search_files(pattern)`: recursive glob search for target files.
+  \item `create_file(path, content)`: creates a new file (HITL-controlled).
+  \item `overwrite_file(path, content)`: overwrites an existing file (HITL-controlled).
+  \item `execute_shell(command)`: runs commands in a timeout-limited subprocess (HITL-controlled).
+\end{itemize}
+
+\subsubsection{B. Graph Design and State Management (The ``Brain'')}
+\begin{itemize}
+  \item The graph is created via `create_react_agent(...)` in `backend.py` and is configured to interrupt before tool execution (`interrupt_before=["tools"]`).
+  \item A `TokenUsageTracker` callback collects token usage from LLM responses and estimates cost.
+  \item `MemorySaver` is used (when available) for persisting state across turns; each session uses a unique `thread_id`.
+\end{itemize}
+
+\subsubsection{C. Human-In-The-Loop (Safety)}
+\begin{itemize}
+  \item Sensitive tools are defined in `SENSITIVE_TOOLS = {"create_file","overwrite_file","execute_shell"}`.
+  \item When the graph requests a sensitive tool, execution is paused and the CLI asks the user for confirmation showing the tool name and arguments.
+  \item Two safety helpers are provided:
+    \begin{itemize}
+      \item `CODING_AGENT_AUTO_APPROVE=1` to auto-approve all sensitive tools (use cautiously).
+      \item `CODING_AGENT_AUTO_APPROVE_WHITELIST=tool1,tool2` to auto-approve only listed tools.
+    \end{itemize}
+  \item If denied, a `ToolMessage` with an error is injected into the state so the agent can react.
+\end{itemize}
+
+\subsection{Memory Management}
+\begin{itemize}
+  \item Conversation history lives in the graph state and `MemorySaver`.
+  \item Pruning: large `ToolMessage` contents (over 2000 chars) are truncated (head + tail) after each turn to keep context manageable.
+  \item Save/Load: `/save` attempts to pickle the checkpointer storage; if that fails, a JSON summary (messages + usage) is written as a fallback. `/load` tries to restore pickle first and falls back to loading the JSON summary (partial restore).
+\end{itemize}
+
+\subsection{Evaluation Projects (detailed checklist)}
+For each evaluation project the agent:
+\begin{enumerate}
+  \item Lists files and inspects source code.
+  \item Runs the project test suite (via `execute_shell("pytest")`).
+  \item Reads failing tracebacks and identifies buggy functions.
+  \item Writes fixes using `overwrite_file` (HITL approval required unless whitelisted).
+  \item Re-runs tests until they pass.
+\end{enumerate}
+
+\subsubsection*{Project 1: Legacy CSV Processor}
+\begin{itemize}
+  \item Identified parsing errors and non-numeric `amount` handling in `file_handler.py`.
+  \item Fixed numeric conversion and empty-file handling in `analyzer.py`.
+  \item Tests: `4 passed` (see Detailed Test Results section).
+\end{itemize}
+
+\subsubsection*{Project 2: TinyRAG Search System}
+\begin{itemize}
+  \item Fixed cosine similarity normalization, applied TF-IDF-like weighting, removed stopwords, and corrected chunking.
+  \item Tests: `3 passed`.
+\end{itemize}
+
+\subsubsection*{Project 3: Bigram Language Model}
+\begin{itemize}
+  \item Implemented Laplace smoothing, log-prob scoring, and sampled generation for diversity.
+  \item Added `top_next` convenience method and test.
+  \item Tests: `6 passed`.
+\end{itemize}
+
+\subsection{Bonus Features}
+\begin{itemize}
+  \item \textbf{Usage Tracker:} Implemented and appended usage summary to responses.
+  \item \textbf{Smart Context:} Pruning implemented post-turn for large file contents.
+  \item \textbf{Session Save/Load:} Implemented with pickle + JSON fallback; works for practical resume and audit.
+\end{itemize}
+
+\subsection{Reproducibility and Deliverables}
+\begin{itemize}
+  \item Reproduction steps are included in the report (see ``How to Reproduce'').
+  \item Deliverables to produce: source, corrected test projects, logs, report PDF, demo video.
+\end{itemize}
+
+\section{Methods and Libraries (Implementation Details)}
+This section summarizes the methodological choices and libraries used in the implementation of the Coding Agent. It maps directly to the assignment requirements and documents why each choice was made and how it was used.
+
+\subsection{Graph-Based Control Flow}
+\begin{itemize}
+  \item \textbf{Why:} Agents require the ability to loop (plan, act, observe, revise). A graph provides explicit nodes and edges for this cyclic logic.
+  \item \textbf{How:} LangGraph's ReAct-style agent is instantiated in `backend.py` via `create_react_agent(...)` with `interrupt_before=["tools"]` so the graph can pause before tool execution and await human approval.
+  \item \textbf{State:} The graph state (messages, tool calls, partial plan) is persisted in a checkpointer (MemorySaver when available) so subsequent turns can reference earlier context.
+\end{itemize}
+
+\subsection{Human-in-the-Loop (HITL)}
+\begin{itemize}
+  \item \textbf{Sensitive Tools:} `SENSITIVE_TOOLS = {"create_file","overwrite_file","execute_shell"}`; these trigger an interrupt.
+  \item \textbf{Approval Flow:} The `InteractiveSession` inspects pending tool calls, prints a panel describing the tool and its arguments, and asks the user for approval with `Prompt.ask`.
+  \item \textbf{Auto-approval Options:}
+    \begin{itemize}
+      \item `CODING_AGENT_AUTO_APPROVE=1` -- global auto-approve (use with caution).
+      \item `CODING_AGENT_AUTO_APPROVE_WHITELIST=execute_shell,create_file` -- whitelist specific tools for safe auto-approval.
+    \end{itemize}
+  \item \textbf{Denied Actions:} If the user denies a tool request, the session injects a `ToolMessage` error into the graph state so the agent can re-plan.
+\end{itemize}
+
+\subsection{Libraries \& Frameworks}
+\subsubsection{LangGraph}
+\begin{itemize}
+  \item \textbf{Role:} Orchestration of the multi-step, stateful agent logic; supports looping and interrupt points.
+  \item \textbf{Usage:} `create_react_agent(...)` is used to wire tools and the LLM into a ReAct agent; we rely on the graph's `stream()` API and `get_state()` to manage execution.
+\end{itemize}
+
+\subsubsection{LangChain}
+\begin{itemize}
+  \item \textbf{Role:} Tool abstraction and LLM client helpers; `@tool` decorator (or a fallback) is used in `tools.py`.
+  \item \textbf{Usage:} Tools such as `read_file`, `create_file` are implemented as functions that the graph can call.
+\end{itemize}
+
+\subsubsection{Rich}
+\begin{itemize}
+  \item \textbf{Role:} Nicely formatted CLI: `Console`, `Panel`, and `Prompt` are used to display agent messages, help, and to request confirmations.
+  \item \textbf{Usage:} `interactive.py` uses Rich to present the welcome screen, help text, and to show HITL prompts.
+\end{itemize}
+
+\subsubsection{LLM (OpenAI / Chat Client)}
+\begin{itemize}
+  \item \textbf{Model:} Configured via `langchain_openai.ChatOpenAI` (we used `gpt-4o-mini` in examples; `gpt-5-mini` was the suggested model).
+  \item \textbf{Role:} Performs reasoning, creating plans, reading error traces, and proposing code changes. The LLM is not fine-tuned — it is guided by system prompts and the graph state.
+  \item \textbf{Usage Tracker:} `TokenUsageTracker` monitors LLM outputs to estimate token usage and cost per turn.
+\end{itemize}
+
+\subsubsection{Other Utility Libraries}
+\begin{itemize}
+  \item `python-dotenv` for loading `.env` keys.
+  \item `pytest` for evaluation and test automation.
+  \item `pathlib`/`subprocess` for safe file and shell operations in tools.
+\end{itemize}
+
+\subsection{Python Environment}
+\begin{itemize}
+  \item \textbf{Recommended:} Python 3.11+.
+  \item \textbf{Install:} `pip install -e .` will install required packages from `pyproject.toml`.
+\end{itemize}
+
+\subsection{Why these choices?}
+\begin{itemize}
+  \item Graph-based control provides explicit interrupt points and memory management, which linear chains cannot offer reliably.
+  \item HITL ensures safety when executing destructive operations; whitelist and auto-approve options enable safe automation where desired.
+  \item Rich gives a professional CLI which is essential for human supervisors to make quick decisions.
+  \item Using standard LLM APIs keeps the agent flexible and model-agnostic.
+\end{itemize}
+
+\bigskip
+
 \end{document}
