@@ -1,3 +1,5 @@
+import datetime
+
 def calculate_total_revenue(transactions):
     """
     Calculate the total revenue from a list of transactions.
@@ -83,3 +85,56 @@ def get_maximum_transaction(transactions):
                 except Exception:
                     continue
     return max_amount
+
+
+def parse_date(date_str):
+    """
+    Parse a date string into a datetime.date object.
+
+    Args:
+        date_str (str): Date string in YYYY-MM-DD format.
+
+    Returns:
+        datetime.date or None: Parsed date or None if invalid.
+    """
+    try:
+        return datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def get_revenue_by_date_range(transactions, start_date, end_date):
+    """
+    Calculate the total revenue for transactions within a specific date range.
+
+    Args:
+        transactions (list): List of transaction dictionaries.
+        start_date (str or datetime.date): Start date (inclusive) in YYYY-MM-DD format or date object.
+        end_date (str or datetime.date): End date (inclusive) in YYYY-MM-DD format or date object.
+
+    Returns:
+        float: Total revenue for completed transactions in the date range.
+    """
+    if isinstance(start_date, str):
+        start_date = parse_date(start_date)
+    if isinstance(end_date, str):
+        end_date = parse_date(end_date)
+
+    if not start_date or not end_date:
+        return 0.0
+
+    total = 0.0
+    for t in transactions:
+        if t.get("status") == "completed":
+            date_str = t.get("date", "")
+            trans_date = parse_date(date_str)
+            if trans_date and start_date <= trans_date <= end_date:
+                amt = t.get("amount")
+                if isinstance(amt, (int, float)):
+                    total += float(amt)
+                else:
+                    try:
+                        total += float(amt)
+                    except Exception:
+                        continue
+    return total

@@ -38,7 +38,8 @@ def load_transactions(file_path):
                 'id': record.get('id', ''),
                 'amount': amount_val,
                 'currency': record.get('currency', ''),
-                'status': record.get('status', '')
+                'status': record.get('status', ''),
+                'date': record.get('date', '')
             }
             transactions.append(transaction)
 

@@ -1,8 +1,8 @@
-id,amount,currency,status
-1,100.50,USD,completed
-2,200.00,USD,completed
-3,,USD,failed
-4,1000.00,USD,completed
-5,300.50,EUR,pending
-6,invalid,USD,error
-7,50.00,USD,completed
+id,amount,currency,status,date
+1,100.50,USD,completed,2023-01-15
+2,200.00,USD,completed,2023-02-20
+3,,USD,failed,2023-03-10
+4,1000.00,USD,completed,2023-04-05
+5,300.50,EUR,pending,2023-05-12
+6,invalid,USD,error,2023-06-18
+7,50.00,USD,completed,2023-07-25

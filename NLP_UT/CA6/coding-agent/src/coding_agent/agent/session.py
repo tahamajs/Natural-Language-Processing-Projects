@@ -29,7 +29,7 @@ console = Console()
 
 class InteractiveSession:
     def __init__(self, project_root: str):
-        self.project_root = project_root
+        self.project_root = Path(project_root)
         set_project_root(project_root)
 
         # Initialize Checkpointer for Save/Load

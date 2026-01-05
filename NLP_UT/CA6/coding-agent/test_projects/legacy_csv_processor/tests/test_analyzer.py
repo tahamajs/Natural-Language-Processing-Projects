@@ -1,6 +1,7 @@
 import unittest
 import os
-from src.analyzer import calculate_total_revenue, get_average_transaction, get_maximum_transaction
+import datetime
+from src.analyzer import calculate_total_revenue, get_average_transaction, get_maximum_transaction, parse_date, get_revenue_by_date_range
 from src.file_handler import load_transactions
 
 class TestLegacySystem(unittest.TestCase):
@@ -43,6 +44,29 @@ class TestLegacySystem(unittest.TestCase):
 
         max_transaction = get_maximum_transaction(transactions)
         self.assertEqual(max_transaction, 0.0)
+
+    def test_parse_date(self):
+        """Test date parsing functionality."""
+        self.assertEqual(parse_date("2023-01-15"), datetime.date(2023, 1, 15))
+        self.assertIsNone(parse_date("invalid"))
+        self.assertIsNone(parse_date(""))
+
+    def test_get_revenue_by_date_range(self):
+        """Test revenue calculation by date range."""
+        transactions = load_transactions(self.data_file)
+        
+        # Test full range (should match total revenue)
+        revenue_full = get_revenue_by_date_range(transactions, "2023-01-01", "2023-12-31")
+        expected_full = calculate_total_revenue(transactions)
+        self.assertAlmostEqual(revenue_full, expected_full, places=2)
+        
+        # Test partial range (Jan-Apr: transactions 1,2,4)
+        revenue_partial = get_revenue_by_date_range(transactions, "2023-01-01", "2023-04-30")
+        self.assertAlmostEqual(revenue_partial, 1300.50, places=2)  # 100.50 + 200 + 1000
+        
+        # Test empty range
+        revenue_empty = get_revenue_by_date_range(transactions, "2022-01-01", "2022-12-31")
+        self.assertEqual(revenue_empty, 0.0)
 
 if __name__ == '__main__':
     unittest.main()
