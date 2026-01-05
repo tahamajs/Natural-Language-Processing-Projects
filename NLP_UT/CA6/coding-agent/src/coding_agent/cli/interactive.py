@@ -72,6 +72,8 @@ class InteractiveCLI:
         help_text = """[bold]Available Commands:[/bold]
 
 [cyan]/help[/cyan]        - Show this help message
+[cyan]/save[/cyan]        - Save current session (Bonus)
+[cyan]/load [file][/cyan] - Load session from file (Bonus)
 [cyan]/exit[/cyan]        - Exit the session
 
 [bold]Tips:[/bold]
@@ -137,6 +139,22 @@ class InteractiveCLI:
 
         if cmd == "/help":
             self._print_help()
+
+        elif cmd == "/save":
+            try:
+                result = self.session.save_session()
+                console.print(f"[green]{result}[/green]")
+            except Exception as e:
+                console.print(f"[red]Error saving session: {e}[/red]")
+
+        elif cmd.startswith("/load"):
+            parts = command.split()
+            filename = parts[1] if len(parts) > 1 else "session.pkl"
+            try:
+                result = self.session.load_session(filename)
+                console.print(f"[green]{result}[/green]")
+            except Exception as e:
+                console.print(f"[red]Error loading session: {e}[/red]")
 
         elif cmd == "/exit" or cmd == "/quit" or cmd == "/q":
             console.print("\n[cyan]Exiting session...[/cyan]")

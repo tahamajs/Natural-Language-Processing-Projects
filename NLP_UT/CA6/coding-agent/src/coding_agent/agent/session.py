@@ -1,60 +1,54 @@
-"""Interactive session management for multi-turn conversations."""
+"""Interactive session management for multi-turn conversations with bonus features."""
 
 import uuid
+import json
+import pickle
 import asyncio
-from typing import Dict, Any
+from typing import Optional, List
+from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
-
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 
 from .tools import set_project_root, SENSITIVE_TOOLS
-from .backend import build_agent_graph
+from .backend import build_agent_graph, usage_tracker
+
+try:
+    from langgraph.checkpoint.memory import MemorySaver
+except Exception:
+    MemorySaver = None
 
 console = Console()
 
 
 class InteractiveSession:
-    """Manages an interactive multi-turn coding session."""
-
-    def __init__(
-        self,
-        project_root: str,
-    ):
-        """Initialize interactive session.
-
-        Args:
-            project_root: Root directory of the project
-        """
+    def __init__(self, project_root: str):
         self.project_root = project_root
-
-        # Initialize tools context
         set_project_root(project_root)
 
-        # Initialize the Graph
-        self.graph = build_agent_graph()
-
-        # Create a unique thread ID for memory management
-        self.config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+        # Initialize Checkpointer for Save/Load
+        self.checkpointer = MemorySaver() if MemorySaver is not None else None
+        self.graph = build_agent_graph(self.checkpointer)
+        self.thread_id = str(uuid.uuid4())
+        self.config = {"configurable": {"thread_id": self.thread_id}}
 
     async def process_turn(self, user_message: str) -> str:
-        """Process a single conversation turn with Human-in-the-Loop logic.
+        """Process turn with HITL, Pruning, and Usage Tracking."""
 
-        Args:
-            user_message: User's input message
+        # --- Handle Save Command ---
+        if user_message.strip() == "/save":
+            return self.save_session()
 
-        Returns:
-            The final textual response from the agent.
-        """
+        # --- Handle Load Command ---
+        if user_message.startswith("/load"):
+            parts = user_message.split()
+            filename = parts[1] if len(parts) > 1 else "session.pkl"
+            return self.load_session(filename)
 
-        # 1. Add user message to the state
         inputs = {"messages": [HumanMessage(content=user_message)]}
-
         final_response = ""
-
-        # Start the graph execution
         current_inputs = inputs
         resume_signal = None
 
@@ -67,69 +61,137 @@ class InteractiveSession:
                 )
 
                 for event in events:
-                    # Capture the latest AI message as the potential response
                     if "messages" in event:
                         last_msg = event["messages"][-1]
-                        if last_msg.type == "ai" and last_msg.content:
+                        if getattr(last_msg, "type", None) == "ai" and getattr(
+                            last_msg, "content", None
+                        ):
                             final_response = last_msg.content
 
-                # Check the status of the graph
                 snapshot = self.graph.get_state(self.config)
-
                 if not snapshot.next:
-                    # Graph execution finished successfully
                     break
 
                 if "tools" in snapshot.next:
-                    # The graph stopped before executing tools (HITL)
-                    # We need to inspect what tool it wants to run
                     last_message = snapshot.values.get("messages", [])[-1]
-
                     tool_calls = getattr(last_message, "tool_calls", []) or []
+                    if not tool_calls:
+                        break
 
-                    for tc in tool_calls:
-                        tool_name = tc.get("name")
-                        tool_args = tc.get("args")
-
-                        # Check if sensitive
-                        if tool_name in SENSITIVE_TOOLS:
-                            console.print(
-                                Panel(
-                                    f"[bold yellow]Tool Request:[/bold yellow] {tool_name}\n"
-                                    f"[bold]Args:[/bold] {tool_args}",
-                                    title="Permission Required",
-                                    border_style="yellow",
-                                )
-                            )
-
-                            answer = await self._get_user_confirmation()
-
-                            if not answer:
-                                # User denied. We update state to simulate a tool error
-                                from langchain_core.messages import ToolMessage
-
-                                denied_msg = ToolMessage(
-                                    tool_call_id=tc.get("id"),
-                                    content=f"Error: User denied permission to execute {tool_name}.",
-                                )
-                                # Update the graph state with the denial so the agent can react
-                                self.graph.update_state(self.config, {"messages": [denied_msg]}, as_node="tools")
-
-                                resume_signal = "denied"
-                            else:
-                                resume_signal = "approved"
-                        else:
-                            resume_signal = "auto"
-
-                    # After handling approvals, resume from the updated state
-                    current_inputs = None
+                    resume_signal = await self._handle_tool_approval(tool_calls)
+                    if resume_signal == "denied":
+                        current_inputs = None
 
             except Exception as e:
-                return f"An internal error occurred: {str(e)}"
+                return f"Error: {str(e)}"
 
-        return final_response
+        # Smart Context (Pruning)
+        self._prune_context()
+
+        # Append Usage Stats to Response
+        stats = (
+            f"\n\n[dim]Usage: {getattr(usage_tracker, 'total_tokens', 0)} tokens "
+            f"(${getattr(usage_tracker, 'cost_est', 0.0):.4f})[/dim]"
+        )
+        return final_response + stats
+
+    async def _handle_tool_approval(self, tool_calls) -> str:
+        """Handle user approval for sensitive tools."""
+        for tc in tool_calls:
+            if tc.get("name") in SENSITIVE_TOOLS:
+                console.print(
+                    Panel(
+                        f"[bold yellow]Tool:[/bold yellow] {tc.get('name')}\n[bold]Args:[/bold] {tc.get('args')}",
+                        title="Permission Required",
+                        border_style="yellow",
+                    )
+                )
+                allow = await self._get_user_confirmation()
+                if not allow:
+                    denied_msg = ToolMessage(
+                        tool_call_id=tc.get("id"),
+                        content=f"Error: User denied {tc.get('name')}.",
+                    )
+                    # Update state to simulate denial
+                    try:
+                        self.graph.update_state(
+                            self.config, {"messages": [denied_msg]}, as_node="tools"
+                        )
+                    except Exception:
+                        # best-effort; continue
+                        pass
+                    return "denied"
+        return "approved"
 
     async def _get_user_confirmation(self) -> bool:
-        """Ask user for confirmation via Rich prompt."""
-        response = await asyncio.to_thread(Prompt.ask, "[bold yellow]Allow execution?[/bold yellow]", choices=["y", "n"], default="n")
-        return response == "y"
+        res = await asyncio.to_thread(
+            Prompt.ask, "Allow?", choices=["y", "n"], default="n"
+        )
+        return res == "y"
+
+    def _prune_context(self):
+        """Summarize/Remove large file contents from history."""
+        try:
+            state = self.graph.get_state(self.config)
+            messages = state.values.get("messages", [])
+        except Exception:
+            return
+
+        pruned_messages = []
+        modified = False
+
+        for msg in messages:
+            if (
+                isinstance(msg, ToolMessage)
+                and isinstance(getattr(msg, "content", None), str)
+                and len(msg.content) > 2000
+            ):
+                new_content = (
+                    msg.content[:1000]
+                    + "\n...[CONTENT PRUNED]...\n"
+                    + msg.content[-1000:]
+                )
+                msg.content = new_content
+                modified = True
+            pruned_messages.append(msg)
+
+        if modified:
+            try:
+                self.graph.update_state(self.config, {"messages": pruned_messages})
+            except Exception:
+                pass
+
+    def save_session(self, filename="session.pkl") -> str:
+        """Save session state to file."""
+        try:
+            if self.checkpointer is None:
+                return "Save not available: no checkpointer."
+
+            with open(filename, "wb") as f:
+                pickle.dump(getattr(self.checkpointer, "storage", None), f)
+
+            return f"Session saved to {filename}"
+        except Exception as e:
+            return f"Error saving session: {str(e)}"
+
+    def load_session(self, filename="session.pkl") -> str:
+        """Load session state from file."""
+        try:
+            if not Path(filename).exists():
+                return "File not found."
+
+            if self.checkpointer is None:
+                return "Load not available: no checkpointer."
+
+            with open(filename, "rb") as f:
+                storage = pickle.load(f)
+
+            try:
+                self.checkpointer.storage = storage
+            except Exception:
+                # best-effort assignment
+                setattr(self.checkpointer, "storage", storage)
+
+            return "Session loaded successfully."
+        except Exception as e:
+            return f"Error loading session: {str(e)}"
