@@ -180,6 +180,41 @@ The agent was tested on three defective projects provided in the assignment. Bel
 \end{figure}
 
 \textbf{Status:} \textcolor{green}{\textbf{PASSED}} (All tests passing).
+\\[6pt]
+\textbf{Detailed Results and Evidence:}
+\begin{itemize}
+  \item Commands executed:
+    \begin{lstlisting}
+    cd test_projects/legacy_csv_processor
+    pytest -q
+    \end{lstlisting}
+  \item Exact test output captured:
+    \begin{lstlisting}
+    ....                                                                    [100%]
+    4 passed in 0.08s
+    \end{lstlisting}
+  \item Representative session log (stored in):
+    \begin{verbatim}
+    test_projects/legacy_csv_processor/.coding_agent_logs/session_<id>.jsonl
+    \end{verbatim}
+  \item Key code fix (excerpt from \texttt{src/analyzer.py}):
+    \begin{lstlisting}[language=Python]
+def calculate_total_revenue(transactions):
+    total = 0.0
+    for t in transactions:
+        if t.get('status') == 'completed':
+            amt = t.get('amount')
+            if isinstance(amt, (int, float)):
+                total += float(amt)
+            else:
+                try:
+                    total += float(amt)
+                except Exception:
+                    continue
+    return total
+    \end{lstlisting}
+  \item Notes: CSV parsing improved to convert amounts safely and ignore invalid entries; average calculation protected against division by zero.
+\end{itemize}
 
 \subsection{Project 2: TinyRAG Search System}
 \textbf{Problem:} The RAG system had poor search quality and incorrect vector math.
@@ -200,6 +235,36 @@ The agent was tested on three defective projects provided in the assignment. Bel
 \end{figure}
 
 \textbf{Status:} \textcolor{green}{\textbf{PASSED}} (All tests passing).
+\\[6pt]
+\textbf{Detailed Results and Evidence:}
+\begin{itemize}
+  \item Commands executed:
+    \begin{lstlisting}
+    cd test_projects/tiny_rag
+    pytest -q
+    \end{lstlisting}
+  \item Exact test output captured:
+    \begin{lstlisting}
+    ...                                                                     [100%]
+    3 passed in 0.10s
+    \end{lstlisting}
+  \item Representative session logs:
+    \begin{verbatim}
+    test_projects/tiny_rag/.coding_agent_logs/session_63979a72-57a1-4d60-a211-e634ce9e1d29.jsonl
+    test_projects/tiny_rag/.coding_agent_logs/session_2133caff-3b56-4a9b-ac63-a98e4324cb30.jsonl
+    \end{verbatim}
+  \item Key code fix (excerpt from \texttt{retrieval/search.py}):
+    \begin{lstlisting}[language=Python]
+def calculate_cosine_similarity(vec_a, vec_b):
+    dot_product = sum(a * b for a, b in zip(vec_a, vec_b))
+    norm_a = sum(a * a for a in vec_a) ** 0.5
+    norm_b = sum(b * b for b in vec_b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot_product / (norm_a * norm_b)
+    \end{lstlisting}
+  \item Other changes: \texttt{embedding.py} now applies TF-IDF-like weighting, normalizes vectors and removes stopwords; \texttt{chunker.py} performs word-based chunking.
+\end{itemize}
 
 \subsection{Project 3: Bigram Language Model}
 \textbf{Problem:} The model suffered from zero-probability issues (unseen words) and repetitive generation.
@@ -220,6 +285,36 @@ The agent was tested on three defective projects provided in the assignment. Bel
 \end{figure}
 
 \textbf{Status:} \textcolor{green}{\textbf{PASSED}} (All tests passing).
+\\[6pt]
+\textbf{Detailed Results and Evidence:}
+\begin{itemize}
+  \item Commands executed:
+    \begin{lstlisting}
+    cd test_projects/bigram_generator
+    pytest -q
+    \end{lstlisting}
+  \item Exact test output captured:
+    \begin{lstlisting}
+    ......                                                                  [100%]
+    6 passed in 0.06s
+    \end{lstlisting}
+  \item Representative session log:
+    \begin{verbatim}
+    test_projects/bigram_generator/.coding_agent_logs/session_<id>.jsonl
+    \end{verbatim}
+  \item Key code fixes (excerpt from \texttt{model/bigram.py}):
+    \begin{lstlisting}[language=Python]
+def get_probability(self, w1, w2):
+    V = max(1, len(self.vocab))
+    count_w1 = self.unigram_counts.get(w1, 0)
+    if count_w1 == 0:
+        return 1.0 / V
+    count_bigram = self.bigram_counts[w1].get(w2, 0)
+    return (count_bigram + 1) / (count_w1 + V)
+    \end{lstlisting}
+  \item Diversity improvement: \texttt{generation/sampler.py} switched from greedy to weighted random sampling.
+  \item New feature: \texttt{top\_next(w, n)} added and unit-tested to return top-n next-word candidates.
+\end{itemize}
 
 % -----------------------------------------------------------------------------
 % SECTION 5: LOGS AND DELIVERABLES
