@@ -57,7 +57,10 @@ def chat(
 def generate_logs(no_aggregate: bool, output: Path | None, fmt: str, no_full: bool):
     """Generate simulated 'good' logs for test projects and optionally aggregate them."""
     try:
-        from coding_agent.scripts.generate_good_logs import main as gen_main
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+        from scripts.generate_good_logs import main as gen_main
         gen_main(aggregate=not no_aggregate, output=str(output) if output else None, output_format=fmt, full=not no_full)
     except Exception as e:
         console.print(f"\n[bold red]Error generating logs:[/bold red] {e}")
