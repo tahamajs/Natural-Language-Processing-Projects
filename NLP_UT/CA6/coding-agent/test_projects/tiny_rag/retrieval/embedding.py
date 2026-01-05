@@ -62,4 +62,7 @@ class SimpleVectorizer:
 
     def _tokenize(self, text):
         text = text.lower()
-        return re.findall(r'\b\w+\b', text)
+        tokens = re.findall(r'\b\w+\b', text)
+        # Simple stopword removal to avoid noisy tokens like 'the' dominating results
+        stopwords = {"the", "a", "an", "is", "of", "and", "to", "in"}
+        return [t for t in tokens if t not in stopwords]
