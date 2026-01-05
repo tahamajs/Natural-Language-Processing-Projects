@@ -96,6 +96,10 @@ class InteractiveCLI:
 [cyan]/todos[/cyan]       - Scan for TODO/FIXME comments
 [cyan]/complexity [file][/cyan] - Analyze code complexity
 [cyan]/doc [file][/cyan]  - Auto-generate documentation
+[cyan]/coverage[/cyan]    - Run test coverage analysis
+[cyan]/audit[/cyan]       - Security vulnerability scan
+[cyan]/persona [mode][/cyan] - Switch agent persona
+[cyan]/diagram[/cyan]     - Generate architecture diagram
 [cyan]/exit[/cyan]        - Exit the session
 
 [bold]Tips:[/bold]
@@ -383,6 +387,72 @@ class InteractiveCLI:
                     "Do not change any logic, just add comments."
                 )
                 await self._process_turn(prompt)
+
+        elif cmd == "/coverage":
+            console.print("[cyan]Running test coverage analysis...[/cyan]")
+            try:
+                # Run pytest with coverage
+                cmd = ["pytest", "--cov=.", "--cov-report=term-missing"]
+                res = subprocess.run(
+                    cmd, 
+                    cwd=self.session.project_root, 
+                    capture_output=True, 
+                    text=True
+                )
+                
+                # Display output in a panel
+                if res.returncode == 0:
+                    style = "green"
+                    title = "Coverage: PASS"
+                else:
+                    style = "yellow" 
+                    title = "Coverage: FAIL/INCOMPLETE"
+                    
+                console.print(Panel(
+                    res.stdout,
+                    title=title,
+                    border_style=style,
+                    subtitle="Missing lines shown in right column"
+                ))
+            except FileNotFoundError:
+                console.print("[red]pytest-cov not installed. Run `pip install pytest-cov`[/red]")
+
+        elif cmd == "/audit":
+            console.print("[bold red]Scanning for security vulnerabilities...[/bold red]")
+            try:
+                # Run bandit recursively
+                cmd = ["bandit", "-r", ".", "-f", "screen"]
+                res = subprocess.run(
+                    cmd, 
+                    cwd=self.session.project_root, 
+                    capture_output=True, 
+                    text=True
+                )
+                
+                if "No issues identified" in res.stdout:
+                    console.print("[bold green]✓ Project is Secure (No common vulnerabilities found)[/bold green]")
+                else:
+                    console.print(Panel(res.stdout or res.stderr, title="Security Alert", border_style="red"))
+            except FileNotFoundError:
+                console.print("[red]Bandit not installed. Run `pip install bandit`[/red]")
+
+        elif cmd.startswith("/persona"):
+            # Usage: /persona teacher
+            try:
+                mode = command.split()[1]
+                msg = self.session.set_system_prompt(mode)
+                console.print(f"[green]{msg}[/green]")
+            except IndexError:
+                console.print("[yellow]Usage: /persona [default|teacher|architect|junior][/yellow]")
+
+        elif cmd == "/diagram":
+            console.print("[cyan]Generating Class Diagram...[/cyan]")
+            prompt = (
+                "Analyze all Python files in the 'src' and 'model' directories. "
+                "Generate a Mermaid.js class diagram syntax (graph TD or classDiagram) "
+                "showing the relationships between classes. Output ONLY the mermaid code block."
+            )
+            await self._process_turn(prompt)
 
         elif cmd == "/exit" or cmd == "/quit" or cmd == "/q":
             console.print("\n[cyan]Exiting session...[/cyan]")

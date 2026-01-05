@@ -47,6 +47,20 @@ class InteractiveSession:
         except Exception:
             self.log_path = Path(f"session_{self.thread_id}.jsonl")
 
+    def set_system_prompt(self, persona: str):
+        prompts = {
+            "default": "You are a professional coding agent. Be concise and efficient.",
+            "teacher": "You are a patient CS Professor. Explain every step in detail. Teach the user why you are making changes.",
+            "architect": "You are a Senior Staff Engineer. Focus on design patterns, modularity, and scalability. Be critical of bad code.",
+            "junior": "You are an intern. Ask for confirmation often. Be very apologetic if tests fail."
+        }
+        new_prompt = prompts.get(persona, prompts["default"])
+        # Update the graph's state modifier (Conceptually - requires rebuilding graph or updating state key if supported)
+        # For this HW's simple ReAct graph, we can inject a SystemMessage into the conversation history
+        from langchain_core.messages import SystemMessage
+        self.graph.update_state(self.config, {"messages": [SystemMessage(content=new_prompt)]})
+        return f"Switched to '{persona}' persona."
+
     async def process_turn(self, user_message: str) -> str:
         """Process turn with HITL, Pruning, and Usage Tracking."""
 
