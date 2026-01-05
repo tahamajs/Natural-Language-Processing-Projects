@@ -590,4 +590,18 @@ This section summarizes the methodological choices and libraries used in the imp
 
 \bigskip
 
+% ---- Expanded paragraph-form explanations (duplicate of Methods section as prose) ----
+\section{Expanded Methods and Libraries (Paragraph Form)}
+This section restates and expands the key methodological choices and libraries used in the Coding Agent, formatted as continuous explanatory paragraphs rather than lists to improve readability and narrative flow.
+
+Graph-based control flow was selected because agents must iterate: they generate a plan, execute actions, observe the outcomes, and revise plans as needed. Representing reasoning and acting as nodes within an explicit graph makes it straightforward to encode loops and decision points. In our implementation we use LangGraph to build a ReAct-style graph that alternates between LLM reasoning steps and tool actions. The graph is configured with an interrupt just prior to tool execution so that the session layer can pause and request human confirmation for sensitive operations. This architecture preserves intermediate state (messages, tool calls, partial plans) using a checkpointer; consequently the agent can continue long debugging sessions without losing context.
+
+Human-in-the-Loop (HITL) is implemented as a safety layer: when the agent reaches an operation deemed sensitive—the creation or overwriting of files, or the execution of shell commands—the session prints a formatted prompt showing the tool and its arguments and asks the human for a clear yes/no decision. We added environment-driven controls to support automation in trusted contexts: a global auto-approve flag and a more restrictive whitelist that specifies particular tools allowed to run without confirmation. When the human denies a request, a structured error message is injected back into the graph state so the agent understands the failure and re-plans.
+
+The implementation uses several libraries in specific roles. LangGraph serves as the orchestration layer that wires the LLM and tools into a stateful agent capable of loops and interrupts; methods in \texttt{backend.py} create and configure this graph. LangChain is used to define tools and wrap the underlying LLM client; the functions that read and write files or execute commands are exposed as callable tools so the graph can invoke them as actions. Rich is used to build a professional CLI: panels, formatted responses and interactive prompts make approval decisions and status messages clear to a supervising user. The LLM client (via OpenAI's Chat API wrappers) performs the reasoning and planning; we attach a token-usage callback so that the agent reports the resource usage for each turn.
+
+Utility packages include \texttt{python-dotenv} for securely loading API keys, \texttt{pytest} for running test suites, and the standard \texttt{pathlib} and \texttt{subprocess} modules for implementing safe filesystem and process tools. The recommended runtime is Python 3.11 or higher; reproducible setup instructions are included earlier in the report.
+
+Finally, these choices were made for practical reasons: a graph provides explicit control and resumability, HITL provides a clear safety boundary, Rich makes supervision usable, and standard LLM APIs keep the solution portable across provider models.
+
 \end{document}
