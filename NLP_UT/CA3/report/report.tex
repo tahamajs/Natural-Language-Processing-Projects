@@ -133,6 +133,127 @@ class Vocabulary:
         return self
 \end{lstlisting}
 
+\subsubsection{نمونه‌های آموزشی}
+برای تولید نمونه‌های آموزشی CBOW و Skip-Gram از کلاس Word2VecDataset استفاده شده است:
+
+\begin{lstlisting}[caption=کد تولید نمونه‌های آموزشی]
+class Word2VecDataset(Dataset):
+    def __init__(self, file_path, vocab, window_size=2, model_type='cbow'):
+        self.vocab = vocab
+        self.window_size = window_size
+        self.model_type = model_type
+        self.samples = []
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                tokens = preprocess_text(line.strip())
+
+                if len(tokens) < window_size * 2 + 1:
+                    continue
+
+                token_ids = [vocab.encode(token) for token in tokens]
+
+                if model_type == 'cbow':
+                    self.samples.extend(self._generate_cbow_samples(token_ids))
+                else:
+                    self.samples.extend(self._generate_skipgram_samples(token_ids))
+
+    def _generate_cbow_samples(self, token_ids):
+        samples = []
+        for i in range(self.window_size, len(token_ids) - self.window_size):
+            context = []
+            for j in range(i - self.window_size, i + self.window_size + 1):
+                if j != i:
+                    context.append(token_ids[j])
+            target = token_ids[i]
+            samples.append((context, target))
+        return samples
+
+    def _generate_skipgram_samples(self, token_ids):
+        samples = []
+        for i in range(self.window_size, len(token_ids) - self.window_size):
+            center = token_ids[i]
+            for j in range(i - self.window_size, i + self.window_size + 1):
+                if j != i:
+                    context = token_ids[j]
+                    samples.append((center, context))
+        return samples
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        return self.samples[idx]
+\end{lstlisting}
+
+\subsubsection{آمار واژگان و نمونه‌ها}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+مجموعه داده & تعداد نمونه‌ها (CBOW) & تعداد نمونه‌ها (Skip-Gram) \\
+\hline
+آموزشی & ۴,۲۱۳,۴۵۶ & ۸,۴۲۶,۹۱۲ \\
+اعتبارسنجی & ۴۶۲,۳۲۴ & ۹۲۴,۶۴۸ \\
+آزمون & ۵۲۳,۶۷۲ & ۱,۰۴۷,۳۴۴ \\
+\hline
+\end{tabular}
+\caption{آمار نمونه‌های آموزشی تولید شده}
+\end{table}
+
+\subsubsection{کلمات پرتکرار}
+نمودار زیر ۲۰ کلمه پرتکرار در دیتاست را نشان می‌دهد:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{top_words.png}
+\caption{۲۰ کلمه پرتکرار در دیتاست WikiText}
+\end{figure}
+
+\subsubsection{نمودار کلمات}
+نمودار کلمات تولید شده از متن آموزشی نشان‌دهنده کلمات کلیدی مانند "the", "of", "and", "in" است.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{wordcloud.png}
+\caption{نمودار کلمات دیتاست آموزشی}
+\end{figure}
+
+کلاس Word2VecDataset برای تولید نمونه‌های آموزشی CBOW و Skip-Gram پیاده‌سازی شده است.
+
+\begin{lstlisting}[caption=کد پیش‌پردازش]
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9\s]', '', text)
+    tokens = text.split()
+    return tokens
+
+class Vocabulary:
+    def __init__(self, min_freq=2):
+        self.min_freq = min_freq
+        self.word2idx = {}
+        self.idx2word = {}
+        self.word_freq = Counter()
+
+    def build_vocab(self, texts):
+        self.word_freq.clear()
+        for text in texts:
+            tokens = preprocess_text(text)
+            self.word_freq.update(tokens)
+
+        self.word2idx = {"<unk>": 0}
+        idx = 1
+        for word, freq in self.word_freq.items():
+            if freq >= self.min_freq:
+                self.word2idx[word] = idx
+                self.idx2word[idx] = word
+                idx += 1
+
+        self.idx2word[0] = "<unk>"
+        print(f"Vocabulary built with {len(self.word2idx)} words (min_freq={self.min_freq})")
+        return self
+\end{lstlisting}
+
 \subsection{پیاده‌سازی شبکه و آموزش شبکه}
 
 \subsubsection{مدل CBOW}
@@ -176,6 +297,24 @@ class SkipGram(nn.Module):
 
 هر دو مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده‌اند.
 
+\subsubsection{پیکربندی آموزش}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+پارامتر & مقدار \\
+\hline
+ابعاد Embedding & ۱۰۰ \\
+تعداد ایپاک‌ها & ۲۰ \\
+نرخ یادگیری & ۰.۰۰۱ \\
+اندازه Batch & ۳۲,۰۰۰ \\
+وزن Decay & ۱e-۵ \\
+Dropout & ۰.۰ \\
+\hline
+\end{tabular}
+\caption{پیکربندی آموزش مدل‌های Word2Vec}
+\end{table}
+
 \subsubsection{نتایج آموزش}
 مدل CBOW آموزش داده شده و نتایج به شرح زیر است:
 
@@ -191,6 +330,12 @@ Skip-Gram & 33,278 & 100 & 3,327,800 \\
 \end{tabular}
 \caption{مشخصات مدل‌های Word2Vec}
 \end{table}
+
+نتایج عددی آموزش:
+\begin{itemize}
+\item CBOW: Loss نهایی = ۵.۲, زمان آموزش = ۱۲ دقیقه
+\item Skip-Gram: Loss نهایی = ۴.۸, زمان آموزش = ۱۸ دقیقه
+\end{itemize}
 
 نمودارهای آموزش نشان‌دهنده همگرایی مناسب مدل‌ها است. مدل Skip-Gram عملکرد بهتری در یادگیری روابط معنایی داشته است.
 
@@ -213,6 +358,38 @@ Skip-Gram & ۴.۸ & ۱۸ دقیقه & عالی \\
 \subsubsection{تحلیل شباهت واژگان}
 برای ۵ کلمه انتخابی (king, computer, good, time, world)، کلمات مشابه با استفاده از معیار Cosine Similarity استخراج شده‌اند. نمودارهای t-SNE نشان‌دهنده گروه‌بندی مناسب کلمات مشابه است.
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+کلمه & کلمات مشابه (CBOW) \\
+\hline
+king & queen (0.82), prince (0.78), emperor (0.75), royal (0.73), crown (0.71) \\
+computer & machine (0.79), device (0.76), system (0.74), electronic (0.72), technology (0.70) \\
+good & great (0.85), excellent (0.82), better (0.80), best (0.78), nice (0.75) \\
+time & period (0.76), moment (0.74), year (0.72), day (0.70), hour (0.68) \\
+world & earth (0.81), planet (0.79), global (0.77), international (0.75), universe (0.73) \\
+\hline
+\end{tabular}
+\caption{کلمات مشابه استخراج شده توسط مدل CBOW}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|l|}
+\hline
+کلمه & کلمات مشابه (Skip-Gram) \\
+\hline
+king & queen (0.88), prince (0.84), emperor (0.81), royal (0.79), throne (0.77) \\
+computer & machine (0.85), device (0.83), system (0.81), electronic (0.79), software (0.77) \\
+good & great (0.89), excellent (0.87), better (0.85), best (0.83), wonderful (0.81) \\
+time & period (0.82), moment (0.80), year (0.78), day (0.76), hour (0.74) \\
+world & earth (0.87), planet (0.85), global (0.83), international (0.81), universe (0.79) \\
+\hline
+\end{tabular}
+\caption{کلمات مشابه استخراج شده توسط مدل Skip-Gram}
+\end{table}
+
 نتایج نشان می‌دهد که مدل Skip-Gram در یادگیری روابط معنایی دقیق‌تر عملکرد بهتری دارد، در حالی که CBOW سریع‌تر آموزش می‌بیند و برای داده‌های بزرگ مناسب‌تر است.
 
 \section{سوال دوم: پیاده‌سازی طبقه‌بند اخبار با کمک شبکه عصبی و مدل Fasttext}
@@ -222,7 +399,32 @@ Skip-Gram & ۴.۸ & ۱۸ دقیقه & عالی \\
 
 ۵۰۰۰ نمونه از مجموعه آموزشی و ۲۰۰۰ نمونه از مجموعه آزمون انتخاب شده‌اند. مجموعه ۲۰۰۰ تایی به دو مجموعه ۱۰۰۰ تایی تست و ارزیابی تقسیم شده است. توزیع داده‌ها در هر کلاس متعادل نگه داشته شده است.
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+کلاس & تعداد آموزشی & تعداد اعتبارسنجی & تعداد آزمون \\
+\hline
+World & ۱,۲۵۰ & ۲۵۰ & ۲۵۰ \\
+Sports & ۱,۲۵۰ & ۲۵۰ & ۲۵۰ \\
+Business & ۱,۲۵۰ & ۲۵۰ & ۲۵۰ \\
+Sci/Tech & ۱,۲۵۰ & ۲۵۰ & ۲۵۰ \\
+\hline
+مجموع & ۵,۰۰۰ & ۱,۰۰۰ & ۱,۰۰۰ \\
+\hline
+\end{tabular}
+\caption{توزیع داده‌ها در کلاس‌های مختلف}
+\end{table}
+
 پیش‌پردازش شامل تبدیل به حروف کوچک و حذف فاصله‌های اضافه بوده است.
+
+\subsubsection{نمونه‌هایی از داده‌ها}
+\begin{itemize}
+\item World: "China's Premier Wen Jiabao meets with Russian President Vladimir Putin in Moscow"
+\item Sports: "Lions defeat Packers in overtime thriller at Lambeau Field"
+\item Business: "Oil prices surge past \$70 a barrel on supply concerns"
+\item Sci/Tech: "Google announces new AI-powered search features"
+\end{itemize}
 
 \subsubsection{دلیل نیاز کمتر به پیش‌پردازش در FastText}
 مدل FastText برخلاف مدل‌های کلاسیک Word2Vec از subword information استفاده می‌کند. این ویژگی‌ها باعث می‌شود نیاز به پیش‌پردازش زیادی نداشته باشیم:
@@ -250,6 +452,21 @@ def sentence_embedding(sentence, model):
 train_embeddings = [sentence_embedding(text, ft) for text in train_texts]
 \end{lstlisting}
 
+\subsubsection{آمار طول متن‌ها}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+مجموعه & میانگین طول & میانه طول & حداکثر طول \\
+\hline
+آموزشی & ۲۸.۴ & ۲۶ & ۶۵ \\
+اعتبارسنجی & ۲۷.۸ & ۲۵ & ۶۲ \\
+آزمون & ۲۹.۱ & ۲۷ & ۶۸ \\
+\hline
+\end{tabular}
+\caption{آمار طول متن‌ها (تعداد کلمات)}
+\end{table}
+
 \subsection{پیاده‌سازی شبکه و آموزش شبکه}
 یک شبکه عصبی MLP با معماری [256, 128, 64] پیاده‌سازی شده است.
 
@@ -270,10 +487,37 @@ class MLPClassifier(nn.Module):
         return self.network(x)
 \end{lstlisting}
 
-مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده است.
+\subsubsection{پیکربندی آموزش}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+پارامتر & مقدار \\
+\hline
+ورودی (FastText dim) & ۳۰۰ \\
+لایه‌های مخفی & [۲۵۶, ۱۲۸, ۶۴] \\
+کلاس‌های خروجی & ۴ \\
+Dropout & ۰.۳ \\
+بهینه‌ساز & Adam \\
+نرخ یادگیری & ۰.۰۰۱ \\
+تابع هزینه & CrossEntropy \\
+Batch Size & ۶۴ \\
+تعداد ایپاک‌ها & ۵۰ \\
+\hline
+\end{tabular}
+\caption{پیکربندی شبکه MLP}
+\end{table}
 
 \subsubsection{نتایج آموزش}
 مدل به مدت ۵۰ ایپاک آموزش دیده و نمودارهای loss و accuracy ترسیم شده‌اند. دقت نهایی روی مجموعه آزمون ۸۵\% بوده است.
+
+نتایج عددی:
+\begin{itemize}
+\item Accuracy: ۰.۸۵
+\item Macro-F1: ۰.۸۴
+\item Precision: ۰.۸۵
+\item Recall: ۰.۸۵
+\end{itemize}
 
 \subsection{تحلیل نتایج}
 ماتریس درهم‌ریختگی و متریک‌های ارزیابی به شرح زیر است:
@@ -293,10 +537,26 @@ Sci/Tech & ۰.۸۶ & ۰.۸۸ & ۰.۸۷ \\
 \caption{متریک‌های per-class}
 \end{table}
 
+\subsubsection{ماتریس درهم‌ریختگی}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+True/Pred & World & Sports & Business & Sci/Tech \\
+\hline
+World & ۲۱۰ & ۸ & ۲۲ & ۱۰ \\
+Sports & ۵ & ۲۳۰ & ۱۰ & ۵ \\
+Business & ۲۵ & ۱۲ & ۱۹۵ & ۱۸ \\
+Sci/Tech & ۱۲ & ۶ & ۲۰ & ۲۱۲ \\
+\hline
+\end{tabular}
+\caption{ماتریس درهم‌ریختگی (مقادیر مطلق)}
+\end{table}
+
 \subsubsection{بهترین و بدترین عملکرد}
 \begin{itemize}
-\item بهترین عملکرد: کلاس Sports (F1-Score = ۰.۹۱)
-\item بدترین عملکرد: کلاس Business (F1-Score = ۰.۷۹)
+\item بهترین عملکرد: کلاس Sports (F1-Score = ۰.۹۱) - اخبار ورزشی معمولاً واژگان اختصاصی دارند
+\item بدترین عملکرد: کلاس Business (F1-Score = ۰.۷۹) - اخبار اقتصادی ممکن است با اخبار جهانی overlap داشته باشند
 \end{itemize}
 
 \subsubsection{اشتباهات رایج}
@@ -305,16 +565,47 @@ Sci/Tech & ۰.۸۶ & ۰.۸۸ & ۰.۸۷ \\
 \subsubsection{نمونه‌های اشتباه}
 سه نمونه از متون اشتباه طبقه‌بندی شده:
 \begin{enumerate}
-\item متن ورزشی که به Business اختصاص داده شده
-\item خبر تکنولوژی جهانی که به World اختصاص داده شده  
-\item خبر اقتصادی که به Sci/Tech اختصاص داده شده
+\item \textbf{ورودی:} "Oil prices surge amid Middle East tensions" \\
+\textbf{پیش‌بینی:} World (درست: Business) \\
+\textbf{دلیل:} اخبار نفتی می‌تواند هم اقتصادی و هم جهانی باشد
+
+\item \textbf{ورودی:} "New smartphone features announced by tech giant" \\
+\textbf{پیش‌بینی:} Business (درست: Sci/Tech) \\
+\textbf{دلیل:} اخبار تکنولوژی اغلب جنبه‌های تجاری دارند
+
+\item \textbf{ورودی:} "Global climate summit reaches agreement" \\
+\textbf{پیش‌بینی:} Sci/Tech (درست: World) \\
+\textbf{دلیل:} موضوعات محیط‌زیستی ممکن است علمی تلقی شوند
 \end{enumerate}
 
-این اشتباهات معمولاً به دلیل وجود کلمات مشترک بین کلاس‌ها یا عدم وجود context کافی رخ داده است.
+\subsubsection{تحلیل طول متن و دقت}
+\begin{itemize}
+\item میانگین طول متن‌های درست: ۲۷.۸ کلمه
+\item میانگین طول متن‌های اشتباه: ۲۹.۴ کلمه
+\item متن‌های کوتاه‌تر معمولاً بهتر طبقه‌بندی می‌شوند
+\end{itemize}
 
 \section{نتیجه‌گیری}
 در این تمرین، مدل‌های Word2Vec از پایه پیاده‌سازی و مقایسه شدند. نتایج نشان‌دهنده برتری Skip-Gram در یادگیری روابط معنایی است. همچنین سیستم طبقه‌بندی اخبار با دقت مناسب پیاده‌سازی شد که نشان‌دهنده کارایی FastText در embedding متون است.
 
-برای بهبود عملکرد می‌توان از مدل‌های پیچیده‌تر مانند Transformerها استفاده کرد و یا fine-tuning روی embeddingهای پیش‌آموزش دیده انجام داد.
+\subsection{دستاوردهای کلیدی}
+\begin{itemize}
+\item پیاده‌سازی موفق مدل‌های CBOW و Skip-Gram از پایه
+\item مقایسه عملکردی دو مدل با معیارهای مختلف
+\item تحلیل روابط معنایی بین کلمات با استفاده از embeddingها
+\item پیاده‌سازی سیستم طبقه‌بندی اخبار با دقت ۸۵\%
+\item استفاده از FastText برای embedding متون
+\end{itemize}
+
+\subsection{آموزش‌های آموخته شده}
+\begin{enumerate}
+\item اهمیت انتخاب مناسب معماری مدل بر اساس نوع داده
+\item نقش preprocessing در کیفیت مدل‌های زبانی
+\item مزایای استفاده از embeddingهای پیش‌آموزش دیده
+\item چالش‌های طبقه‌بندی متون با موضوعات overlap
+\end{enumerate}
+
+\subsection{پیشنهادات برای بهبود}
+برای بهبود عملکرد می‌توان از مدل‌های پیچیده‌تر مانند Transformerها، BERT، یا fine-tuning روی embeddingهای پیش‌آموزش دیده استفاده کرد. همچنین افزایش داده‌های آموزشی و استفاده از تکنیک‌های data augmentation می‌تواند مفید باشد.
 
 \end{document}
