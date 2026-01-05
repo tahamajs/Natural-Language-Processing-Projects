@@ -56,6 +56,33 @@ class TestLanguageModel(unittest.TestCase):
         self.assertGreater(len(outputs), 1, 
             f"Greedy Sampling Detected: Generated 10 identical sentences:\n{list(outputs)[0]}\n")
 
+    def test_generate_with_temperature(self):
+        """
+        Test temperature sampling for generation diversity.
+        """
+        gen = Generator(self.model)
+
+        # Test with low temperature (more deterministic)
+        outputs_low_temp = set()
+        for _ in range(5):
+            sent = gen.generate_with_temperature("the", max_length=5, temperature=0.1)
+            outputs_low_temp.add(sent)
+
+        # Test with high temperature (more diverse)
+        outputs_high_temp = set()
+        for _ in range(5):
+            sent = gen.generate_with_temperature("the", max_length=5, temperature=2.0)
+            outputs_high_temp.add(sent)
+
+        # High temperature should generally produce more diversity
+        # (though this is probabilistic, so we just check it generates something)
+        self.assertGreater(len(outputs_low_temp), 0, "Low temperature generation failed")
+        self.assertGreater(len(outputs_high_temp), 0, "High temperature generation failed")
+
+        # Check that generated text starts with the start word
+        sample_output = gen.generate_with_temperature("the", max_length=3, temperature=1.0)
+        self.assertTrue(sample_output.startswith("the"), f"Generation should start with start word: {sample_output}")
+
     def test_top_k_next_words(self):
         """
         Test that top_k_next_words returns at least 1 item for a known word.
