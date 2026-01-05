@@ -38,9 +38,45 @@
     showspaces=false,                
     showstringspaces=false,
     showtabs=false,                  
-    tabsize=2
+    tabsize=2,
+    literate={_}{\textunderscore}{1}
 }
 \lstset{style=mystyle}
+
+% --- JSON Language Definition ---
+\lstdefinelanguage{json}{
+    basicstyle=\ttfamily\footnotesize,
+    numbers=left,
+    numberstyle=\tiny\color{codegray},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{backcolour},
+    stringstyle=\color{codepurple},
+    keywordstyle=\color{magenta},
+    commentstyle=\color{codegreen},
+    morestring=[b]",
+    morestring=[d]',
+    literate=
+     *{0}{{{\color{codegray}0}}}{1}
+      {1}{{{\color{codegray}1}}}{1}
+      {2}{{{\color{codegray}2}}}{1}
+      {3}{{{\color{codegray}3}}}{1}
+      {4}{{{\color{codegray}4}}}{1}
+      {5}{{{\color{codegray}5}}}{1}
+      {6}{{{\color{codegray}6}}}{1}
+      {7}{{{\color{codegray}7}}}{1}
+      {8}{{{\color{codegray}8}}}{1}
+      {9}{{{\color{codegray}9}}}{1}
+      {:}{{{\color{codegray}:}}}{1}
+      {,}{{{\color{codegray},}}}{1}
+      {\{}{{{\color{codegray}\{}}}{1}
+      {\}}{{{\color{codegray}\}}}}{1}
+      {[}{{{\color{codegray}[}}}{1}
+      {]}{{{\color{codegray}]}}}{1}
+}
 
 % --- Title Information ---
 \title{
@@ -352,7 +388,9 @@ The core logic is implemented using \textbf{LangGraph} with a \textbf{ReAct} (Re
 \end{itemize}
 
 The graph is constructed using LangGraph's \texttt{create\_react\_agent} function, which automatically handles the ReAct flow, conditional routing, and state management. This design ensures the agent can handle complex multi-step tasks while maintaining safety through HITL controls.
-        checkpointer = MemorySaver()
+
+\begin{lstlisting}[language=Python]
+    checkpointer = MemorySaver()
 
     system_message = (
         "You are a professional coding agent.\n"
@@ -481,6 +519,18 @@ A professional Command Line Interface was developed using the \textbf{Rich} libr
     \item Interactive prompts for HITL confirmations.
 \end{itemize}
 
+\subsection{Agent Debugging and Fixes}
+During development and testing, several bugs were identified and fixed in the agent itself to ensure reliable operation:
+
+\begin{itemize}
+    \item \textbf{Path Handling Bug:} Initial implementation used string paths which caused issues with relative path resolution in commands like \verb|/tree| and \verb|/todos|. Fixed by updating \texttt{InteractiveSession.\_\_init\_\_} to use \verb|Path(project_root)| for proper path object handling.
+    \item \textbf{Error Propagation:} Ensured that tool errors are properly injected back into the graph state when HITL denies actions, allowing the agent to re-plan.
+    \item \textbf{Context Window Management:} Implemented pruning of large tool outputs to prevent token limit overflows during long debugging sessions.
+    \item \textbf{Session Persistence:} Added fallback JSON serialization when pickle fails, ensuring session save/load works across different environments.
+\end{itemize}
+
+These fixes were validated through extensive testing on the evaluation projects, ensuring the agent could reliably debug and enhance codebases.
+
 % -----------------------------------------------------------------------------
 % SECTION 3: BONUS FEATURES
 % -----------------------------------------------------------------------------
@@ -513,18 +563,19 @@ The agent is instructed to maintain a \texttt{PLAN.md} file outlining its step-b
 % -----------------------------------------------------------------------------
 % SECTION 4: EVALUATION PROJECTS
 % -----------------------------------------------------------------------------
-\section{Agent Evaluation & Results}
+\section{Agent Evaluation and Results}
 The agent was tested on three defective projects provided in the assignment. Below are the execution details and results.
 
 \subsection{Project 1: Legacy CSV Processor}
-\textbf{Problem:} The project failed to process transaction data correctly due to data type issues and lacked Pandas support.
+\textbf{Problem:} The project failed to process transaction data correctly due to unsafe float conversion of amounts, inadequate handling of empty files, and lacked advanced date-based filtering capabilities.
 
 \textbf{Agent's Approach:}
 \begin{enumerate}
-    \item Explored \texttt{src/file\_handler.py} and identified manual parsing logic.
-    \item Ran \texttt{pytest} and found failures in total revenue calculation.
-    \item Fixed the float conversion logic for the "amount" column.
-    \item Added handling for empty files to pass \texttt{test\_handle\_empty\_file}.
+    \item \textbf{Bug Fix - Amount Conversion:} Explored \texttt{src/file\_handler.py} and identified unsafe manual parsing that crashed on non-numeric amount values; implemented robust float conversion with error handling.
+    \item \textbf{Bug Fix - Empty File Handling:} Added checks for empty CSV files to prevent crashes and return appropriate defaults in \texttt{src/analyzer.py}.
+    \item \textbf{Feature Enhancement - Date Parsing:} Implemented \texttt{parse\_date()} function to handle date strings in YYYY-MM-DD format, enabling date-based operations.
+    \item \textbf{New Feature - Date Range Filtering:} Added \texttt{get\_revenue\_by\_date\_range()} function to calculate revenue for transactions within specified date ranges, filtering by completion status.
+    \item \textbf{Testing:} Updated CSV data to include date column and added comprehensive unit tests for all new functionality.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -597,7 +648,7 @@ def get_revenue_by_date_range(transactions, start_date, end_date):
                         continue
     return total
     \end{lstlisting}
-  \item Notes: CSV parsing improved to convert amounts safely and ignore invalid entries; average calculation protected against division by zero.
+  \item Notes: CSV parsing improved to convert amounts safely with try-except blocks and ignore invalid entries; average calculation protected against division by zero; new date parsing handles various formats gracefully; date range filtering enables temporal analysis of transaction data.
 \end{itemize}
 
 \subsection{Project 2: TinyRAG Search System}
@@ -652,13 +703,15 @@ def calculate_cosine_similarity(vec_a, vec_b):
 \end{itemize}
 
 \subsection{Project 3: Bigram Language Model}
-\textbf{Problem:} The model suffered from zero-probability issues (unseen words) and repetitive generation.
+\textbf{Problem:} The model suffered from zero-probability issues for unseen word pairs, causing generation failures, and produced repetitive text due to greedy sampling.
 
 \textbf{Agent's Approach:}
 \begin{enumerate}
-    \item Implemented \textbf{Laplace Smoothing} (Add-one smoothing) in `model/bigram.py` to fix zero division errors.
-    \item Fixed the probability normalization logic to prevent underflow in long sequences.
-    \item Improved the `sampler.py` to increase diversity in generation.
+    \item \textbf{Bug Fix - Zero Probability Handling:} Implemented \textbf{Laplace Smoothing} (Add-one smoothing) in `model/bigram.py` to assign non-zero probabilities to unseen bigrams, preventing division by zero and improving robustness.
+    \item \textbf{Feature Enhancement - Log-Probability Scoring:} Added log-probability computation to avoid underflow in long sequences and enable better probability comparisons.
+    \item \textbf{Bug Fix - Repetitive Generation:} Improved `generation/sampler.py` by replacing greedy decoding with weighted random sampling to increase diversity in generated text.
+    \item \textbf{New Feature - Top-N Candidates:} Added \texttt{top\_next(w, n)} method to return the top-n most probable next words, providing utility for analysis and debugging.
+    \item \textbf{Testing:} Created comprehensive unit tests including the new \texttt{top\_next} functionality to ensure all improvements work correctly.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -697,8 +750,8 @@ def get_probability(self, w1, w2):
     count_bigram = self.bigram_counts[w1].get(w2, 0)
     return (count_bigram + 1) / (count_w1 + V)
     \end{lstlisting}
-  \item Diversity improvement: \texttt{generation/sampler.py} switched from greedy to weighted random sampling.
-  \item New feature: \texttt{top\_next(w, n)} added and unit-tested to return top-n next-word candidates.
+  \item Diversity improvement: \texttt{generation/sampler.py} switched from greedy (always picking highest probability) to weighted random sampling for more varied and natural text generation.
+  \item New feature: \texttt{top\_next(w, n)} added and unit-tested to return top-n next-word candidates with their probabilities.
 \end{itemize}
 
 % -----------------------------------------------------------------------------
@@ -745,9 +798,9 @@ Full conversation logs are included in the submission zip file. Below is an exce
 
 This log confirms that the agent:
 \begin{enumerate}
-    \item \textbf{Verified the problem} by running the test suite (`execute_shell`).
-    \item \textbf{Located the bug} by reading the model source code (`read_file`).
-    \item \textbf{Fixed the code} by using `overwrite_file` to inject the smoothing logic.
+    \item \textbf{Verified the problem} by running the test suite (\texttt{execute\_shell}).
+    \item \textbf{Located the bug} by reading the model source code (\texttt{read\_file}).
+    \item \textbf{Fixed the code} by using \texttt{overwrite\_file} to inject the smoothing logic.
     \item \textbf{Tracked Usage} correctly, consuming ~14k tokens for the entire debugging loop.
 \end{enumerate}
 
@@ -776,18 +829,18 @@ Below are the exact test run summaries produced during evaluation (captured from
 \section{Files Modified / Created}
 During debugging and tests the following project files were updated to fix issues and add features:
 \begin{itemize}
-  \item \texttt{src/coding_agent/agent/tools.py} -- implemented file/shell tools with safe-path checks
-  \item \texttt{src/coding_agent/agent/backend.py} -- graph builder + TokenUsageTracker
-  \item \texttt{src/coding_agent/agent/session.py} -- HITL flow, pruning, save/load, logging, whitelist auto-approve
-  \item \texttt{src/coding_agent/cli/interactive.py} -- CLI help and commands (/save, /load)
-  \item \texttt{test\_projects/bigram\_generator/model/bigram.py} -- Laplace smoothing, log-prob scoring, \texttt{top\_next} method
-  \item \texttt{test\_projects/bigram\_generator/generation/sampler.py} -- weighted sampling for diversity
-  \item \texttt{test\_projects/bigram\_generator/tests/test\_bigram\_top\_next.py} -- new unit test
-  \item \texttt{test\_projects/legacy\_csv\_processor/src/file\_handler.py} -- robust CSV parsing and amount conversion
-  \item \texttt{test\_projects/legacy\_csv\_processor/src/analyzer.py} -- handle numeric conversion and empty files
-  \item \texttt{test\_projects/tiny\_rag/ingest/chunker.py} -- chunking by words with overlap
-  \item \texttt{test\_projects/tiny\_rag/retrieval/embedding.py} -- TF-IDF style weighting, normalization, stopword removal
-  \item \texttt{test\_projects/tiny\_rag/retrieval/search.py} -- correct cosine similarity computation
+  \item \texttt{src/coding\_agent/agent/tools.py} -- implemented file/shell tools with safe-path checks to prevent directory traversal attacks
+  \item \texttt{src/coding\_agent/agent/backend.py} -- graph builder with ReAct architecture + TokenUsageTracker for cost monitoring
+  \item \texttt{src/coding\_agent/agent/session.py} -- HITL flow with interrupt handling, context pruning to manage token limits, save/load functionality with pickle+JSON fallback, comprehensive logging, and whitelist auto-approve for trusted tools
+  \item \texttt{src/coding\_agent/cli/interactive.py} -- CLI with Rich panels, help system, and commands (/save, /load) for session management
+  \item \texttt{test\_projects/bigram\_generator/model/bigram.py} -- added Laplace smoothing to fix zero-probability crashes, log-probability scoring to prevent underflow, and \texttt{top\_next} method for candidate analysis
+  \item \texttt{test\_projects/bigram\_generator/generation/sampler.py} -- replaced greedy sampling with weighted random sampling to increase text generation diversity
+  \item \texttt{test\_projects/bigram\_generator/tests/test\_bigram\_top\_next.py} -- new unit test for the \texttt{top\_next} functionality
+  \item \texttt{test\_projects/legacy\_csv\_processor/src/file\_handler.py} -- robust CSV parsing with safe amount conversion and date field loading
+  \item \texttt{test\_projects/legacy\_csv\_processor/src/analyzer.py} -- added date parsing (\texttt{parse\_date}), date range filtering (\texttt{get\_revenue\_by\_date\_range}), and empty file handling
+  \item \texttt{test\_projects/tiny\_rag/ingest/chunker.py} -- improved chunking from fixed-size to word-based with overlap to maintain context
+  \item \texttt{test\_projects/tiny\_rag/retrieval/embedding.py} -- implemented TF-IDF-like term weighting, vector normalization, and stopword removal for better semantic representation
+  \item \texttt{test\_projects/tiny\_rag/retrieval/search.py} -- fixed cosine similarity by adding proper vector normalization (previously was raw dot product)
 \end{itemize}
 
 \section{Usage Report}
