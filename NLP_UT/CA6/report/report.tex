@@ -604,8 +604,6 @@ Utility packages include \texttt{python-dotenv} for securely loading API keys, \
 
 Finally, these choices were made for practical reasons: a graph provides explicit control and resumability, HITL provides a clear safety boundary, Rich makes supervision usable, and standard LLM APIs keep the solution portable across provider models.
 
-\end{document}
-
 % -----------------------------------------------------------------------------
 % Prose Version — all lists converted into narrative paragraphs
 % -----------------------------------------------------------------------------
@@ -626,3 +624,5 @@ Memory management includes pruning long tool outputs after a turn completes to a
 The testing workflow the agent uses is entirely self-contained: it inspects the project structure, reads tests and source, runs pytest to see failing traces, reasons about fixes, requests HITL approval for writes or test runs when needed, applies patches, and re-runs tests until all pass. This loop was exercised on three supplied evaluation projects where the agent identified issues, applied fixes, and validated the results by running the test suites to completion.
 
 Finally, the project targets Python 3.11+ with dependencies declared in \texttt{pyproject.toml}. Reproducible setup steps, example system prompts used to guide the agent, and a small cost analysis appear earlier in the report. The deliverables include the source code, corrected evaluation projects, session logs, a PDF of this report, and a short demonstration video; these are prepared to be packaged into the required submission ZIP.
+
+\end{document}
