@@ -4,6 +4,7 @@ import uuid
 import json
 import pickle
 import asyncio
+from datetime import datetime
 from typing import Optional, List
 from pathlib import Path
 
@@ -33,6 +34,13 @@ class InteractiveSession:
         self.graph = build_agent_graph(self.checkpointer)
         self.thread_id = str(uuid.uuid4())
         self.config = {"configurable": {"thread_id": self.thread_id}}
+        # Log file for conversation and intermediate states
+        try:
+            log_dir = Path(self.project_root) / ".coding_agent_logs"
+            log_dir.mkdir(parents=True, exist_ok=True)
+            self.log_path = log_dir / f"session_{self.thread_id}.jsonl"
+        except Exception:
+            self.log_path = Path(f"session_{self.thread_id}.jsonl")
 
     async def process_turn(self, user_message: str) -> str:
         """Process turn with HITL, Pruning, and Usage Tracking."""
@@ -87,6 +95,33 @@ class InteractiveSession:
 
         # Smart Context (Pruning)
         self._prune_context()
+
+        # Save a log entry for this turn
+        try:
+            log_entry = {
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "thread_id": self.thread_id,
+                "user_message": user_message,
+                "agent_response": final_response,
+                "usage": {
+                    "total_tokens": getattr(usage_tracker, "total_tokens", 0),
+                    "cost_est": getattr(usage_tracker, "cost_est", 0.0),
+                },
+            }
+            # include last tool calls if present
+            try:
+                snapshot = self.graph.get_state(self.config)
+                last_msg = snapshot.values.get("messages", [])[-1]
+                tool_calls = getattr(last_msg, "tool_calls", []) or []
+                log_entry["tool_calls"] = tool_calls
+            except Exception:
+                log_entry["tool_calls"] = []
+
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+        except Exception:
+            # best-effort logging; do not fail the turn if logging errors occur
+            pass
 
         # Append Usage Stats to Response
         stats = (
