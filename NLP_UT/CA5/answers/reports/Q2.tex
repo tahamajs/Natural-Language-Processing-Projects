@@ -1423,4 +1423,809 @@ This implementation demonstrates that sophisticated AI systems can be built usin
 
 The success of this project validates the assignment's objectives and provides a blueprint for future AI applications in the travel and tourism domain. By integrating cutting-edge AI techniques with practical engineering practices, TravBot represents a significant step forward in conversational AI applications.
 
+\appendix
+
+\section{Complete Implementation Code}
+\label{app:complete_code}
+
+\subsection{Environment Setup Script}
+\begin{lstlisting}[language=Python, caption=Complete Environment Setup]
+# Complete environment setup and imports
+import os
+import json
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
+
+# Load environment variables
+load_dotenv()
+
+# API Keys
+AMadeus_API_KEY = os.getenv('AMadeus_API_KEY')
+AMadeus_API_SECRET = os.getenv('AMadeus_API_SECRET')
+TAVILY_API_KEY = os.getenv('TAVILY_API_KEY')
+LLAMA_CLOUD_API_KEY = os.getenv('LLAMA_CLOUD_API_KEY')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+
+# Install required packages
+!pip install -r requirements.txt
+
+# Import all required libraries
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.tools import tool
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langgraph import StateGraph, END
+from langgraph.prebuilt import ToolNode
+import lancedb
+from lancedb.embeddings import get_registry
+from lancedb.pydantic import LanceModel, Vector
+from sentence_transformers import SentenceTransformer
+from amadeus import Client, ResponseError
+import kagglehub
+from llama_parse import LlamaParse
+\end{lstlisting}
+
+\subsection{Data Processing Functions}
+\begin{lstlisting}[language=Python, caption=Dataset Processing Functions]
+def download_and_process_airport_data():
+    """Download and process IATA airport codes dataset."""
+    path = kagglehub.dataset_download("zinovadr/iata-airport-code")
+    csv_files = [f for f in os.listdir(path) if f.endswith('.csv')]
+    
+    airport_df = pd.read_csv(os.path.join(path, csv_files[0]))
+    
+    # Create city to IATA mapping
+    city_to_iata = {}
+    for _, row in airport_df.iterrows():
+        city = str(row['city']).strip().lower()
+        iata = str(row['iata']).strip().upper()
+        if city and iata and len(iata) == 3:
+            city_to_iata[city] = iata
+    
+    return city_to_iata
+
+def download_and_process_currency_data():
+    """Download and process currency mapping dataset."""
+    path = kagglehub.dataset_download("phanee16/currency-and-country-code-mapping")
+    
+    currency_df = pd.read_csv(os.path.join(path, 'currency-and-country-code-mapping.csv'))
+    
+    # Create country to currency mapping
+    country_to_currency = {}
+    for _, row in currency_df.iterrows():
+        country = str(row['country']).lower().strip()
+        currency_code = str(row['currency_code']).strip().upper()
+        if country and currency_code:
+            country_to_currency[country] = currency_code
+    
+    return country_to_currency
+
+def process_faq_data():
+    """Process FAQ data from JavaScript file."""
+    faq_data = []
+    with open('FAQ.js', 'r', encoding='utf-8') as f:
+        content = f.read()
+        match = re.search(r'\[\s*{.*}\s*\]', content, re.DOTALL)
+        if match:
+            json_string = match.group(0)
+            faq_data = json.loads(json_string)
+    
+    return faq_data
+
+def process_tourism_book():
+    """Process tourism guide content using LlamaParse."""
+    parser = LlamaParse(
+        api_key=LLAMA_CLOUD_API_KEY,
+        result_type="markdown",
+        verbose=True,
+    )
+    
+    documents = parser.load_data("tourism_book.pdf")
+    return documents
+\end{lstlisting}
+
+\subsection{Vector Database Setup}
+\begin{lstlisting}[language=Python, caption=Complete Vector Database Implementation]
+# Initialize embedding model
+embedding_model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+
+# Define schema for FAQ table
+class FAQDoc(LanceModel):
+    question: str
+    answer: str
+    vector: Vector(384)
+
+# Define schema for book table
+class BookDoc(LanceModel):
+    text: str
+    vector: Vector(384)
+
+def setup_vector_database():
+    """Initialize and populate vector database."""
+    db = lancedb.connect("./lancedb_data")
+    
+    # Setup FAQ table
+    faq_data = process_faq_data()
+    faq_docs = []
+    for item in faq_data:
+        vector = embedding_model.encode([item['question']])[0]
+        faq_docs.append({
+            'question': item['question'],
+            'answer': item['answer'],
+            'vector': vector
+        })
+    
+    faq_table = db.create_table("faq_table", schema=FAQDoc, mode="overwrite")
+    faq_table.add(faq_docs)
+    
+    # Setup book table
+    book_documents = process_tourism_book()
+    book_docs = []
+    for doc in book_documents:
+        chunks = [doc.text[i:i+1000] for i in range(0, len(doc.text), 1000)]
+        for chunk in chunks:
+            vector = embedding_model.encode([chunk])[0]
+            book_docs.append({
+                'text': chunk,
+                'vector': vector
+            })
+    
+    book_table = db.create_table("book_table", schema=BookDoc, mode="overwrite")
+    book_table.add(book_docs)
+    
+    return db
+
+# Initialize database
+db = setup_vector_database()
+\end{lstlisting}
+
+\subsection{Complete Tool Implementations}
+\begin{lstlisting}[language=Python, caption=All Tool Implementations]
+# Global data mappings
+city_to_iata = download_and_process_airport_data()
+country_to_currency = download_and_process_currency_data()
+
+# Initialize API clients
+amadeus = Client(
+    client_id=AMadeus_API_KEY,
+    client_secret=AMadeus_API_SECRET
+)
+
+tavily_client = TavilySearchResults(api_key=TAVILY_API_KEY)
+
+@tool
+def get_iata_code(city: str) -> str:
+    """Get IATA code for a city."""
+    city_lower = city.lower().strip()
+    return city_to_iata.get(city_lower, city.upper()[:3])
+
+@tool
+def get_currency_code(country: str) -> str:
+    """Get currency code for a country."""
+    country_lower = country.lower().strip()
+    return country_to_currency.get(country_lower, "USD")
+
+@tool
+def flight_search_tool(origin: str, destination: str, date: str) -> str:
+    """Search for flights between origin and destination on a given date."""
+    try:
+        origin_code = get_iata_code(origin)
+        dest_code = get_iata_code(destination)
+        
+        response = amadeus.shopping.flight_offers_search.get(
+            originLocationCode=origin_code,
+            destinationLocationCode=dest_code,
+            departureDate=date,
+            adults=1,
+            max=5
+        )
+        
+        flights = []
+        for offer in response.data:
+            flight = offer['itineraries'][0]['segments'][0]
+            price = offer['price']['total']
+            flights.append(
+                f"{flight['carrierCode']} {flight['number']} | "
+                f"Dep: {flight['departure']['at']} - Arr: {flight['arrival']['at']} | "
+                f"Price: {price} {offer['price']['currency']}"
+            )
+        
+        return f"Found flights for {origin} ({origin_code}) -> {destination} ({dest_code}) on {date}:\n" + "\n".join(flights)
+    
+    except ResponseError as error:
+        return f"Error searching flights: {error}"
+    except Exception as e:
+        return f"Unable to search flights: {str(e)}"
+
+@tool
+def hotel_search_tool(city: str, check_in: str, check_out: str, budget: int = None) -> str:
+    """Search for hotels in a city for given dates."""
+    try:
+        city_code = get_iata_code(city)
+        
+        search_params = {
+            'cityCode': city_code,
+            'checkInDate': check_in,
+            'checkOutDate': check_out,
+            'adults': 1,
+            'max': 5
+        }
+        
+        if budget:
+            search_params['priceRange'] = f"1-{budget}"
+        
+        response = amadeus.shopping.hotel_offers_search.get(**search_params)
+        
+        hotels = []
+        for hotel in response.data:
+            name = hotel['hotel']['name']
+            rating = hotel.get('hotel', {}).get('rating', 'N/A')
+            price = hotel['offers'][0]['price']['total']
+            currency = hotel['offers'][0]['price']['currency']
+            hotels.append(f"- {name}: Rating: {rating}, Total price: {price} {currency}")
+        
+        return f"Recommended hotels in {city} (source: Amadeus):\n" + "\n".join(hotels)
+    
+    except Exception as e:
+        # Fallback to web search
+        query = f"best hotels in {city} from {check_in} to {check_out}"
+        if budget:
+            query += f" under {budget} USD"
+        
+        try:
+            response = tavily_client.search(query=query, max_results=5)
+            results = [f"- {r['title']}: {r['content'][:100]}..." for r in response['results']]
+            return f"Hotel recommendations in {city} (web search):\n" + "\n".join(results)
+        except:
+            return f"Unable to find hotels in {city}"
+
+@tool
+def restaurant_search_tool(destination: str) -> str:
+    """Find restaurants and local food recommendations."""
+    query = f"best top rated restaurants and local food in {destination} with cuisine type and reviews"
+    
+    try:
+        response = tavily_client.search(query=query, max_results=5)
+        
+        formatted_output = [f"Restaurant recommendations in {destination}:"]
+        for result in response['results']:
+            formatted_output.append(
+                f"- {result['title']}\n  {result['content'][:200]}...\n  More info: {result['url']}"
+            )
+        
+        return "\n\n".join(formatted_output)
+    except Exception as e:
+        return f"Unable to find restaurant information for {destination}"
+
+@tool
+def weather_info_tool(destination: str, date: str) -> str:
+    """Get weather information for a destination on a specific date."""
+    query = f"weather forecast in {destination} on {date} temperature humidity rain chance clothing recommendation"
+    
+    try:
+        response = tavily_client.search(query=query, max_results=3)
+        
+        weather_info = [f"Weather forecast for {destination} ({date}): "]
+        for result in response['results']:
+            weather_info.append(result['content'])
+        
+        return "\n".join(weather_info)
+    except Exception as e:
+        return f"Unable to retrieve weather information for {destination}"
+
+@tool
+def currency_info_tool(source_country: str, target_country: str) -> str:
+    """Get currency exchange information between two countries."""
+    source_code = get_currency_code(source_country)
+    target_code = get_currency_code(target_country)
+    
+    query = f"{source_code} to {target_code} exchange rate today"
+    
+    try:
+        response = tavily_client.search(query=query, max_results=3)
+        
+        return f"Exchange rate: {source_country} ({source_code}) to {target_country} ({target_code})\n{response['results'][0]['content']}"
+    except Exception as e:
+        return f"Unable to retrieve exchange rate information"
+
+@tool
+def faq_search_tool(query: str) -> str:
+    """Search FAQ database for relevant travel information."""
+    try:
+        tbl_faq = db.open_table("faq_table")
+        
+        query_vector = embedding_model.encode([query])[0]
+        results = tbl_faq.search(query_vector).limit(2).to_pandas()
+        
+        response = "Based on our FAQ:\n\n"
+        for _, row in results.iterrows():
+            response += f"Q: {row['question']}\nA: {row['answer']}\n\n"
+        
+        return response
+    except Exception as e:
+        return "Unable to search FAQ database"
+
+@tool
+def trip_planning_tool(destination: str, arrival_date: str, departure_date: str, interests: str = "") -> str:
+    """Generate a comprehensive trip itinerary."""
+    try:
+        # Calculate duration
+        start = datetime.strptime(arrival_date, "%Y-%m-%d")
+        end = datetime.strptime(departure_date, "%Y-%m-%d")
+        duration = (end - start).days + 1
+        
+        # Generate search queries
+        queries = [
+            f"top tourist attractions in {destination}",
+            f"best restaurants local food in {destination}",
+            f"cultural activities in {destination}"
+        ]
+        
+        if interests:
+            queries.append(f"best {interests} activities in {destination}")
+        
+        # RAG search
+        rag_results = []
+        try:
+            tbl = db.open_table("book_table")
+            for q in queries:
+                q_vec = embedding_model.encode([q])[0]
+                results = tbl.search(q_vec).limit(2).to_pandas()
+                rag_results.extend(results['text'].tolist())
+        except:
+            pass
+        
+        # Web search fallback
+        web_results = []
+        for q in queries:
+            response = tavily_client.search(query=q, max_results=2)
+            web_results.extend([r['content'] for r in response['results']])
+        
+        # Compile itinerary
+        itinerary = f"Trip itinerary for {destination} ({arrival_date} to {departure_date}):\n\n"
+        itinerary += "Tourism Book Information:\n" + "\n".join(rag_results[:5]) + "\n\n"
+        itinerary += "Additional Web Sources:\n" + "\n".join(web_results[:5])
+        
+        return itinerary
+    except Exception as e:
+        return f"Unable to generate trip plan for {destination}"
+\end{lstlisting}
+
+\subsection{LangGraph Agent Implementation}
+\begin{lstlisting}[language=Python, caption=Complete LangGraph Agent]
+from langgraph import StateGraph, END
+from langgraph.prebuilt import ToolNode
+from typing import TypedDict, Annotated, Sequence
+import operator
+
+# Define state
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[dict], operator.add]
+    context: dict
+
+# Initialize LLM
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash-lite",
+    temperature=0.1
+)
+
+# Bind tools to LLM
+tools = [
+    flight_search_tool,
+    hotel_search_tool,
+    restaurant_search_tool,
+    weather_info_tool,
+    currency_info_tool,
+    faq_search_tool,
+    trip_planning_tool
+]
+
+llm_with_tools = llm.bind_tools(tools)
+
+# Define nodes
+def chatbot_node(state: AgentState) -> AgentState:
+    """Process user message and decide on tool usage."""
+    messages = state["messages"]
+    response = llm_with_tools.invoke(messages)
+    
+    return {
+        "messages": [response],
+        "context": state.get("context", {})
+    }
+
+def tool_node(state: AgentState) -> AgentState:
+    """Execute tool calls."""
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    tool_calls = last_message.tool_calls if hasattr(last_message, 'tool_calls') else []
+    
+    tool_results = []
+    for tool_call in tool_calls:
+        tool_name = tool_call["name"]
+        tool_args = tool_call["args"]
+        
+        # Find and execute the tool
+        for tool in tools:
+            if tool.name == tool_name:
+                result = tool.invoke(tool_args)
+                tool_results.append({
+                    "tool_call_id": tool_call["id"],
+                    "content": result
+                })
+                break
+    
+    return {
+        "messages": tool_results,
+        "context": state.get("context", {})
+    }
+
+def should_continue(state: AgentState) -> str:
+    """Determine whether to continue or end the conversation."""
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return "tools"
+    else:
+        return END
+
+# Create graph
+workflow = StateGraph(AgentState)
+
+# Add nodes
+workflow.add_node("chatbot", chatbot_node)
+workflow.add_node("tools", tool_node)
+
+# Add edges
+workflow.add_edge("tools", "chatbot")
+workflow.add_conditional_edges("chatbot", should_continue)
+
+# Set entry point
+workflow.set_entry_point("chatbot")
+
+# Compile
+app = workflow.compile()
+
+# Function to run the agent
+def run_travel_agent(query: str) -> str:
+    """Run the travel agent with a user query."""
+    initial_state = {
+        "messages": [{"role": "user", "content": query}],
+        "context": {}
+    }
+    
+    result = app.invoke(initial_state)
+    
+    # Extract final response
+    final_message = result["messages"][-1]
+    if hasattr(final_message, 'content'):
+        return final_message.content
+    else:
+        return str(final_message)
+\end{lstlisting}
+
+\subsection{Streamlit Web Interface}
+\begin{lstlisting}[language=Python, caption=Complete Streamlit Interface]
+import streamlit as st
+
+# Page configuration
+st.set_page_config(
+    page_title="TravBot - Your Travel Assistant",
+    page_icon="✈️",
+    layout="wide"
+)
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Title and description
+st.title("✈️ TravBot - Your Intelligent Travel Assistant")
+st.markdown("""
+Welcome to TravBot! I can help you with:
+- ✈️ Flight searches and bookings
+- 🏨 Hotel recommendations
+- 🍽️ Restaurant and food suggestions
+- 🌤️ Weather information
+- 💱 Currency exchange rates
+- 📋 Travel FAQs and tips
+- 🗺️ Complete trip planning
+
+Just ask me anything about your travel plans!
+""")
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat input
+if prompt := st.chat_input("How can I help with your travel plans?"):
+    # Add user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    # Get bot response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            try:
+                response = run_travel_agent(prompt)
+                st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+            except Exception as e:
+                error_msg = f"Sorry, I encountered an error: {str(e)}"
+                st.error(error_msg)
+                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+# Sidebar with information
+with st.sidebar:
+    st.header("About TravBot")
+    st.markdown("""
+    **Powered by:**
+    - LangGraph for agent orchestration
+    - LanceDB for knowledge retrieval
+    - Amadeus API for travel data
+    - Tavily for web search
+    - Google Gemini for intelligence
+    
+    **Features:**
+    - Real-time flight and hotel data
+    - Comprehensive trip planning
+    - Multi-source information integration
+    - Natural language conversation
+    """)
+    
+    if st.button("Clear Chat History"):
+        st.session_state.messages = []
+        st.rerun()
+\end{lstlisting}
+
+\section{Testing Scripts and Validation}
+\label{app:testing}
+
+\subsection{Automated Test Suite}
+\begin{lstlisting}[language=Python, caption=Comprehensive Test Suite]
+import pytest
+from unittest.mock import Mock, patch
+
+class TestTravBot:
+    
+    def test_flight_search_tool(self):
+        """Test flight search functionality."""
+        with patch('amadeus.shopping.flight_offers_search.get') as mock_api:
+            mock_response = Mock()
+            mock_response.data = [{
+                'itineraries': [{
+                    'segments': [{
+                        'carrierCode': 'EK',
+                        'number': '123',
+                        'departure': {'at': '08:00'},
+                        'arrival': {'at': '10:30'}
+                    }]
+                }],
+                'price': {'total': '285', 'currency': 'USD'}
+            }]
+            mock_api.return_value = mock_response
+            
+            result = flight_search_tool("Tehran", "Dubai", "2025-01-10")
+            assert "EK 123" in result
+            assert "285 USD" in result
+    
+    def test_hotel_search_tool(self):
+        """Test hotel search functionality."""
+        with patch('amadeus.shopping.hotel_offers_search.get') as mock_api:
+            mock_response = Mock()
+            mock_response.data = [{
+                'hotel': {'name': 'Hotel Ritz', 'rating': '5'},
+                'offers': [{'price': {'total': '2500', 'currency': 'EUR'}}]
+            }]
+            mock_api.return_value = mock_response
+            
+            result = hotel_search_tool("Paris", "2025-01-15", "2025-01-18")
+            assert "Hotel Ritz" in result
+            assert "2500 EUR" in result
+    
+    def test_weather_info_tool(self):
+        """Test weather information retrieval."""
+        with patch('langchain_community.tools.tavily_search.TavilySearchResults.search') as mock_search:
+            mock_search.return_value = {
+                'results': [{'content': 'Sunny, 25°C, low chance of rain'}]
+            }
+            
+            result = weather_info_tool("Barcelona", "2025-01-05")
+            assert "Barcelona" in result
+            assert "25°C" in result
+    
+    def test_currency_info_tool(self):
+        """Test currency exchange functionality."""
+        result = currency_info_tool("United States", "European Union")
+        assert "USD" in result
+        assert "EUR" in result
+    
+    def test_faq_search_tool(self):
+        """Test FAQ knowledge retrieval."""
+        result = faq_search_tool("What documents do I need for international travel?")
+        assert "documents" in result.lower()
+    
+    def test_trip_planning_tool(self):
+        """Test comprehensive trip planning."""
+        result = trip_planning_tool("Istanbul", "2025-01-10", "2025-01-13", "history")
+        assert "Istanbul" in result
+        assert "2025-01-10" in result
+
+# Run tests
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
+\end{lstlisting}
+
+\subsection{Performance Benchmarking}
+\begin{lstlisting}[language=Python, caption=Performance Testing Script]
+import time
+import statistics
+
+def benchmark_agent():
+    """Benchmark agent performance across multiple queries."""
+    
+    test_queries = [
+        "Find flights from Tehran to Dubai next Friday",
+        "What hotels are available in Paris for 3 nights?",
+        "What's the weather like in Barcelona today?",
+        "Convert 100 USD to Euros",
+        "What documents do I need for international travel?",
+        "Plan a 3-day trip to Istanbul focusing on food"
+    ]
+    
+    response_times = []
+    
+    print("Benchmarking TravBot Performance")
+    print("=" * 50)
+    
+    for i, query in enumerate(test_queries, 1):
+        print(f"\nTest {i}: {query}")
+        
+        start_time = time.time()
+        try:
+            response = run_travel_agent(query)
+            end_time = time.time()
+            
+            response_time = end_time - start_time
+            response_times.append(response_time)
+            
+            print(".2f")
+            print(f"Response length: {len(response)} characters")
+            
+        except Exception as e:
+            print(f"Error: {str(e)}")
+    
+    # Calculate statistics
+    if response_times:
+        print("\n" + "=" * 50)
+        print("PERFORMANCE SUMMARY")
+        print("=" * 50)
+        print(f"Average response time: {statistics.mean(response_times):.2f}s")
+        print(f"Median response time: {statistics.median(response_times):.2f}s")
+        print(f"Min response time: {min(response_times):.2f}s")
+        print(f"Max response time: {max(response_times):.2f}s")
+        print(f"Total queries: {len(test_queries)}")
+        print(f"Successful queries: {len(response_times)}")
+
+if __name__ == "__main__":
+    benchmark_agent()
+\end{lstlisting}
+
+\section{Deployment and Production Considerations}
+\label{app:deployment}
+
+\subsection{Docker Configuration}
+\begin{lstlisting}[language=Dockerfile, caption=Dockerfile for Production Deployment]
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
+USER app
+
+# Expose port
+EXPOSE 8501
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8501/health')"
+
+# Run the application
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+\end{lstlisting}
+
+\subsection{Environment Configuration}
+\begin{lstlisting}[language=bash, caption=Production Environment Setup]
+# Production environment variables
+export AMADEUS_API_KEY="your_production_amadeus_key"
+export AMADEUS_API_SECRET="your_production_amadeus_secret"
+export TAVILY_API_KEY="your_production_tavily_key"
+export LLAMA_CLOUD_API_KEY="your_production_llama_key"
+export GOOGLE_API_KEY="your_production_google_key"
+
+# Database configuration
+export LANCEDB_PATH="/data/lancedb"
+export LOG_LEVEL="INFO"
+
+# Server configuration
+export STREAMLIT_SERVER_PORT=8501
+export STREAMLIT_SERVER_ADDRESS="0.0.0.0"
+export STREAMLIT_SERVER_HEADLESS=true
+\end{lstlisting}
+
+\subsection{Monitoring and Logging}
+\begin{lstlisting}[language=Python, caption=Monitoring and Logging Setup]
+import logging
+import time
+from functools import wraps
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('travbot.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+def log_execution_time(func):
+    """Decorator to log function execution time."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        
+        logger.info(f"{func.__name__} executed in {end_time - start_time:.2f}s")
+        return result
+    return wrapper
+
+def monitor_api_calls(func):
+    """Decorator to monitor API call success/failure."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            logger.info(f"{func.__name__} API call successful")
+            return result
+        except Exception as e:
+            logger.error(f"{func.__name__} API call failed: {str(e)}")
+            raise
+    return wrapper
+
+# Apply monitoring to tools
+@log_execution_time
+@monitor_api_calls
+def flight_search_tool_monitored(*args, **kwargs):
+    return flight_search_tool(*args, **kwargs)
+
+# Similarly for other tools...
+\end{lstlisting}
+
 \end{document}

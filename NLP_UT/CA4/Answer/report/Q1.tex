@@ -136,15 +136,12 @@ Table \ref{tab:q1_results} summarizes the performance of both models.
 \end{center}
 \end{table}
 
-The results clearly demonstrate BART's superiority, with approximately 23\% higher Raw EM and 16\% higher Normalized EM compared to GPT-2 across both development and test sets.
-
 \subsection{Analysis}
 
 \subsubsection{Architecture Comparison}
 BART significantly outperformed GPT-2. The Encoder-Decoder architecture allows the model to attend to the entire schema and question simultaneously (via the encoder) before starting generation. In contrast, GPT-2's unidirectional attention mechanism may struggle to retain schema details when the input sequence is long.
 
 \subsubsection{Error Analysis}
-\textbf{Error Analysis:}
 Our manual analysis of 5 random samples revealed distinct error patterns:
 
 \textbf{BART Errors:}
