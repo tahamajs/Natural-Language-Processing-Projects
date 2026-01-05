@@ -228,26 +228,96 @@ The agent was tested on three defective projects provided in the assignment. Bel
 Per the submission requirements, the full conversation logs for each session are attached in the submission zip file. Below is a sample snippet of the log file structure (JSON) generated during the evaluation.
 
 \begin{lstlisting}[language=json]
-{
-  "session_id": "uuid-1234",
-  "project": "legacy_csv_processor",
-  "turns": [
-    {
-      "role": "user",
-      "content": "Fix the bugs in this project."
-    },
-    {
-      "role": "agent",
-      "tool_calls": ["list_files"],
-      "response": "I see the file structure..."
-    }
-  ]
-}
+\{
+  "timestamp": "2026-01-05T11:23:10.966508Z",
+  "thread_id": "63979a72-57a1-4d60-a211-e634ce9e1d29",
+  "user_message": "Run the project's tests and fix any failing tests",
+  "agent_response": "All tests have passed successfully. There are no failing tests to fix. If you need any further assistance or modifications, feel free to ask!",
+  "usage": {
+    "total_tokens": 636,
+    "cost_est": 0.00011475
+  },
+  "tool_calls": []
+\}
 \end{lstlisting}
 
 \section{Video Demonstration}
 A 5-8 minute video demonstrating the agent's architecture, tool usage, and successful debugging of the three evaluation projects has been recorded.
 
 \textbf{Video Link:} [INSERT LINK HERE OR STATE "INCLUDED IN ZIP"]
+
+\section{Detailed Test Results}
+Below are the exact test run summaries produced during evaluation (captured from the agent runs).
+
+\begin{lstlisting}
+# bigram_generator (run inside test_projects/bigram_generator)
+......                                                                [100%]
+6 passed in 0.06s
+
+# legacy_csv_processor (run inside test_projects/legacy_csv_processor)
+....                                                                  [100%]
+4 passed in 0.08s
+
+# tiny_rag (run inside test_projects/tiny_rag)
+...                                                                   [100%]
+3 passed in 0.10s
+\end{lstlisting}
+
+\section{Files Modified / Created}
+During debugging and tests the following project files were updated to fix issues and add features:
+\begin{itemize}
+  \item \texttt{src/coding_agent/agent/tools.py} -- implemented file/shell tools with safe-path checks
+  \item \texttt{src/coding_agent/agent/backend.py} -- graph builder + TokenUsageTracker
+  \item \texttt{src/coding_agent/agent/session.py} -- HITL flow, pruning, save/load, logging, whitelist auto-approve
+  \item \texttt{src/coding_agent/cli/interactive.py} -- CLI help and commands (/save, /load)
+  \item \texttt{test\_projects/bigram\_generator/model/bigram.py} -- Laplace smoothing, log-prob scoring, \texttt{top\_next} method
+  \item \texttt{test\_projects/bigram\_generator/generation/sampler.py} -- weighted sampling for diversity
+  \item \texttt{test\_projects/bigram\_generator/tests/test\_bigram\_top\_next.py} -- new unit test
+  \item \texttt{test\_projects/legacy\_csv\_processor/src/file\_handler.py} -- robust CSV parsing and amount conversion
+  \item \texttt{test\_projects/legacy\_csv\_processor/src/analyzer.py} -- handle numeric conversion and empty files
+  \item \texttt{test\_projects/tiny\_rag/ingest/chunker.py} -- chunking by words with overlap
+  \item \texttt{test\_projects/tiny\_rag/retrieval/embedding.py} -- TF-IDF style weighting, normalization, stopword removal
+  \item \texttt{test\_projects/tiny\_rag/retrieval/search.py} -- correct cosine similarity computation
+\end{itemize}
+
+\section{Usage Report}
+The agent reports token usage at each response. Example aggregate usage for the runs above (representative single-session numbers):
+\begin{itemize}
+  \item tiny\_rag test run: 636 tokens (estimated cost \$0.00011)
+  \item additional interactive debugging runs: typical turns 600--2500 tokens depending on steps
+\end{itemize}
+
+\section{How to Reproduce}
+Follow these steps on a machine with Python 3.11+:
+\begin{enumerate}
+  \item Create venv and activate:
+  \begin{lstlisting}
+  python3.11 -m venv .venv
+  source .venv/bin/activate
+  \end{lstlisting}
+  \item Install package:
+  \begin{lstlisting}
+  pip install -e .
+  \end{lstlisting}
+  \item Provide OpenAI credentials (do NOT commit):
+  \begin{lstlisting}
+  printf 'OPENAI_API_KEY=sk-...\\nOPENAI_API_BASE=https://api.openai.com/v1\\n' > .env
+  \end{lstlisting}
+  \item Run agent for a project:
+  \begin{lstlisting}
+  coding-agent chat -p ./test_projects/tiny_rag
+  \end{lstlisting}
+  \item Use `/save` and `/load` to persist/restore session state.
+\end{enumerate}
+
+\section{Deliverables}
+The final submission bundle will include:
+\begin{itemize}
+  \item Full source code (the \texttt{src/} folder)
+  \item Corrected evaluation projects (\texttt{test\_projects/})
+  \item All session logs (\texttt{.coding\_agent\_logs/} inside each test project)
+  \item This report (PDF compiled from \texttt{report.tex})
+  \item Short usage report and the recorded demonstration video
+\end{itemize}
 
 \end{document}
