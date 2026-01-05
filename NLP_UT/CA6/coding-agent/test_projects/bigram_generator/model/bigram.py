@@ -1,4 +1,5 @@
 from collections import defaultdict, Counter
+import math
 
 class BigramModel:
     def __init__(self):
@@ -27,22 +28,29 @@ class BigramModel:
         """
         Calculates P(w2 | w1) = count(w1, w2) / count(w1)
         """
-        count_w1 = self.unigram_counts[w1]
+        # Laplace (add-one) smoothing to avoid zero probabilities
+        V = max(1, len(self.vocab))
+        count_w1 = self.unigram_counts.get(w1, 0)
+
+        # If w1 unseen, return uniform probability over vocabulary
         if count_w1 == 0:
-            return 0.0
-            
-        count_bigram = self.bigram_counts[w1][w2]
-        return count_bigram / count_w1
+            return 1.0 / V
+
+        count_bigram = self.bigram_counts[w1].get(w2, 0)
+        return (count_bigram + 1) / (count_w1 + V)
 
     def score_sentence(self, tokens):
         """
         Calculates the total probability of a sequence of words.
         """
-        prob = 1.0
+        # Use log-probabilities to avoid floating point underflow for long sequences.
+        log_prob = 0.0
         for i in range(len(tokens) - 1):
             w1 = tokens[i]
-            w2 = tokens[i+1]
+            w2 = tokens[i + 1]
             p = self.get_probability(w1, w2)
-            prob *= p
-            
-        return prob
+            # guard against numerical issues
+            p = max(p, 1e-300)
+            log_prob += math.log(p)
+
+        return log_prob

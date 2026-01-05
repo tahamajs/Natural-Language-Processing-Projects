@@ -12,18 +12,34 @@ def load_transactions(file_path):
     transactions = []
 
     with open(file_path, 'r') as f:
-        lines = f.readlines()
+        lines = [ln for ln in f.readlines() if ln.strip()]
+        if not lines:
+            return transactions
+
         headers = lines[0].strip().split(',')
 
         for line in lines[1:]:
             values = line.strip().split(',')
-            
+
+            # Safely map values to headers
+            record = {}
+            for idx, header in enumerate(headers):
+                val = values[idx] if idx < len(values) else ""
+                record[header] = val
+
+            # Convert amount to float when possible
+            amount_raw = record.get('amount', '')
+            try:
+                amount_val = float(amount_raw) if amount_raw != "" else None
+            except Exception:
+                amount_val = None
+
             transaction = {
-                headers[0]: values[0],
-                headers[1]: values[1],
-                headers[2]: values[2],
-                headers[3]: values[3]
+                'id': record.get('id', ''),
+                'amount': amount_val,
+                'currency': record.get('currency', ''),
+                'status': record.get('status', '')
             }
             transactions.append(transaction)
-            
+
     return transactions

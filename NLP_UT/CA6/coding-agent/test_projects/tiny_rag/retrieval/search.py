@@ -6,8 +6,11 @@ def calculate_cosine_similarity(vec_a, vec_b):
         raise ValueError("Vectors must be of same length")
 
     dot_product = sum(a * b for a, b in zip(vec_a, vec_b))
-    
-    return dot_product
+    norm_a = sum(a * a for a in vec_a) ** 0.5
+    norm_b = sum(b * b for b in vec_b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot_product / (norm_a * norm_b)
 
 class VectorSearch:
     def __init__(self, database, vectorizer):

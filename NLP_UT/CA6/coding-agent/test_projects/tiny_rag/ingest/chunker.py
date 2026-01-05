@@ -7,13 +7,14 @@ class TextChunker:
         """
         Splits text into fixed-size chunks by words.
         """
+        words = text.split()
+        if not words:
+            return []
+
         chunks = []
-        start = 0
-        
-        while start < len(text):
-            end = start + self.chunk_size
-            chunk = text[start:end]
-            chunks.append(chunk)
-            start += (self.chunk_size - self.overlap)
-            
+        step = max(1, self.chunk_size - self.overlap)
+        for i in range(0, len(words), step):
+            chunk_words = words[i:i + self.chunk_size]
+            chunks.append(" ".join(chunk_words))
+
         return chunks
