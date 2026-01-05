@@ -1,6 +1,6 @@
 import unittest
 import os
-from src.analyzer import calculate_total_revenue, get_average_transaction
+from src.analyzer import calculate_total_revenue, get_average_transaction, get_maximum_transaction
 from src.file_handler import load_transactions
 
 class TestLegacySystem(unittest.TestCase):
@@ -25,6 +25,11 @@ class TestLegacySystem(unittest.TestCase):
         avg = get_average_transaction(transactions)
         self.assertAlmostEqual(avg, 337.625, places=2)
 
+    def test_get_maximum_transaction(self):
+        transactions = load_transactions(self.data_file)
+        max_transaction = get_maximum_transaction(transactions)
+        self.assertAlmostEqual(max_transaction, 1000.00, places=2)  # Corrected expected max
+
     def test_handle_empty_file(self):
         
         transactions = load_transactions(self.empty_file)
@@ -35,6 +40,9 @@ class TestLegacySystem(unittest.TestCase):
 
         avg = get_average_transaction(transactions)
         self.assertEqual(avg, 0.0)
+
+        max_transaction = get_maximum_transaction(transactions)
+        self.assertEqual(max_transaction, 0.0)
 
 if __name__ == '__main__':
     unittest.main()
