@@ -33,12 +33,9 @@ class BigramModel:
         V = max(1, len(self.vocab))
         count_w1 = self.unigram_counts.get(w1, 0)
 
-        # If w1 unseen, return uniform probability over vocabulary
-        if count_w1 == 0:
-            return 1.0 / V
-
-        count_bigram = self.bigram_counts[w1].get(w2, 0)
-        return (count_bigram + 1) / (count_w1 + V)
+        # Apply add-one smoothing
+        count_bigram = self.bigram_counts[w1].get(w2, 0) + 1
+        return count_bigram / (count_w1 + V)
 
     def score_sentence(self, tokens):
         """
