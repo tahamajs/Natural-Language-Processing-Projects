@@ -1,0 +1,12 @@
+torch
+datasets
+fasttext
+wordcloud
+matplotlib
+pandas
+numpy
+scikit-learn
+seaborn
+tqdm
+jupyter
+nbclient

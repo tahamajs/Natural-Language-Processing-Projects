@@ -1,0 +1,29 @@
+# Large runtime artifacts
+data/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# macOS/system files
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# LaTeX build intermediates
+report/*.aux
+report/*.bbl
+report/*.bcf
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.idx
+report/*.ilg
+report/*.ind
+report/*.lof
+report/*.log
+report/*.lot
+report/*.out
+report/*.run.xml
+report/*.toc
