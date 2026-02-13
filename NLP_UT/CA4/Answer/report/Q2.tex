@@ -145,20 +145,28 @@ For rigorous quantitative assessment, we employed the IFEval (Instruction-Follow
 \hline
 \textbf{Metric} & \textbf{Base Model} & \textbf{Fine-tuned} & \textbf{Improvement} \\
 \hline
-Prompt-Level Strict & 12.5\% & 38.9\% & +211\% \\
+Prompt-Level Strict & \QTwoPromptStrictBase\% & \QTwoPromptStrictFt\% & +\QTwoPromptStrictImp\% \\
 \hline
-Inst-Level Strict & 35.2\% & 68.3\% & +94\% \\
+Inst-Level Strict & \QTwoInstStrictBase\% & \QTwoInstStrictFt\% & +\QTwoInstStrictImp\% \\
 \hline
-Prompt-Level Loose & 18.7\% & 52.4\% & +180\% \\
+Prompt-Level Loose & \QTwoPromptLooseBase\% & \QTwoPromptLooseFt\% & +\QTwoPromptLooseImp\% \\
 \hline
-Inst-Level Loose & 42.1\% & 75.6\% & +79\% \\
+Inst-Level Loose & \QTwoInstLooseBase\% & \QTwoInstLooseFt\% & +\QTwoInstLooseImp\% \\
 \hline
 \end{tabular}
 \label{tab:q2_ifeval_results}
 \end{center}
 \end{table}
+\textit{\QTwoSourceNote}
 
-The results demonstrate substantial improvements across all metrics, with the most significant gains in strict prompt-level accuracy (211\% improvement). This indicates the fine-tuned model can now handle multiple simultaneous constraints effectively.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/q2_ifeval_comparison.png}
+\caption{Q2 IFEval metric comparison from generated artifact metrics.}
+\label{fig:q2_ifeval_comparison}
+\end{figure}
+
+The results demonstrate substantial improvements across all metrics, with the most significant gains in strict prompt-level accuracy (\QTwoPromptStrictImp\% improvement). This indicates the fine-tuned model can now handle multiple simultaneous constraints effectively.
 
 \subsection{Discussion}
 

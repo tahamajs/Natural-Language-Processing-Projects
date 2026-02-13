@@ -25,8 +25,8 @@
     captionpos=b
 }
 
-\settextfont{XB Niloofar}
-\setlatintextfont{Times New Roman}
+\IfFontExistsTF{XB Niloofar}{\settextfont{XB Niloofar}}{\settextfont{DejaVu Serif}}
+\IfFontExistsTF{Times New Roman}{\setlatintextfont{Times New Roman}}{\setlatintextfont{TeX Gyre Termes}}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -68,6 +68,7 @@ This report is organized into two main sections corresponding to the two questio
 
 Each section provides detailed methodology, implementation details, experimental results, and comprehensive analysis.
 
+\input{generated_metrics}
 \input{Q1}
 \input{Q2}
 

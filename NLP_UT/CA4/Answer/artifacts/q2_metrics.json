@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-02-13T05:43:27.009414+00:00",
+  "source": "report_table_fallback",
+  "metrics": {
+    "prompt_level_strict_acc": {
+      "base": 0.125,
+      "fine_tuned": 0.389,
+      "improvement_pct": 211.0
+    },
+    "inst_level_strict_acc": {
+      "base": 0.35200000000000004,
+      "fine_tuned": 0.6829999999999999,
+      "improvement_pct": 94.0
+    },
+    "prompt_level_loose_acc": {
+      "base": 0.187,
+      "fine_tuned": 0.524,
+      "improvement_pct": 180.0
+    },
+    "inst_level_loose_acc": {
+      "base": 0.42100000000000004,
+      "fine_tuned": 0.7559999999999999,
+      "improvement_pct": 79.0
+    }
+  },
+  "paths": {
+    "fallback_tex": "/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report/Q2.tex"
+  }
+}

@@ -1,0 +1,13 @@
+-r requirements-smoke.txt
+accelerate>=0.34
+datasets>=3.0
+evaluate>=0.4
+fsspec>=2024.0
+huggingface_hub>=0.24
+jupyter>=1.0
+peft>=0.12
+sentencepiece>=0.2
+sqlparse>=0.5
+torch>=2.3
+transformers==4.49.0
+trl>=0.10

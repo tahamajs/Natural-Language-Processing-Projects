@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-02-13T05:43:27.005148+00:00",
+  "source": "q1_notebook_output",
+  "models": {
+    "BART": {
+      "dev_raw_em": 14.333333,
+      "dev_norm_em": 14.666667,
+      "test_raw_em": 16.666667,
+      "test_norm_em": 17.666667,
+      "training_time_s": 1288.24
+    },
+    "GPT-2": {
+      "dev_raw_em": 0.0,
+      "dev_norm_em": 0.0,
+      "test_raw_em": 0.0,
+      "test_norm_em": 0.0,
+      "training_time_s": 2968.35
+    }
+  },
+  "errors": {
+    "BART": {
+      "syntax_error": 208,
+      "missing_select": 27,
+      "missing_from": 0,
+      "missing_where": 9,
+      "wrong_table": 0,
+      "wrong_column": 0,
+      "incomplete": 0,
+      "extra_content": 12,
+      "correct": 44
+    },
+    "GPT-2": {
+      "syntax_error": 1,
+      "missing_select": 2,
+      "missing_from": 1,
+      "missing_where": 2,
+      "wrong_table": 0,
+      "wrong_column": 0,
+      "incomplete": 0,
+      "extra_content": 294,
+      "correct": 0
+    }
+  }
+}

@@ -125,16 +125,30 @@ Table \ref{tab:q1_results} summarizes the performance of both models.
 \hline
 \textbf{Model} & \textbf{Set} & \textbf{Raw EM (\%)} & \textbf{Norm EM (\%)} & \textbf{Time (s)} \\
 \hline
-\multirow{2}{*}{BART} & Dev & 65.3 & 72.1 & \multirow{2}{*}{~450} \\
-& Test & 64.8 & 71.5 & \\
+\multirow{2}{*}{BART} & Dev & \QOneBartDevRaw & \QOneBartDevNorm & \multirow{2}{*}{\QOneBartTimeSec} \\
+& Test & \QOneBartTestRaw & \QOneBartTestNorm & \\
 \hline
-\multirow{2}{*}{GPT-2} & Dev & 42.1 & 55.4 & \multirow{2}{*}{~380} \\
-& Test & 41.5 & 54.8 & \\
+\multirow{2}{*}{GPT-2} & Dev & \QOneGptDevRaw & \QOneGptDevNorm & \multirow{2}{*}{\QOneGptTimeSec} \\
+& Test & \QOneGptTestRaw & \QOneGptTestNorm & \\
 \hline
 \end{tabular}
 \label{tab:q1_results}
 \end{center}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/q1_em_comparison.png}
+\caption{Q1 Raw and Normalized Exact Match comparison generated from artifact metrics.}
+\label{fig:q1_em_comparison}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/q1_error_types.png}
+\caption{Q1 dev-set error type comparison between BART and GPT-2.}
+\label{fig:q1_error_types}
+\end{figure}
 
 \subsection{Analysis}
 
