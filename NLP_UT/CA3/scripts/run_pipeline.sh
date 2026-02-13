@@ -13,8 +13,11 @@ fi
 source "${VENV_PATH}/bin/activate"
 export MPLCONFIGDIR=/tmp/matplotlib
 mkdir -p "${MPLCONFIGDIR}"
+export CA3_RUNTIME_PROFILE="${CA3_RUNTIME_PROFILE:-balanced}"
 
 cd "${ROOT_DIR}"
+
+echo "Using CA3 runtime profile: ${CA3_RUNTIME_PROFILE}"
 
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
