@@ -1,10 +1,10 @@
 # Fdb version 4
-["xdvipdfmx"] 1770963308.93789 "main.xdv" "main.pdf" "main" 1770963319.57465 0
-  "main.xdv" 1770963308.61772 416508 2b9049c301cac0c4ad50a4fb21841bdd "xelatex"
+["xdvipdfmx"] 1771017643.13637 "main.xdv" "main.pdf" "main" 1771017646.24042 0
+  "main.xdv" 1771017642.89961 490492 a941f56238d65ed84c24cc5e90aa6264 "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1770963300.67728 "main.tex" "main.xdv" "main" 1770963319.56993 0
+["xelatex"] 1771017639.56734 "main.tex" "main.xdv" "main" 1771017646.23857 0
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/map/fontname/texfonts.map" 1741388039 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1741388039 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1741388039 1004 54797486969f23fa377b128694d548df ""
@@ -83,6 +83,7 @@
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/l3packages/xparse/xparse.sty" 1741388039 9783 ab4bee47700c04aadedb8da27591b0ab ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/listings.cfg" 1741388039 1865 301ae3c26fb8c0243307b619a6aa2dd3 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/listings.sty" 1741388039 81640 997090b6c021dc4af9ee00a97b85c5b4 ""
+  "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty" 1741388039 206518 4eb59a801ad842a713fa168c34227290 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstmisc.sty" 1741388039 77051 be68720e5402397a830abb9eed5a2cb4 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstpatch.sty" 1741388039 353 9024412f43e92cd5b21fe9ded82d0610 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/multirow/multirow.sty" 1741388039 6696 886c9f3087d0b973ed2c19aa79cb3023 ""
@@ -92,15 +93,15 @@
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/xcolor/xcolor.sty" 1741388039 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/web2c/texmf.cnf" 1741388039 42151 79f67285bdd95beca4d137b380b4b9e5 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-var/web2c/xetex/xelatex.fmt" 1741388039 5640242 4f7cb22c150520ed498cbbe46d26ba29 ""
-  "Q1.tex" 1770963120.04994 21378 c596760a54151e9f99e96f7ebe446019 ""
-  "Q2.tex" 1770963234.61616 14083 1a6553e9ccf67436b50b126f3fdf7646 ""
-  "figures/q1_em_comparison.png" 1770962919.63864 89200 ec3e85e28de30e6ade29bd0696a5c639 ""
-  "figures/q1_error_types.png" 1770962920.60855 161556 6d57947d6892427741746974bc497768 ""
-  "figures/q2_ifeval_comparison.png" 1770962921.36387 77949 670ddf1cbcae825b9cc62d7073fb227b ""
-  "generated_metrics.tex" 1770962921.36657 1007 c60dcfed2c1ca6ae8633712a71b74f5a ""
-  "main.aux" 1770963308.61317 8378 90978b27d6617ed1b5c0730c939e8311 "xelatex"
-  "main.out" 1770963308.616 7692 a7266d11d5c467f3897cbb34ffdffdcd "xelatex"
-  "main.tex" 1770963269.14208 10308 1dde719286e14d854a945d43482fc091 ""
+  "Q1.tex" 1771016841.9775 22759 79503aac7863da73cf84084553dd0638 ""
+  "Q2.tex" 1771017554.23362 16173 bdc50f46e691a719981b284eed79da88 ""
+  "figures/q1_em_comparison.png" 1771017323.56996 89200 ec3e85e28de30e6ade29bd0696a5c639 ""
+  "figures/q1_error_types.png" 1771017324.44039 161556 6d57947d6892427741746974bc497768 ""
+  "figures/q2_ifeval_comparison.png" 1771017325.04469 77949 670ddf1cbcae825b9cc62d7073fb227b ""
+  "generated_metrics.tex" 1771017325.04748 1007 c60dcfed2c1ca6ae8633712a71b74f5a ""
+  "main.aux" 1771017642.89546 10976 539d4396bec2d061cf30422e252d4400 "xelatex"
+  "main.out" 1771017642.89818 10645 c518af8e245668931722c5ccaef36dc7 "xelatex"
+  "main.tex" 1771017623.9255 14769 1c82c1585905a72c3989ee0eca960bb5 ""
   (generated)
   "main.aux"
   "main.log"

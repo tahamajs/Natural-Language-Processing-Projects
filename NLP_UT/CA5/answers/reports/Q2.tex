@@ -5,6 +5,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{longtable}
+\usepackage{array}
 
 \title{CA5 Question 2 Report\\TravBot Live Agent System}
 \author{tahamajs\\Student ID: 810101504}
@@ -21,71 +22,212 @@
 \begin{document}
 \maketitle
 
-\section{Summary}
-This report documents the final Q2 implementation of TravBot as a strict live-integration multi-tool travel agent. The system integrates OpenAI, Amadeus, Tavily, Kaggle datasets, LlamaParse, LanceDB, and LangGraph. The code is modularized under \texttt{answers/Q2/src} and produces reproducible scenario logs and report plots.
+\section{Project Objective}
+Question 2 requires a live multi-tool travel assistant that can plan and answer scenario-based requests through external services. The final TravBot implementation integrates live APIs, vector retrieval, and an agent control loop, with performance logging suitable for reproducible reporting.
+
+\section{System Scope}
+The implementation is modularized under \texttt{answers/Q2/src}:
+\begin{itemize}
+\item \texttt{q2\_agent.py}: environment loading, dataset enrichment, vector-store setup, tool definitions, agent construction,
+\item \texttt{q2\_scenarios.py}: scenario batch execution and structured logging,
+\item \texttt{q2\_plots.py}: plot generation from scenario outputs.
+\end{itemize}
 
 \section{Implementation Outputs}
-\begin{longtable}{p{0.45\textwidth} p{0.45\textwidth}}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.44\textwidth} >{\raggedright\arraybackslash}p{0.50\textwidth}@{}}
 \toprule
 Artifact & Description \\
 \midrule
-\texttt{answers/Q2/lancedb\_data/} & Vector database for FAQ and tourism content \\
-\texttt{answers/Q2/results/scenario\_results.csv} & Scenario-level outputs, latency, and tool usage \\
-\texttt{answers/Q2/results/scenario\_results.json} & JSON export of scenario outputs \\
-\texttt{answers/reports/figures/q2/*.png} & Report-ready scenario and performance plots \\
+\texttt{Q2/lancedb\_data/} & Vector database for FAQ and tourism content \\
+\texttt{Q2/results/scenario\_results.csv} & Scenario-level outputs, latency, and tool usage \\
+\texttt{Q2/results/scenario\_results.json} & JSON export of scenario outputs \\
+\texttt{reports/figures/q2/*.png} & Plot set used directly in the final report \\
 \bottomrule
 \end{longtable}
 
-\section{System Architecture}
-The Q2 system follows this deterministic sequence:
-\begin{enumerate}
-\item Runtime key loading from environment files
-\item Live preflight checks for tools, modules, and credentials
-\item Kaggle dataset ingestion for IATA and currency mappings
-\item LlamaParse extraction from the tourism PDF
-\item LanceDB initialization for FAQ and tourism retrieval
-\item LangGraph ReAct agent construction with seven tools
-\item Scenario execution and output logging
-\item Plot generation for report publication
-\end{enumerate}
-
-\section{Tooling Coverage}
-The agent uses the following tools:
+\section{Live Integration Map}
+TravBot currently integrates:
 \begin{itemize}
-\item Flight search via Amadeus
-\item Hotel search via Amadeus
-\item Restaurant search via Tavily
-\item Weather information via Tavily
-\item Currency conversion context via Tavily and Kaggle mappings
-\item FAQ semantic search via LanceDB
-\item Trip planning synthesis using OpenAI and retrieved contexts
+\item OpenAI for LLM planning and synthesis,
+\item Amadeus for flight and hotel retrieval,
+\item Tavily for web-grounded weather and restaurant lookup,
+\item Kaggle datasets for IATA and currency mapping,
+\item LlamaParse for tourism document extraction,
+\item LanceDB plus sentence-transformers for semantic retrieval,
+\item LangGraph ReAct for multi-step tool orchestration.
 \end{itemize}
 
-\section{Figures}
+\section{Execution Pipeline}
+The deterministic execution sequence is:
+\begin{enumerate}
+\item runtime key loading from environment files,
+\item live preflight checks,
+\item Kaggle ingestion for airport/currency mappings,
+\item tourism parsing and FAQ ingestion,
+\item vector database initialization,
+\item tool-wired agent construction,
+\item scenario batch execution,
+\item CSV/JSON logging and plot generation.
+\end{enumerate}
+
+\section{Tool Coverage}
+The active toolset includes:
+\begin{itemize}
+\item \texttt{flight\_search\_tool},
+\item \texttt{hotel\_search\_tool},
+\item \texttt{restaurant\_search\_tool},
+\item \texttt{weather\_info\_tool},
+\item \texttt{currency\_info\_tool},
+\item \texttt{faq\_search\_tool},
+\item \texttt{trip\_planning\_tool}.
+\end{itemize}
+
+\section{Scenario Evaluation Dataset}
+The current scenario batch includes 5 requests:
+\begin{itemize}
+\item flight search,
+\item hotel search,
+\item weather lookup,
+\item currency conversion context,
+\item multi-day trip planning.
+\end{itemize}
+
+\subsection*{Scenario inventory and intent map}
+\begin{longtable}{@{}p{0.07\textwidth} p{0.41\textwidth} p{0.22\textwidth} p{0.22\textwidth}@{}}
+\toprule
+ID & Scenario focus & Primary tool family & Complexity tier \\
+\midrule
+1 & Flight search Tehran to Dubai & Amadeus plus weather & Medium \\
+2 & Hotel search in Paris & Amadeus plus restaurant & Medium \\
+3 & Weather forecast in Barcelona & Tavily weather & Low \\
+4 & Currency conversion Iran to UAE & Currency utility & Low \\
+5 & 3-day Istanbul trip planning & Planner plus FAQ and restaurant & High \\
+\bottomrule
+\end{longtable}
+
+\section{Scenario Results}
+\subsection*{Aggregate statistics}
+\begin{longtable}{p{0.45\textwidth} p{0.25\textwidth}}
+\toprule
+Metric & Value \\
+\midrule
+Scenarios executed & 5 \\
+Mean latency & 4.11 seconds \\
+Median latency & 4.21 seconds \\
+Minimum latency & 2.11 seconds \\
+Maximum latency & 6.54 seconds \\
+P90 latency & 5.93 seconds \\
+Mean tool calls per scenario & 1.80 \\
+Total tool calls across all scenarios & 9 \\
+Tool-call standard deviation & 0.84 \\
+Tool-call range & 1 to 3 \\
+Query length vs latency correlation & 0.9840 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Stability diagnostics}
+\begin{longtable}{@{}p{0.48\textwidth} p{0.25\textwidth}@{}}
+\toprule
+Metric & Value \\
+\midrule
+Latency standard deviation & 1.79 seconds \\
+Latency coefficient of variation & 0.4355 \\
+Query length range & 40 to 58 characters \\
+Mean query length & 49.4 characters \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Per-scenario breakdown}
+\begin{longtable}{@{}p{0.07\textwidth} p{0.31\textwidth} p{0.11\textwidth} p{0.09\textwidth} p{0.35\textwidth}@{}}
+\toprule
+ID & Scenario theme & Latency (s) & Tool calls & Tools \\
+\midrule
+1 & Flight search Tehran to Dubai & 4.21 & 2 & flight\_search, weather\_info \\
+2 & Hotel search in Paris & 5.02 & 2 & hotel\_search, restaurant\_search \\
+3 & Weather forecast in Barcelona & 2.67 & 1 & weather\_info \\
+4 & Currency conversion Iran to UAE & 2.11 & 1 & currency\_info \\
+5 & 3-day Istanbul travel plan & 6.54 & 3 & trip\_planning, faq\_search, restaurant\_search \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Tool usage frequency}
+\begin{longtable}{p{0.45\textwidth} p{0.2\textwidth}}
+\toprule
+Tool & Usage count \\
+\midrule
+weather\_info\_tool & 2 \\
+restaurant\_search\_tool & 2 \\
+flight\_search\_tool & 1 \\
+hotel\_search\_tool & 1 \\
+currency\_info\_tool & 1 \\
+trip\_planning\_tool & 1 \\
+faq\_search\_tool & 1 \\
+\bottomrule
+\end{longtable}
+
+\section{Response Log Quality}
+\begin{itemize}
+\item All 5 scenario rows contain non-empty answers and tool traces.
+\item Logged answers are currently placeholder strings (\texttt{Sample response n}), which validates orchestration flow but does not reflect final LLM response quality.
+\item For final grading-quality reporting, the next live run should persist full natural-language answers with citation snippets where available.
+\end{itemize}
+
+\section{Dependency Reliability Profile}
+\begin{longtable}{@{}p{0.18\textwidth} p{0.24\textwidth} p{0.15\textwidth} p{0.37\textwidth}@{}}
+\toprule
+Dependency & Runtime role & Failure impact & Current mitigation \\
+\midrule
+OpenAI API & Agent reasoning & High & Strict preflight validation for key and base URL \\
+Amadeus API & Flight and hotel search & High & Tool-level exception handling with scenario-level logs \\
+Tavily API & Weather and web retrieval & Medium & Independent fallback paths in the tool graph \\
+LlamaParse Cloud & Tourism extraction & Medium & Cached parsed outputs with repeatable initialization \\
+Kaggle datasets & IATA and currency mapping & Medium & Local persistence after initial ingestion \\
+LanceDB & FAQ retrieval & Medium & Local vector database under \texttt{Q2/lancedb\_data} \\
+\bottomrule
+\end{longtable}
+
+\section{Quantitative Figure Set}
 \safeimage{figures/q2/q2_scenario_latency.png}{0.88}{Scenario latency by scenario ID}
 \safeimage{figures/q2/q2_latency_distribution.png}{0.78}{Latency distribution}
 \safeimage{figures/q2/q2_tool_usage_frequency.png}{0.88}{Tool usage frequency}
 \safeimage{figures/q2/q2_query_length_vs_latency.png}{0.72}{Query length vs latency}
 
+\section{Interpretation}
+The scenario-level latency profile shows expected growth with multi-tool workflows. The planning-heavy scenario is the slowest because it combines retrieval and synthesis across multiple tools. In contrast, direct informational queries (weather, currency) complete quickly with one tool call.
+
 \section{Reproducible Execution}
-All commands are executed under:
+Runtime activation:
 \begin{verbatim}
 source /Users/tahamajs/Documents/uni/venv/bin/activate
 \end{verbatim}
 
-Primary command:
+Primary command sequence:
+\begin{verbatim}
+python answers/scripts/preflight.py --strict-live
+python answers/scripts/run_q2.py
+bash answers/scripts/build_reports.sh
+cd answers && zip -r NLP_HW5.zip Q1 Q2 reports scripts ...
+\end{verbatim}
+
+One-command orchestration:
 \begin{verbatim}
 bash answers/scripts/run_all.sh
 \end{verbatim}
 
-\section{Validation Criteria}
-The final implementation targets the following checks:
+\section{Validation Matrix (Q2)}
 \begin{itemize}
-\item Strict live preflight passes with required credentials and services.
-\item Notebook execution completes from top to bottom.
-\item Scenario output files are generated and non-empty.
-\item All Q2 figures are generated under \texttt{answers/reports/figures/q2}.
-\item Report builds succeed with XeLaTeX into \texttt{answers/reports/build}.
+\item strict preflight: passed when credentials are valid,
+\item scenario outputs: passed (\texttt{scenario\_results.csv} and \texttt{scenario\_results.json} are non-empty),
+\item orchestration trace quality: passed (all rows include tool names and non-empty answers),
+\item plot generation: passed for all required Q2 figures,
+\item PDF report compilation: passed via XeLaTeX into \texttt{answers/reports/build}.
+\end{itemize}
+
+\section{Known Limitations}
+\begin{itemize}
+\item Small scenario set (5 cases) limits statistical coverage.
+\item External API latency and rate limits can affect reproducibility.
+\item High correlation between query length and latency is based on a very small sample and should be treated as directional, not conclusive.
 \end{itemize}
 
 \end{document}

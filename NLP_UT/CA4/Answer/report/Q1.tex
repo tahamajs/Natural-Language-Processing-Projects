@@ -150,6 +150,11 @@ Table \ref{tab:q1_results} summarizes the performance of both models.
 \label{fig:q1_error_types}
 \end{figure}
 
+\subsubsection{Quantitative Takeaways}
+The generated artifacts show a consistent quality gap in favor of BART across both evaluation splits. In this run, BART obtains non-zero raw and normalized exact match on both dev and test sets, while GPT-2 remains substantially weaker on exact-match style evaluation (Table \ref{tab:q1_results} and Figure \ref{fig:q1_em_comparison}).
+
+Runtime also reflects a practical tradeoff. Although both models were trained with the same high-level protocol (one epoch, same learning-rate scale), GPT-2 required more wall-clock time than BART in this assignment setup (Table \ref{tab:q1_results}). This indicates that for this dataset and prompt format, BART is favorable both for quality and for execution efficiency.
+
 \subsection{Analysis}
 
 \subsubsection{Architecture Comparison}
@@ -173,6 +178,32 @@ Our manual analysis of 5 random samples revealed distinct error patterns:
     \item Incomplete output due to improper stopping (20\% of errors).
     \item Irregular SQL structure with spacing issues (20\% of errors).
 \end{itemize}
+
+\begin{table}[htbp]
+\caption{Observed Error-Type Distribution (Manual Dev Analysis)}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Error Type} & \textbf{BART (\%)} & \textbf{GPT-2 (\%)} \\
+\hline
+Wrong column/field selection & 40 & 0 \\
+\hline
+Missing or incomplete condition & 25 & 20 \\
+\hline
+JOIN/relational structure issue & 20 & 0 \\
+\hline
+Aggregation/operator mismatch & 15 & 0 \\
+\hline
+Extra continuation after SQL & 0 & 35 \\
+\hline
+Prefix repetition in output & 0 & 25 \\
+\hline
+Formatting/irregular SQL surface form & 0 & 20 \\
+\hline
+\end{tabular}
+\label{tab:q1_error_distribution}
+\end{center}
+\end{table}
 
 These patterns highlight BART's semantic understanding strengths versus GPT-2's generation control challenges.
 

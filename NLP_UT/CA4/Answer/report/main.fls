@@ -208,6 +208,12 @@ INPUT Q2.tex
 INPUT ./figures/q2_ifeval_comparison.png
 INPUT ./figures/q2_ifeval_comparison.png
 INPUT ./figures/q2_ifeval_comparison.png
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/latex/listings/lstlang1.sty
 INPUT main.aux
 INPUT ./main.out
 INPUT ./main.out

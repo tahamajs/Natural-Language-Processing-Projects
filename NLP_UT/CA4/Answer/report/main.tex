@@ -75,6 +75,55 @@ Each section provides detailed methodology, implementation details, experimental
 \input{Q1}
 \input{Q2}
 
+\section{Experimental Setup and Reproducibility}
+\subsection{Execution Profile}
+This report is produced with a smoke-first reproducible workflow. The smoke profile prioritizes deterministic artifact generation and report synchronization. Full notebook execution and full external evaluation remain available as separate commands when deeper retraining is required.
+
+\subsection{Build and Runtime Environment}
+The execution setup is summarized below:
+\begin{itemize}
+    \item \textbf{Language runtime:} Python environment with \texttt{requirements-smoke.txt} as the baseline dependency profile.
+    \item \textbf{Model stack:} HuggingFace Transformers with PEFT/LoRA and TRL-based supervised fine-tuning.
+    \item \textbf{Primary tasks:} Text-to-SQL training/evaluation and IFEval-style instruction-following assessment.
+    \item \textbf{Report toolchain:} XeLaTeX through \texttt{latexmk -xelatex} (with direct XeLaTeX fallback in pipeline CLI).
+    \item \textbf{Artifact policy:} Metrics, plots, and report macros are regenerated from shared pipeline modules.
+\end{itemize}
+
+\subsection{One-Command Reproduction}
+The integrated command below regenerates metrics artifacts, report plots, metric macros, and PDF output:
+\begin{lstlisting}[language=bash]
+python scripts/run_pipeline.py all-smoke
+\end{lstlisting}
+
+\subsection{Artifact Manifest}
+The report is driven by the following generated files:
+\begin{itemize}
+    \item \path{artifacts/q1_metrics.json}: normalized Q1 metrics with metadata (\texttt{generated\_at}, \texttt{source}).
+    \item \path{artifacts/q2_metrics.json}: normalized Q2 IFEval metrics with explicit source policy tracking.
+    \item \path{report/generated_metrics.tex}: auto-generated numeric macros consumed by Q1/Q2 tables.
+    \item \path{report/figures/q1_em_comparison.png}: Q1 exact-match comparison plot.
+    \item \path{report/figures/q1_error_types.png}: Q1 error-type distribution plot.
+    \item \path{report/figures/q2_ifeval_comparison.png}: Q2 IFEval comparison plot.
+\end{itemize}
+
+\subsection{Traceability Guarantees}
+The report enforces data-to-text consistency in three ways:
+\begin{itemize}
+    \item Table values are injected through generated macros rather than handwritten numbers.
+    \item Plot files are regenerated from metric artifacts using shared pipeline functions.
+    \item Q2 metrics include explicit source provenance (\texttt{lm\_eval\_json} or \texttt{report\_table\_fallback}) and this source is surfaced in the report text.
+\end{itemize}
+
+\section{Threats to Validity and Ethical Considerations}
+\subsection{Internal and Construct Validity}
+Exact-match metrics provide strong but strict signals for SQL tasks; semantically equivalent SQL strings can still be marked incorrect without robust normalization. For instruction-following, benchmark metrics capture adherence quality but may not exhaustively represent all real-world user intents.
+
+\subsection{External Validity}
+Both experiments use constrained settings (specific model sizes, one-epoch adaptation, and selected datasets). While useful for controlled comparison, broader domain transfer should be validated on larger schemas, multilingual settings, and more diverse instruction distributions.
+
+\subsection{Operational and Ethical Notes}
+Instruction-following improvements can increase both utility and misuse potential. Deployment should include safety policies, output filtering, and human oversight for high-impact settings (e.g., enterprise SQL automation or user-facing agentic workflows).
+
 \section{Related Work}
 
 \subsection{Text-to-SQL Generation}
@@ -135,6 +184,33 @@ Several promising avenues for future research emerge from this work:
 \textbf{Interactive Systems:} Integrating Text-to-SQL with instruction-following capabilities for conversational database interfaces that can handle clarification requests and complex multi-step queries.
 
 \textbf{Robust Evaluation:} Developing more sophisticated evaluation frameworks that assess not just accuracy but also efficiency, robustness to schema variations, and user satisfaction metrics.
+
+\section{Appendix: Reproducibility Checklist}
+\begin{itemize}
+    \item Verify environment setup using the documented smoke dependencies.
+    \item Run:
+\begin{lstlisting}[language=bash]
+python scripts/run_pipeline.py all-smoke
+\end{lstlisting}
+    \item Confirm generated artifacts:
+\begin{itemize}
+    \item \path{artifacts/q1_metrics.json}
+    \item \path{artifacts/q2_metrics.json}
+    \item \path{report/generated_metrics.tex}
+    \item \path{report/figures/q1_em_comparison.png}
+    \item \path{report/figures/q1_error_types.png}
+    \item \path{report/figures/q2_ifeval_comparison.png}
+\end{itemize}
+    \item Confirm report build output:
+\begin{itemize}
+    \item \path{report/main.pdf}
+\end{itemize}
+    \item Optional deep reruns:
+\begin{itemize}
+    \item \texttt{python scripts/run\_pipeline.py full-q1 --compile-report}
+    \item \texttt{python scripts/run\_pipeline.py full-q2 --compile-report}
+\end{itemize}
+\end{itemize}
 
 \section*{Acknowledgment}
 The author would like to thank the course instructor and teaching assistants for their guidance and support throughout this assignment. Special thanks to the open-source community for providing the models, datasets, and tools that made this research possible.

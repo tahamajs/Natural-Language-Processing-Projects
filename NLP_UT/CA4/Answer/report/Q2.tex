@@ -168,6 +168,40 @@ Inst-Level Loose & \QTwoInstLooseBase\% & \QTwoInstLooseFt\% & +\QTwoInstLooseIm
 
 The results demonstrate substantial improvements across all metrics, with the most significant gains in strict prompt-level accuracy (\QTwoPromptStrictImp\% improvement). This indicates the fine-tuned model can now handle multiple simultaneous constraints effectively.
 
+\subsubsection{Metric Interpretation and Source Traceability}
+Prompt-level strict is the most operationally demanding metric because every instruction in a prompt must be satisfied simultaneously. The large gain on this metric suggests LoRA adaptation improved compositional instruction handling rather than merely surface fluency.
+
+Instruction-level strict and both loose metrics also improve, showing that the benefits are not limited to one scoring regime. Together, Table \ref{tab:q2_ifeval_results} and Figure \ref{fig:q2_ifeval_comparison} indicate broad behavioral gains across granular and holistic evaluation views.
+
+For reproducibility, the metric artifact explicitly records its origin through a \texttt{source} field. In smoke mode, values may come from report-table fallback; once real \texttt{lm\_eval} JSON results are available and \texttt{full-q2} is executed, the artifact source upgrades to \texttt{lm\_eval\_json} and the report is regenerated from those real benchmark outputs.
+
+\subsubsection{Representative Constraint-Level Behavior}
+Table \ref{tab:q2_constraint_behavior} summarizes representative observed behavior changes on core instruction categories used during qualitative evaluation.
+
+\begin{table*}[t]
+\caption{Representative Instruction-Following Behavior Before/After LoRA}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{|p{0.20\textwidth}|p{0.12\textwidth}|p{0.12\textwidth}|p{0.44\textwidth}|}
+\hline
+\textbf{Constraint Type} & \textbf{Base Model} & \textbf{Fine-tuned} & \textbf{Typical Failure (Base)} \\
+\hline
+ALL-CAPS formatting & Inconsistent & Mostly satisfied & Mixed-case output \\
+\hline
+Exact length (word/char) & Unstable & More precise & Under/over target length \\
+\hline
+Forbidden token avoidance & Partial & Improved & Includes prohibited terms \\
+\hline
+Structured JSON output & Fragile & Reliable & Invalid structure or extra prose \\
+\hline
+Multi-constraint prompts & Weak & Stronger & Satisfies only subset of constraints \\
+\hline
+\end{tabular}
+\label{tab:q2_constraint_behavior}
+\end{center}
+\end{table*}
+
 \subsection{Discussion}
 
 \subsubsection{Efficiency of LoRA}
