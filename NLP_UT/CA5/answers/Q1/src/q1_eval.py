@@ -152,6 +152,11 @@ def run_ragas_evaluation(input_records_path: str, output_xlsx_path: str) -> str:
     )
 
     evaluation_df = evaluation.to_pandas()
+    metric_columns = [column for column in ["faithfulness", "answer_relevancy"] if column in evaluation_df.columns]
+    if metric_columns and bool(evaluation_df[metric_columns].isna().all().all()):
+        raise RuntimeError(
+            "RAGAS evaluation returned no valid metric values. Check OPENAI_API_KEY and OPENAI_API_BASE."
+        )
     merged = pd.concat([benchmark_df.reset_index(drop=True), evaluation_df.reset_index(drop=True)], axis=1)
 
     output = Path(output_xlsx_path)

@@ -9,7 +9,6 @@ scikit-learn
 openpyxl
 python-dotenv
 chainlit
-hazm
 arabic-reshaper
 python-bidi
 wordcloud

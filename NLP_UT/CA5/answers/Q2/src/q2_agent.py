@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Any
 
+import httpx
 import kagglehub
 import lancedb
 import pandas as pd
@@ -14,7 +16,6 @@ from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
-from llama_parse import LlamaParse
 from sentence_transformers import SentenceTransformer
 from tavily import TavilyClient
 
@@ -207,13 +208,76 @@ def _load_faq_data(js_path: Path) -> list[dict[str, str]]:
 def _parse_tourism_book(pdf_path: Path) -> list[str]:
     if not pdf_path.exists():
         raise FileNotFoundError(f"Tourism PDF not found: {pdf_path}")
-    parser = LlamaParse(api_key=os.environ["LLAMA_CLOUD_API_KEY"], result_type="markdown")
-    docs = parser.load_data(str(pdf_path))
-    texts = [str(getattr(doc, "text", "")).strip() for doc in docs]
-    texts = [text for text in texts if text]
-    if not texts:
+    api_key = os.environ["LLAMA_CLOUD_API_KEY"]
+    base_url = os.getenv("LLAMA_CLOUD_BASE_URL", "https://api.cloud.llamaindex.ai").rstrip("/")
+    headers = {"Authorization": f"Bearer {api_key}"}
+    timeout = httpx.Timeout(120.0, connect=30.0)
+
+    with pdf_path.open("rb") as handle, httpx.Client(base_url=base_url, headers=headers, timeout=timeout) as client:
+        upload = client.post(
+            "/api/parsing/upload",
+            files={"file": (pdf_path.name, handle, "application/pdf")},
+            data={"from_python_package": True},
+        )
+        upload.raise_for_status()
+        payload = upload.json()
+        job_id = str(payload.get("id", "")).strip()
+        if not job_id:
+            raise RuntimeError("LlamaParse upload did not return a job id.")
+
+        started = time.time()
+        interval = 1.0
+        while True:
+            status_response = client.get(f"/api/parsing/job/{job_id}")
+            status_response.raise_for_status()
+            status_payload = status_response.json()
+            status = str(status_payload.get("status", "")).strip().upper()
+            if status == "SUCCESS":
+                break
+            if status in {"ERROR", "CANCELED"}:
+                code = str(status_payload.get("error_code", "")).strip()
+                message = str(status_payload.get("error_message", "")).strip()
+                raise RuntimeError(f"LlamaParse job failed: {status} {code} {message}".strip())
+            if time.time() - started > 1800:
+                raise TimeoutError("LlamaParse job timed out.")
+            time.sleep(interval)
+            interval = min(interval + 1.0, 5.0)
+
+        result = client.get(f"/api/parsing/job/{job_id}/result/markdown")
+        result.raise_for_status()
+        result_payload = result.json()
+
+    texts: list[str] = []
+    markdown_value = result_payload.get("markdown")
+    if isinstance(markdown_value, str) and markdown_value.strip():
+        texts.extend([part.strip() for part in markdown_value.split("\n---\n") if part.strip()])
+
+    pages_value = result_payload.get("pages")
+    if isinstance(pages_value, list):
+        for page in pages_value:
+            if not isinstance(page, dict):
+                continue
+            for key in ("markdown", "md", "text"):
+                value = page.get(key)
+                if isinstance(value, str) and value.strip():
+                    texts.append(value.strip())
+                    break
+
+    text_value = result_payload.get("text")
+    if isinstance(text_value, str) and text_value.strip():
+        texts.extend([part.strip() for part in text_value.split("\n---\n") if part.strip()])
+
+    unique_texts: list[str] = []
+    seen = set()
+    for text in texts:
+        if text in seen:
+            continue
+        seen.add(text)
+        unique_texts.append(text)
+
+    if not unique_texts:
         raise RuntimeError("No text extracted from tourism PDF.")
-    return texts
+    return unique_texts
 
 
 def _embed_texts(model: SentenceTransformer, texts: list[str]) -> list[list[float]]:

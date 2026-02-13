@@ -5,7 +5,6 @@ seaborn
 scikit-learn
 openpyxl
 chainlit
-hazm
 arabic-reshaper
 python-bidi
 wordcloud

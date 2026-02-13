@@ -28,7 +28,6 @@ REQUIRED_MODULES = [
     "datasets",
     "langchain_openai",
     "chainlit",
-    "hazm",
     "wordcloud",
     "pytesseract",
     "fitz",
@@ -41,6 +40,19 @@ REQUIRED_MODULES = [
     "langgraph",
     "gdown",
 ]
+
+PLACEHOLDER_TOKENS = {
+    "your_api_key_here",
+    "your_openai_api_key_here",
+    "your_openai_base_here",
+    "your_amadeus_client_id_here",
+    "your_amadeus_client_secret_here",
+    "your_tavily_api_key_here",
+    "your_llama_cloud_api_key_here",
+    "replace_me",
+    "changeme",
+    "dummy",
+}
 
 
 def _parse_env_line(line: str) -> tuple[str, str] | None:
@@ -145,8 +157,15 @@ def _check_env(strict_live: bool, errors: list[str]) -> None:
     if not strict_live:
         return
     for key in REQUIRED_ENV_KEYS:
-        if not os.getenv(key, "").strip():
+        value = os.getenv(key, "").strip()
+        if not value:
             errors.append(f"Missing required environment variable: {key}")
+            continue
+        normalized = value.lower()
+        if normalized in PLACEHOLDER_TOKENS or (
+            normalized.startswith("your_") and normalized.endswith("_here")
+        ):
+            errors.append(f"Environment variable appears to be a placeholder: {key}")
 
 
 def check_all(strict_live: bool = True) -> int:
