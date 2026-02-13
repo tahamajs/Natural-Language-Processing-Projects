@@ -7,11 +7,12 @@ BUILD_DIR="$REPORT_DIR/build"
 
 mkdir -p "$BUILD_DIR"
 
-xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "$REPORT_DIR/Q1.tex"
-xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "$REPORT_DIR/Q1.tex"
-
-xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "$REPORT_DIR/Q2.tex"
-xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "$REPORT_DIR/Q2.tex"
+pushd "$REPORT_DIR" >/dev/null
+xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "Q1.tex"
+xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "Q1.tex"
+xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "Q2.tex"
+xelatex -interaction=nonstopmode -halt-on-error -output-directory "$BUILD_DIR" "Q2.tex"
+popd >/dev/null
 
 cp -f "$BUILD_DIR/Q1.pdf" "$REPORT_DIR/Q1.pdf"
 cp -f "$BUILD_DIR/Q2.pdf" "$REPORT_DIR/Q2.pdf"

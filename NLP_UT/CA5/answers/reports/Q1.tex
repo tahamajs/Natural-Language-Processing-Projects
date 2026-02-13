@@ -5,6 +5,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{longtable}
+\usepackage{array}
 
 \title{CA5 Question 1 Report\\Legal Retrieval Pipeline}
 \author{tahamajs\\Student ID: 810101504}
@@ -21,35 +22,156 @@
 \begin{document}
 \maketitle
 
-\section{Summary}
-This report documents the final implementation of the Q1 legal retrieval system. The pipeline is fully modularized in Python modules under \texttt{answers/Q1/src}, executed in strict live mode, and produces reproducible artifacts for indexing, timing, evaluation, and plotting.
+\section{Project Objective}
+Question 1 targets a practical Persian legal retrieval pipeline that supports evidence-grounded responses on Iranian legal texts. The final implementation emphasizes:
+\begin{itemize}
+\item deterministic preprocessing and indexing,
+\item transparent node-level latency tracking,
+\item retrieval traceability through source snippets,
+\item reproducible artifact generation for report delivery.
+\end{itemize}
+
+\section{Implementation Scope}
+The Q1 implementation is modularized under \texttt{answers/Q1/src} and orchestrated by \texttt{answers/scripts/run\_q1.py}. Core modules are:
+\begin{itemize}
+\item \texttt{q1\_pipeline.py}: loading, OCR fallback, chunking, TF-IDF indexing, retrieval, reranking, response generation,
+\item \texttt{q1\_eval.py}: benchmark execution and RAGAS evaluation export,
+\item \texttt{q1\_plots.py}: timing and evaluation plot generation.
+\end{itemize}
 
 \section{Implementation Outputs}
-\begin{longtable}{p{0.45\textwidth} p{0.45\textwidth}}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.44\textwidth} >{\raggedright\arraybackslash}p{0.50\textwidth}@{}}
 \toprule
 Artifact & Description \\
 \midrule
-\texttt{answers/Q1/data/indexed\_dataset.pkl} & Serialized TF-IDF index and metadata \\
-\texttt{answers/Q1/data/pipeline\_timings.csv} & End-to-end timing metrics per benchmark query \\
-\texttt{answers/Q1/data/rag\_evaluation\_report.xlsx} & RAGAS metrics exported in spreadsheet format \\
-\texttt{answers/reports/figures/q1/*.png} & Report-ready plots generated from metrics \\
+\texttt{Q1/data/indexed\_dataset.pkl} & Serialized TF-IDF index and retrieval metadata \\
+\texttt{Q1/data/pipeline\_timings.csv} & End-to-end timing, node timings, and retrieval diagnostics per benchmark query \\
+\texttt{Q1/data/}\linebreak\texttt{rag\_evaluation\_report.xlsx} & RAGAS export with \texttt{faithfulness} and \texttt{answer\_relevancy} columns \\
+\texttt{reports/figures/q1/*.png} & Plot set used directly in the final report \\
 \bottomrule
 \end{longtable}
 
-\section{Pipeline Design}
-The Q1 system follows this deterministic flow:
+\section{Data and Indexing Summary}
+The indexed corpus characteristics from \texttt{indexed\_dataset.pkl} are:
+\begin{itemize}
+\item source PDF files: 7,
+\item indexed chunks: 444,
+\item chunk length mean: 1187.93 characters,
+\item chunk length range: 165 to 1200 characters,
+\item extracted year values (unique): 51.
+\end{itemize}
+
+\section{Pipeline Architecture}
+The execution graph is:
 \begin{enumerate}
-\item Dataset loading and OCR-aware text extraction
-\item Chunking and metadata assignment
-\item TF-IDF index build and persistence
-\item Query rewrite, intent classification, metadata extraction
-\item Retrieval, reranking, and evidence-grounded response generation
-\item Timing capture and benchmark export
-\item Live RAGAS evaluation with OpenAI
-\item Plot generation for report publication
+\item dataset loading and OCR-aware text extraction,
+\item chunking and metadata assignment,
+\item TF-IDF vectorization and index persistence,
+\item query rewrite, intent classification, metadata extraction,
+\item top-$k$ retrieval with cosine similarity,
+\item reranking to top-$n$ evidence blocks,
+\item grounded answer synthesis with cited snippets,
+\item node-level latency logging and benchmark export.
 \end{enumerate}
 
-\section{Figures}
+\section{Benchmark Configuration}
+The benchmark currently includes 5 legal questions. All records in the latest run were classified as \texttt{law\_question}, and all runs returned 3 contexts per query.
+
+\subsection*{Benchmark case inventory}
+\begin{longtable}{@{}p{0.06\textwidth} p{0.50\textwidth} p{0.18\textwidth} p{0.18\textwidth}@{}}
+\toprule
+ID & Theme & Legal area & Observed latency \\
+\midrule
+1 & Labor law overtime constraints & Labor law & Very high \\
+2 & Bounced cheque issuance conditions & Commercial law & Low \\
+3 & Civil law lease rules & Civil law & Low \\
+4 & Tax law offense coverage & Tax law & Low \\
+5 & Social security legal protections & Social law & Moderate \\
+\bottomrule
+\end{longtable}
+
+Ground-truth answer text is not yet populated in the benchmark file (\texttt{ground\_truth} is null for all 5 rows), so this run focuses on retrieval consistency and runtime behavior rather than reference-based answer scoring.
+
+\section{Latency Results}
+\subsection*{Aggregate latency}
+\begin{longtable}{p{0.38\textwidth} p{0.2\textwidth}}
+\toprule
+Metric & Value (seconds) \\
+\midrule
+Total latency mean & 0.3474 \\
+Total latency median & 0.0809 \\
+Total latency minimum & 0.0754 \\
+Total latency maximum & 1.3964 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Node-level mean latency}
+\begin{longtable}{p{0.38\textwidth} p{0.2\textwidth}}
+\toprule
+Node & Mean (seconds) \\
+\midrule
+rewrite & 0.0028 \\
+classify\_intent & 0.0033 \\
+extract\_metadata & 0.0235 \\
+context\_retrieve & 0.3141 \\
+rerank & 0.0007 \\
+generate\_answer & 0.0021 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Per-query latency}
+\begin{longtable}{p{0.58\textwidth} p{0.18\textwidth}}
+\toprule
+Benchmark query theme & Total latency (seconds) \\
+\midrule
+Labor law overtime constraints & 1.3964 \\
+Bounced cheque issuance conditions & 0.0778 \\
+Civil law lease rules & 0.0754 \\
+Tax law offense coverage & 0.0809 \\
+Social security legal protections & 0.1065 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Stability diagnostics}
+\begin{longtable}{@{}p{0.50\textwidth} p{0.22\textwidth}@{}}
+\toprule
+Metric & Value \\
+\midrule
+Standard deviation of total latency & 0.5866 seconds \\
+Coefficient of variation of total latency & 1.6884 \\
+Mean retrieval-stage share of end-to-end latency & 90.40\% \\
+\bottomrule
+\end{longtable}
+
+\section{Retrieval Effectiveness Diagnostics}
+\begin{longtable}{@{}p{0.50\textwidth} p{0.22\textwidth}@{}}
+\toprule
+Diagnostic & Value \\
+\midrule
+Hit@1 mean & 1.00 \\
+Hit@3 mean & 1.00 \\
+Mean contexts returned per query & 3.00 \\
+Rows with non-empty answer text & 5 / 5 \\
+Rows with non-empty retrieved contexts & 5 / 5 \\
+\bottomrule
+\end{longtable}
+
+The retrieval diagnostics indicate complete benchmark recall for this five-query sample. Because the sample size is small, the result should be interpreted as a functional validation signal, not a final quality bound.
+
+\section{Evaluation Results}
+RAGAS is configured with \texttt{faithfulness} and \texttt{answer\_relevancy}. The latest live run produced no valid metric values because the OpenAI credential failed authentication during evaluation. In \texttt{rag\_evaluation\_report.xlsx}, both metric columns are null for all 5 rows.
+
+Despite that failure mode, the run confirms the evaluation export path is wired correctly and that question-answer-context tuples are persisted in a format ready for immediate re-evaluation after credential correction.
+
+\section{Operational Quality Notes}
+\begin{itemize}
+\item The index and timing artifacts are complete and internally consistent with the benchmark row count.
+\item The dominant bottleneck is retrieval, not query rewriting or final response assembly.
+\item High latency variance is concentrated in one broad legal query; four queries are below 0.11 seconds.
+\item The evaluation-stage dependency on live credentials is the only blocking item for full metric completion.
+\end{itemize}
+
+\section{Quantitative Figure Set}
 \safeimage{figures/q1/avg_node_timings.png}{0.88}{Average node timing}
 \safeimage{figures/q1/node_timing_distributions.png}{0.88}{Node timing distributions}
 \safeimage{figures/q1/total_latency_histogram.png}{0.78}{Total latency distribution}
@@ -57,24 +179,43 @@ The Q1 system follows this deterministic flow:
 \safeimage{figures/q1/rag_eval_metric_distribution.png}{0.78}{RAGAS score distributions}
 \safeimage{figures/q1/rag_eval_scatter.png}{0.68}{Faithfulness vs answer relevancy}
 
+\section{Interpretation}
+The dominant runtime cost is retrieval (\texttt{context\_retrieve}), while rewrite, classification, reranking, and answer assembly are comparatively lightweight. The large gap between median and maximum total latency indicates query-dependent retrieval variance, especially for broader questions with wider lexical overlap in the corpus.
+
 \section{Reproducible Execution}
-All commands are executed under:
+Runtime activation:
 \begin{verbatim}
 source /Users/tahamajs/Documents/uni/venv/bin/activate
 \end{verbatim}
 
-Primary command:
+Primary command sequence:
+\begin{verbatim}
+python answers/scripts/preflight.py --strict-live
+python answers/scripts/run_q1.py
+bash answers/scripts/build_reports.sh
+cd answers && zip -r NLP_HW5.zip Q1 Q2 reports scripts ...
+\end{verbatim}
+
+One-command orchestration:
 \begin{verbatim}
 bash answers/scripts/run_all.sh
 \end{verbatim}
 
-\section{Validation Criteria}
-The final implementation targets the following checks:
+\section{Validation Matrix (Q1)}
 \begin{itemize}
-\item Strict live preflight passes with all required keys and tools.
-\item Notebook execution completes from top to bottom.
-\item Required index, timing, and evaluation artifacts are non-empty.
-\item All Q1 figures are generated under \texttt{answers/reports/figures/q1}.
+\item strict preflight: passed for environment and tool checks when valid credentials are available,
+\item index artifact generation: passed (\texttt{indexed\_dataset.pkl} is present and non-empty),
+\item timing artifact generation: passed (\texttt{pipeline\_timings.csv} is present and non-empty),
+\item retrieval diagnostics: passed (\texttt{hit@1 = 1.00}, \texttt{hit@3 = 1.00}, \texttt{contexts = 3} for all rows),
+\item evaluation artifact generation: file produced, but metric fields are null in the latest run due OpenAI authentication failure,
+\item plot generation: passed for all required Q1 figures.
+\end{itemize}
+
+\section{Known Limitations}
+\begin{itemize}
+\item TF-IDF retrieval is lexical and may underperform on semantic paraphrases.
+\item Current benchmark size is small (5 queries), limiting statistical confidence.
+\item Live evaluation quality depends on external API availability and valid credentials.
 \end{itemize}
 
 \end{document}
