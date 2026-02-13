@@ -45,6 +45,19 @@ Artifact & Description \\
 \bottomrule
 \end{longtable}
 
+\section{Artifact Integrity Snapshot}
+The artifact snapshot below reflects the current local run state on February 14, 2026.
+\begin{longtable}{@{}p{0.46\textwidth} p{0.18\textwidth} p{0.30\textwidth}@{}}
+\toprule
+Artifact & Size (bytes) & Last modified (local time) \\
+\midrule
+\texttt{Q2/results/scenario\_results.csv} & 659 & 2026-02-13 09:13:10 \\
+\texttt{Q2/results/scenario\_results.json} & 1247 & 2026-02-13 09:13:17 \\
+\texttt{Q2/lancedb\_data/} & local directory & persisted from latest setup \\
+\texttt{reports/figures/q2/*.png} & 4 files & 2026-02-13 generation set \\
+\bottomrule
+\end{longtable}
+
 \section{Live Integration Map}
 TravBot currently integrates:
 \begin{itemize}
@@ -105,6 +118,19 @@ ID & Scenario focus & Primary tool family & Complexity tier \\
 \bottomrule
 \end{longtable}
 
+\subsection*{Scenario prompt details}
+\begin{longtable}{@{}p{0.07\textwidth} p{0.67\textwidth} p{0.18\textwidth}@{}}
+\toprule
+ID & Query text & Query length \\
+\midrule
+1 & Find a flight from Tehran to Dubai for next Friday. & 49 \\
+2 & Find a hotel in Paris for 3 nights starting tomorrow. & 52 \\
+3 & What is the weather in Barcelona next Monday? & 44 \\
+4 & Convert currency from Iran to UAE today. & 40 \\
+5 & Plan a 3-day trip to Istanbul focused on history and food. & 58 \\
+\bottomrule
+\end{longtable}
+
 \section{Scenario Results}
 \subsection*{Aggregate statistics}
 \begin{longtable}{p{0.45\textwidth} p{0.25\textwidth}}
@@ -117,11 +143,15 @@ Median latency & 4.21 seconds \\
 Minimum latency & 2.11 seconds \\
 Maximum latency & 6.54 seconds \\
 P90 latency & 5.93 seconds \\
+P95 latency & 6.24 seconds \\
+Latency interquartile range (Q3-Q1) & 2.35 seconds \\
 Mean tool calls per scenario & 1.80 \\
 Total tool calls across all scenarios & 9 \\
 Tool-call standard deviation & 0.84 \\
 Tool-call range & 1 to 3 \\
 Query length vs latency correlation & 0.9840 \\
+Tool-calls vs latency correlation & 0.9799 \\
+Mean latency per tool call & 2.2833 seconds \\
 \bottomrule
 \end{longtable}
 
@@ -134,6 +164,28 @@ Latency standard deviation & 1.79 seconds \\
 Latency coefficient of variation & 0.4355 \\
 Query length range & 40 to 58 characters \\
 Mean query length & 49.4 characters \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Latency by orchestration depth}
+\begin{longtable}{@{}p{0.24\textwidth} p{0.18\textwidth} p{0.18\textwidth} p{0.18\textwidth} p{0.14\textwidth}@{}}
+\toprule
+Tool calls in scenario & Mean latency (s) & Min latency (s) & Max latency (s) & Count \\
+\midrule
+1 & 2.39 & 2.11 & 2.67 & 2 \\
+2 & 4.62 & 4.21 & 5.02 & 2 \\
+3 & 6.54 & 6.54 & 6.54 & 1 \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Latency by scenario complexity tier}
+\begin{longtable}{@{}p{0.24\textwidth} p{0.18\textwidth} p{0.18\textwidth} p{0.18\textwidth} p{0.14\textwidth}@{}}
+\toprule
+Complexity tier & Mean latency (s) & Min latency (s) & Max latency (s) & Count \\
+\midrule
+Low & 2.39 & 2.11 & 2.67 & 2 \\
+Medium & 4.62 & 4.21 & 5.02 & 2 \\
+High & 6.54 & 6.54 & 6.54 & 1 \\
 \bottomrule
 \end{longtable}
 
@@ -165,12 +217,30 @@ faq\_search\_tool & 1 \\
 \bottomrule
 \end{longtable}
 
+\subsection*{Tool exposure ratios}
+\begin{longtable}{@{}p{0.40\textwidth} p{0.16\textwidth} p{0.18\textwidth} p{0.18\textwidth}@{}}
+\toprule
+Tool & Usage count & Scenario coverage & Share of all tool calls \\
+\midrule
+weather\_info\_tool & 2 & 40.00\% & 22.22\% \\
+restaurant\_search\_tool & 2 & 40.00\% & 22.22\% \\
+flight\_search\_tool & 1 & 20.00\% & 11.11\% \\
+hotel\_search\_tool & 1 & 20.00\% & 11.11\% \\
+currency\_info\_tool & 1 & 20.00\% & 11.11\% \\
+trip\_planning\_tool & 1 & 20.00\% & 11.11\% \\
+faq\_search\_tool & 1 & 20.00\% & 11.11\% \\
+\bottomrule
+\end{longtable}
+
 \section{Response Log Quality}
 \begin{itemize}
 \item All 5 scenario rows contain non-empty answers and tool traces.
 \item Logged answers are currently placeholder strings (\texttt{Sample response n}), which validates orchestration flow but does not reflect final LLM response quality.
 \item For final grading-quality reporting, the next live run should persist full natural-language answers with citation snippets where available.
 \end{itemize}
+
+\section{Current Live Readiness Status}
+The strict preflight command executed on February 14, 2026 returned a failed status caused by OpenAI credential authentication (HTTP 401). This status is consistent with placeholder answer content in the current scenario output file and explains why the latest report is structurally complete but not yet final-quality in answer semantics.
 
 \section{Dependency Reliability Profile}
 \begin{longtable}{@{}p{0.18\textwidth} p{0.24\textwidth} p{0.15\textwidth} p{0.37\textwidth}@{}}
@@ -222,6 +292,19 @@ bash answers/scripts/run_all.sh
 \item plot generation: passed for all required Q2 figures,
 \item PDF report compilation: passed via XeLaTeX into \texttt{answers/reports/build}.
 \end{itemize}
+
+\section{Acceptance Criteria Traceability (Q2)}
+\begin{longtable}{@{}p{0.52\textwidth} p{0.12\textwidth} p{0.30\textwidth}@{}}
+\toprule
+Validation target & Status & Evidence \\
+\midrule
+Scenario outputs generated and non-empty & Pass & \texttt{Q2/results/scenario\_results.csv}, 5 rows \\
+Scenario JSON export generated and non-empty & Pass & \texttt{Q2/results/scenario\_results.json}, 1247 bytes \\
+Q2 required figures generated & Pass & 4 PNG files under \texttt{reports/figures/q2} \\
+Response and tool traces present in all rows & Pass & non-empty \texttt{answer} and \texttt{tool\_names} in 5/5 rows \\
+Strict live preflight & Fail & OpenAI credential check failed (401) \\
+\bottomrule
+\end{longtable}
 
 \section{Known Limitations}
 \begin{itemize}
