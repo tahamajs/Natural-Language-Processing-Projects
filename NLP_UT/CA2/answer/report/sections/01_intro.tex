@@ -1,0 +1,34 @@
+\section{Introduction}
+
+Email spam filtering and phishing URL detection are two foundational binary classification tasks with direct operational impact in real-world communication systems. Although both tasks are commonly solved with off-the-shelf machine learning pipelines, educational assignments that require step-by-step implementation reveal practical failure modes that are often hidden in automated toolchains. This report documents a full completion of Assignment 2 with an emphasis on correctness, reproducibility, and technical analysis.
+
+The work is divided into two questions. Question 1 focuses on text classification with strict implementation constraints: Logistic Regression and Multinomial Naive Bayes are built from scratch, and evaluation metrics are manually implemented. Question 2 shifts from free text to URL strings and allows library usage; the main challenge becomes feature engineering and model behavior interpretation under different feature families.
+
+A key objective of this submission is not only to obtain competitive accuracy, but also to produce a stable experiment artifact that can be rerun without hidden assumptions. During development, several engineering issues were resolved: path-dependent dataset loading, missing dependency handling, non-deterministic split failures on fallback data, and missing report figure exports. The final notebook now loads all datasets from fixed CA2 paths, performs robust label normalization, exports deterministic plots for reporting, and executes fully in a clean run.
+
+\subsection{Datasets and Task Definitions}
+
+\textbf{Question 1 data:}
+\begin{itemize}
+    \item \texttt{emails\_1.csv}: a compact labeled set with raw text and labels \texttt{spam}/\texttt{ham}.
+    \item \texttt{emails\_2.csv}: a larger Bag-of-Words matrix with 5172 emails, 3000 vocabulary features, and a \texttt{Prediction} label column.
+\end{itemize}
+
+\textbf{Question 2 data:}
+\begin{itemize}
+    \item \texttt{urls.csv}: 11,430 URL samples with balanced labels \texttt{phishing}/\texttt{legitimate}.
+\end{itemize}
+
+Both problems are binary classification tasks. We report Accuracy, Precision, Recall, and F1-score throughout, and include confusion matrices and ranking-curve visualizations for interpretability.
+
+\subsection{Contributions of This Report}
+
+This report provides four concrete contributions:
+\begin{enumerate}
+    \item A complete from-scratch implementation of Question 1 models and metrics with reproducible preprocessing.
+    \item A structured feature-engineering study for phishing URL detection across multiple feature families.
+    \item A deterministic figure generation pipeline producing report-ready plots directly from notebook execution.
+    \item A consolidated IEEE-format technical narrative linking implementation choices to measured behavior.
+\end{enumerate}
+
+The remainder of this report follows the assignment flow while adding engineering-level analysis and reproducibility details.

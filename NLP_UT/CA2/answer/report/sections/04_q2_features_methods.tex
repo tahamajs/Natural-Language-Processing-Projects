@@ -1,0 +1,70 @@
+\section{Question 2: URL Feature Engineering and Modeling}
+
+\subsection{Dataset Preparation}
+
+The URL dataset contains 11,430 samples, balanced between \texttt{phishing} and \texttt{legitimate}. Labels are normalized to $\{0,1\}$ using explicit mapping rules. The balanced distribution enables cleaner interpretation of precision-recall behavior without severe class prior skew.
+
+\subsection{Feature Set A: Structural Features}
+
+The first configuration extracts low-cost structural counts directly from raw strings:
+\begin{itemize}
+    \item Number of dots,
+    \item Number of slashes,
+    \item Number of hyphens.
+\end{itemize}
+
+These attributes approximate URL complexity and segmentation patterns that are often associated with obfuscation \cite{chandrasekaran2006phishing}.
+
+\subsection{Feature Set B: Statistical/Content Features}
+
+The second configuration adds quantitative content signals:
+\begin{itemize}
+    \item Total URL length,
+    \item Ratio of numeric characters,
+    \item Longest alphabetic token length.
+\end{itemize}
+
+These features capture suspicious patterns such as excessive length and digit-heavy strings frequently observed in malicious links \cite{ma2011learning,aburrous2010intelligent}.
+
+\subsection{Feature Set C: Creative Handcrafted Features}
+
+The creative feature set introduces security-motivated indicators:
+\begin{itemize}
+    \item IP-based host usage,
+    \item Presence of '@', '-', and percent encoding,
+    \item Suspicious terms (e.g., \texttt{verify}, \texttt{login}, \texttt{secure}),
+    \item HTTPS usage,
+    \item Subdomain depth and path structure statistics.
+\end{itemize}
+
+Domain decomposition relies on \texttt{tldextract} \cite{tldextract} to separate subdomain/domain/suffix consistently.
+
+\subsection{Feature Set D: Combined Features}
+
+The final configuration concatenates structural, statistical, and creative features. This fusion tests whether complementary signals from multiple URL perspectives improve separability.
+
+\subsection{Modeling Protocol for Q2}
+
+For each feature set:
+\begin{enumerate}
+    \item Split data into 80\% train and 20\% test, with guarded stratification.
+    \item Train Logistic Regression with standard scaling.
+    \item Train Gaussian Naive Bayes for continuous-valued features.
+    \item Evaluate using Accuracy, Precision, Recall, and F1-score.
+\end{enumerate}
+
+Unlike Question 1 (from-scratch requirement), Q2 intentionally uses library implementations to focus on feature-design impact.
+
+\subsection{Visualization Coverage}
+
+The notebook exports eight Q2 figures to support multi-angle interpretation:
+\begin{itemize}
+    \item Structural distributions,
+    \item Combined-feature correlation heatmap,
+    \item Structural boxplots by class,
+    \item Pairplot of sampled features,
+    \item Top mean absolute correlations,
+    \item ROC comparison for combined features,
+    \item Precision-Recall curve for combined Logistic Regression,
+    \item Logistic Regression coefficient importance.
+\end{itemize}

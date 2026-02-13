@@ -1,0 +1,53 @@
+\section{Discussion, Limitations, and Reproducibility Notes}
+
+\subsection{Cross-Question Synthesis}
+
+Across both questions, a consistent pattern emerges: discriminative linear models (Logistic Regression) provide stronger balanced performance when feature interactions matter. This was evident in sparse lexical email data and became even clearer in heterogeneous URL features.
+
+However, the analysis also confirms that Naive Bayes remains a strong baseline with favorable simplicity-speed tradeoffs. It can produce highly precise alerts in some settings, which may be useful in staged triage pipelines.
+
+\subsection{Engineering Fixes Required for Completion}
+
+Completing this assignment to production-quality required several non-trivial fixes beyond filling placeholder cells:
+\begin{enumerate}
+    \item \textbf{Deterministic data loading:} all notebook loaders now use fixed project paths under \texttt{datasets/q1} and \texttt{datasets/q2}.
+    \item \textbf{Label normalization guards:} explicit mappings for \texttt{spam/ham}, \texttt{Prediction}, and \texttt{phishing/legitimate} avoid silent type drift.
+    \item \textbf{Safe stratification logic:} split strategy now handles edge cases cleanly instead of crashing.
+    \item \textbf{Dependency handling:} runtime installation cells were replaced by deterministic import guards and environment-level dependency setup.
+    \item \textbf{Figure export pipeline:} all report plots are saved with stable filenames for direct LaTeX inclusion.
+\end{enumerate}
+
+These changes converted the notebook from a partially interactive artifact to a reproducible experiment pipeline.
+
+\subsection{Threats to Validity}
+
+Despite successful completion, several limitations remain:
+\begin{itemize}
+    \item \textbf{Single split evaluation:} results are based on one train/test split; cross-validation would reduce variance.
+    \item \textbf{Feature scope:} URL-only features exclude external signals such as DNS, WHOIS age, and content rendering behavior.
+    \item \textbf{Model complexity:} only linear and Naive Bayes baselines were explored; tree-based ensembles or calibrated boosting could improve detection.
+    \item \textbf{Cost-sensitive tuning:} thresholds were not optimized for domain-specific misclassification costs.
+\end{itemize}
+
+\subsection{Ablation-Oriented Interpretation}
+
+Feature family ablation in Q2 provides a clear hierarchy:
+\begin{enumerate}
+    \item Combined features provide the best overall performance.
+    \item Creative handcrafted features outperform purely structural or simple statistical signals.
+    \item Statistical/content-only features are informative but insufficient alone for robust classification.
+\end{enumerate}
+
+This pattern supports the intuition that phishing URLs are best captured through multi-view representation rather than one-dimensional heuristics.
+
+\subsection{Reproducibility Checklist}
+
+The final artifact satisfies the following reproducibility criteria:
+\begin{itemize}
+    \item One-command notebook execution from project root in the provided virtual environment.
+    \item Zero runtime cell errors in a full top-to-bottom run.
+    \item Deterministic generation of all expected report figures.
+    \item IEEE report compilation from local LaTeX sources without manual post-processing.
+\end{itemize}
+
+These properties ensure that another evaluator can re-run the entire pipeline and recover both notebook outputs and PDF report figures.

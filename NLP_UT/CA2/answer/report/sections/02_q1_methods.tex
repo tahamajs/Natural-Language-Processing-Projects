@@ -1,0 +1,77 @@
+\section{Question 1: Methods and Implementation}
+
+\subsection{Preprocessing and Bag-of-Words}
+
+The first stage uses \texttt{emails\_1.csv} to demonstrate preprocessing and sparse lexical representation. Labels are normalized by mapping \texttt{spam} $\rightarrow 1$ and \texttt{ham} $\rightarrow 0$. Text is cleaned by removing non-alphabetic symbols and converting to lowercase. A CountVectorizer with \texttt{max\_features=15} is then used to construct a compact Bag-of-Words (BoW) representation.
+
+This stage serves two roles: (i) verifying the preprocessing logic required by the assignment, and (ii) generating interpretable lexical statistics for report visualization.
+
+\subsection{Training Data for Model Learning}
+
+For model training, we use \texttt{emails\_2.csv}, which already contains BoW-style numeric features at scale. The pipeline performs the following transformations:
+\begin{enumerate}
+    \item Read CSV from fixed project path.
+    \item Use \texttt{Prediction} (or \texttt{status} if present) as the binary target.
+    \item Drop non-feature identifiers such as \texttt{Email No.}.
+    \item Coerce all feature columns to numeric and fill missing values with 0.
+\end{enumerate}
+
+The final matrix has 5172 samples with a class distribution of 3672 ham and 1500 spam, preserving moderate imbalance representative of operational email streams.
+
+\subsection{Train/Test Split and Reproducibility}
+
+A fixed random seed is used with an 80/20 train-test split. Stratification is applied when class counts permit safe stratified partitioning. A helper guard disables stratification only in edge cases where a fallback mini-dataset would otherwise make stratified splitting invalid. This avoids silent runtime crashes while preserving expected behavior on the real dataset.
+
+\subsection{Manual Evaluation Metrics}
+
+The assignment requires manual implementations of binary classification metrics. Let TP, TN, FP, and FN denote confusion matrix counts. The metric definitions are:
+\begin{align}
+\text{Accuracy} &= \frac{TP + TN}{TP + TN + FP + FN} \\
+\text{Precision} &= \frac{TP}{TP + FP} \\
+\text{Recall} &= \frac{TP}{TP + FN} \\
+F_1 &= \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+\end{align}
+
+Zero-division safeguards are included for edge conditions.
+
+\subsection{From-Scratch Logistic Regression}
+
+Logistic Regression is implemented with gradient descent on binary cross-entropy loss:
+\begin{align}
+\hat{y} &= \sigma(w^Tx + b), \quad \sigma(z)=\frac{1}{1+e^{-z}} \\
+\mathcal{L} &= -\frac{1}{N}\sum_{i=1}^{N}\left[y_i\log(\hat{y}_i)+(1-y_i)\log(1-\hat{y}_i)\right]
+\end{align}
+
+The implementation includes:
+\begin{itemize}
+    \item Feature normalization using training-set mean and standard deviation.
+    \item Numerically stable sigmoid via clipping.
+    \item Fixed learning rate and iteration count.
+\end{itemize}
+
+This model is discriminative and can capture correlated feature effects, which is often beneficial in sparse lexical spaces \cite{hastie2009elements,manning2008introduction}.
+
+\subsection{From-Scratch Multinomial Naive Bayes}
+
+Multinomial Naive Bayes is implemented with Laplace smoothing. For class $c$ and feature $j$:
+\begin{align}
+P(x_j|c) = \frac{N_{jc}+\alpha}{\sum_k N_{kc}+\alpha d}
+\end{align}
+where $d$ is feature dimension and $\alpha=1.0$. Training uses log probabilities to avoid underflow. Prediction computes:
+\begin{align}
+\log P(c|x) \propto \log P(c) + \sum_j x_j \log P(x_j|c)
+\end{align}
+
+Despite its conditional independence assumption, Multinomial NB remains a strong lexical baseline \cite{mccallum1998comparison}.
+
+\subsection{Reporting Figures for Q1}
+
+To support direct report integration, the notebook exports Q1 figures automatically:
+\begin{itemize}
+    \item Confusion matrix comparison.
+    \item ROC and Precision-Recall curves for Logistic Regression.
+    \item Top BoW words per class from \texttt{emails\_1.csv}.
+    \item Metric bar chart comparing Logistic Regression vs Naive Bayes.
+\end{itemize}
+
+These files are saved under \texttt{answer/report/figures/} with deterministic names.
