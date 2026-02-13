@@ -4,7 +4,7 @@
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1770961454.58129 "main.tex" "main.xdv" "main" 1770961459.12636 2
+["xelatex"] 1770961492.01801 "main.tex" "main.xdv" "main" 1770961496.20871 2
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/map/fontname/texfonts.map" 1741388039 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1741388039 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1741388039 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
@@ -101,10 +101,11 @@
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/xelatex/xepersian/xepersian.sty" 1741388039 49805 f67bca6d727576a20d89ab18a4ce0569 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/web2c/texmf.cnf" 1741388039 42151 79f67285bdd95beca4d137b380b4b9e5 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-var/web2c/xetex/xelatex.fmt" 1741388039 5640242 4f7cb22c150520ed498cbbe46d26ba29 ""
-  "main.aux" 1767623862.79746 32 3985256e7290058c681f74d7a3565a19 "xelatex"
-  "main.tex" 1770961447.19107 10142 70d1748f410c512aeadac59701033fa9 ""
+  "main.aux" 1770961495.94433 116 041b220f573a4bcbf5656b24df73791a "xelatex"
+  "main.tex" 1770961483.85216 9953 52171c59dad197202ad05816a34ed092 ""
   (generated)
   "main.aux"
   "main.log"
+  "main.out"
   "main.xdv"
   (rewritten before read)
