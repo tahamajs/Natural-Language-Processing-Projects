@@ -187,29 +187,18 @@ Several promising avenues for future research emerge from this work:
 
 \section{Appendix: Reproducibility Checklist}
 \begin{itemize}
-    \item Verify environment setup using the documented smoke dependencies.
+    \item Install smoke dependencies and activate the project Python environment.
     \item Run:
 \begin{lstlisting}[language=bash]
-python scripts/run_pipeline.py all-smoke
+python3 scripts/run_pipeline.py all-smoke
 \end{lstlisting}
-    \item Confirm generated artifacts:
-\begin{itemize}
-    \item \path{artifacts/q1_metrics.json}
-    \item \path{artifacts/q2_metrics.json}
-    \item \path{report/generated_metrics.tex}
-    \item \path{report/figures/q1_em_comparison.png}
-    \item \path{report/figures/q1_error_types.png}
-    \item \path{report/figures/q2_ifeval_comparison.png}
-\end{itemize}
-    \item Confirm report build output:
-\begin{itemize}
-    \item \path{report/main.pdf}
-\end{itemize}
+    \item Confirm metric artifacts: \texttt{artifacts/q1\_metrics.json}, \texttt{artifacts/q2\_metrics.json}.
+    \item Confirm generated report macros: \texttt{report/generated\_metrics.tex}.
+    \item Confirm generated figures: \texttt{report/figures/q1\_em\_comparison.png}, \texttt{report/figures/q1\_error\_types.png}, \texttt{report/figures/q2\_ifeval\_comparison.png}.
+    \item Confirm final PDF: \texttt{report/main.pdf}.
     \item Optional deep reruns:
-\begin{itemize}
-    \item \texttt{python scripts/run\_pipeline.py full-q1 --compile-report}
-    \item \texttt{python scripts/run\_pipeline.py full-q2 --compile-report}
-\end{itemize}
+    \item \texttt{python3 scripts/run\_pipeline.py full-q1 --compile-report}
+    \item \texttt{python3 scripts/run\_pipeline.py full-q2 --compile-report}
 \end{itemize}
 
 \section*{Acknowledgment}

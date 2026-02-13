@@ -1,10 +1,10 @@
 # Fdb version 4
-["xdvipdfmx"] 1771017959.82743 "main.xdv" "main.pdf" "main" 1771017961.56898 0
-  "main.xdv" 1771017959.74109 490492 bdb10cd9843b7ee0709f062e0ff9afcb "xelatex"
+["xdvipdfmx"] 1771018223.37386 "main.xdv" "main.pdf" "main" 1771018225.37743 0
+  "main.xdv" 1771018223.17809 489440 328eae4686bf1b532e6d0784fc8eb3f3 "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1771017958.27364 "main.tex" "main.xdv" "main" 1771017961.56769 0
+["xelatex"] 1771018221.84705 "main.tex" "main.xdv" "main" 1771018225.37597 0
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/map/fontname/texfonts.map" 1741388039 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1741388039 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1741388039 1004 54797486969f23fa377b128694d548df ""
@@ -99,9 +99,9 @@
   "figures/q1_error_types.png" 1771017946.81676 161556 6d57947d6892427741746974bc497768 ""
   "figures/q2_ifeval_comparison.png" 1771017947.06973 77949 670ddf1cbcae825b9cc62d7073fb227b ""
   "generated_metrics.tex" 1771017947.07092 1007 c60dcfed2c1ca6ae8633712a71b74f5a ""
-  "main.aux" 1771017959.73926 10976 539d4396bec2d061cf30422e252d4400 "xelatex"
-  "main.out" 1771017959.74055 10645 c518af8e245668931722c5ccaef36dc7 "xelatex"
-  "main.tex" 1771017623.9255 14769 1c82c1585905a72c3989ee0eca960bb5 ""
+  "main.aux" 1771018223.17385 10976 539d4396bec2d061cf30422e252d4400 "xelatex"
+  "main.out" 1771018223.17687 10645 c518af8e245668931722c5ccaef36dc7 "xelatex"
+  "main.tex" 1771018206.85095 14715 04d9847a9495a694e06519eb992167c0 ""
   (generated)
   "main.aux"
   "main.log"

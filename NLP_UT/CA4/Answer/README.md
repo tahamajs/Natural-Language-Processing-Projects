@@ -32,25 +32,25 @@ pip install -r requirements-full.txt
 Run smoke pipeline (default command):
 
 ```bash
-python scripts/run_pipeline.py
+python3 scripts/run_pipeline.py
 ```
 
 Equivalent explicit smoke command:
 
 ```bash
-python scripts/run_pipeline.py smoke
+python3 scripts/run_pipeline.py smoke
 ```
 
 Smoke + report compile:
 
 ```bash
-python scripts/run_pipeline.py all-smoke
+python3 scripts/run_pipeline.py all-smoke
 ```
 
 Compile report only:
 
 ```bash
-python scripts/run_pipeline.py report
+python3 scripts/run_pipeline.py report
 ```
 
 The report build uses `latexmk -xelatex` when available, with automatic fallback to running `xelatex` twice.
@@ -58,8 +58,8 @@ The report build uses `latexmk -xelatex` when available, with automatic fallback
 Optional full notebook execution:
 
 ```bash
-python scripts/run_pipeline.py full-q1 --compile-report
-python scripts/run_pipeline.py full-q2 --compile-report
+python3 scripts/run_pipeline.py full-q1 --compile-report
+python3 scripts/run_pipeline.py full-q2 --compile-report
 ```
 
 ## Q2 Source Behavior
@@ -73,7 +73,7 @@ Current default remains fallback unless real eval files exist.
 
 ## Expected smoke outputs
 
-After `python scripts/run_pipeline.py smoke`:
+After `python3 scripts/run_pipeline.py smoke`:
 
 - `/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/artifacts/q1_metrics.json`
 - `/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/artifacts/q2_metrics.json`
@@ -81,3 +81,14 @@ After `python scripts/run_pipeline.py smoke`:
 - `/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report/figures/q1_error_types.png`
 - `/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report/figures/q2_ifeval_comparison.png`
 - `/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report/generated_metrics.tex`
+
+## Quick validation
+
+```bash
+python3 scripts/run_pipeline.py all-smoke
+python3 scripts/run_pipeline.py report
+```
+
+Expected final PDF:
+
+- `/Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA4/Answer/report/main.pdf`
