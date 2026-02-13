@@ -77,6 +77,42 @@ To quantify feature-engineering value, we compare the best and weakest feature f
 
 These improvements indicate that engineering richer feature views has larger impact than changing linear-probabilistic baseline type alone.
 
+\subsection{Threshold-Independent Quality for Combined Logistic Regression}
+
+For the best-performing combined-feature Logistic Regression model, threshold-independent metrics are:
+\begin{itemize}
+    \item ROC-AUC: 0.8685
+    \item Average Precision: 0.8806
+\end{itemize}
+
+This indicates robust ranking behavior even before threshold tuning. The quality gap between ROC-AUC and default-threshold recall further supports the value of policy-aware threshold calibration in deployment.
+
+\subsection{Representative Error Cases}
+
+To improve qualitative completeness, Table~\ref{tab:q2-error-cases} lists representative high-confidence errors from combined-feature Logistic Regression. These examples illustrate where handcrafted URL features are insufficient by themselves.
+
+\begin{table}[H]
+\centering
+\caption{Representative high-confidence Q2 error cases (combined Logistic Regression)}
+\label{tab:q2-error-cases}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.9cm}p{0.8cm}p{5.3cm}}
+\toprule
+Type & Score & URL snippet \\
+\midrule
+FP & 1.0000 & \path{https://login.microsoftonline.com/.../oauth2/authorize?...} \\
+FP & 0.9990 & \path{https://accounts.google.com/ServiceLogin?...} \\
+FP & 0.9734 & \path{http://god2018.su/australian-open-2018/} \\
+FN & 0.0013 & \path{https://dw.uptodown.com/dwn/GdBvWUiBptS6-...} \\
+FN & 0.0052 & \path{http://r.attente-securisation.com/tr/cl/...} \\
+FN & 0.0722 & \path{https://izzylogz.nn.r.appspot.com/home.html} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table suggests that high-reputation domain-like structures can induce false positives, while heavily encoded or infrastructure-like phishing links can evade detection. This reinforces the need for multi-layer signals (DNS, certificate age, redirect chain features) in future iterations.
+
 \subsection{Distributional and Correlation Insights}
 
 \begin{figure}[H]

@@ -1,0 +1,28 @@
+\section{Related Work and Method Positioning}
+
+\subsection{Text Classification Baselines}
+
+Bag-of-Words paired with linear classifiers remains a durable baseline for spam and topic classification tasks due to interpretability and strong performance-efficiency tradeoffs \cite{manning2008introduction,jurafsky2023speech}. Classical comparisons have shown that Naive Bayes is often surprisingly competitive for lexical tasks \cite{mccallum1998comparison}, while discriminative linear models such as Logistic Regression or SVM typically improve boundary quality when feature dependencies are significant \cite{joachims1998text,hastie2009elements}.
+
+Our Question 1 findings align with this literature: Naive Bayes provides strong recall and simplicity, but from-scratch Logistic Regression achieves better balanced performance under correlated sparse features.
+
+\subsection{Phishing Detection Literature}
+
+Phishing URL detection has historically relied on handcrafted lexical and structural signals, sometimes extended with host/network intelligence \cite{ma2011learning,aburrous2010intelligent}. Early analyses also highlighted structural indicators in malicious communications \cite{chandrasekaran2006phishing}. More recent production systems use layered pipelines combining static URL features, page content models, and reputation systems.
+
+Question 2 in this report intentionally focuses on URL-only features, making it comparable to the lightweight static-analysis branch of prior work. The observed gains from feature fusion are consistent with published evidence that multi-view representation is the dominant performance lever when model families are held relatively simple.
+
+\subsection{Metric and Evaluation Context}
+
+ROC analysis remains a standard ranking-quality tool in binary detection systems \cite{fawcett2006roc}. However, in security contexts with asymmetric error costs, precision-recall behavior and false negative control are often more operationally relevant. This report therefore combines thresholded metrics (accuracy, precision, recall, F1) with ranking-oriented metrics (ROC-AUC, Average Precision) and confusion-derived diagnostics.
+
+\subsection{Positioning of This Assignment Artifact}
+
+Relative to broader literature, this project should be viewed as a transparent and reproducible baseline study rather than a state-of-the-art benchmark. Its core value lies in:
+\begin{itemize}
+    \item complete from-scratch implementation for foundational understanding,
+    \item explicit feature engineering and error analysis,
+    \item reproducible execution and report generation pipeline.
+\end{itemize}
+
+This positioning is appropriate for an academic assignment and provides a solid base for future extensions with richer signals and more advanced models.

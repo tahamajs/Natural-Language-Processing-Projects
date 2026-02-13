@@ -56,6 +56,22 @@ To avoid over-interpreting point estimates from a single split, we estimated non
 
 The intervals overlap only partially and the center of the Logistic Regression interval remains higher, supporting the robustness of the observed ranking.
 
+\subsection{Ranking Quality and Error-Profile Signals}
+
+Using prediction probabilities from the from-scratch Logistic Regression implementation, we also computed ranking-centric metrics:
+\begin{itemize}
+    \item ROC-AUC: 0.9876
+    \item Average Precision (PR-AUC proxy): 0.9565
+\end{itemize}
+
+These values confirm that the model remains strong across thresholds, not only at the default decision point.
+
+To inspect failure modes, we summarized dominant token patterns among errors. False positives were associated with terms such as \texttt{milwaukee}, \texttt{club}, \texttt{fares}, and \texttt{coupon}, while false negatives were associated with terms such as \texttt{financial}, \texttt{session}, \texttt{conference}, and \texttt{security}. This suggests two practical directions:
+\begin{enumerate}
+    \item augment lexical models with contextual sequence cues to distinguish legitimate business email from promotional language;
+    \item incorporate threshold calibration conditioned on business-vocabulary density.
+\end{enumerate}
+
 \subsection{Confusion and Ranking Behavior}
 
 \begin{figure}[H]
