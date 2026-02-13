@@ -53,4 +53,8 @@ M.~Aburrous, M.~A. Hossain, K.~Dahal, and F.~Thabtah, ``Intelligent phishing
 J.~Schlund and contributors, ``tldextract: Accurate url domain parsing,''
   \url{https://github.com/john-kurkowski/tldextract}, 2025.
 
+\bibitem{fawcett2006roc}
+T.~Fawcett, ``An introduction to roc analysis,'' \emph{Pattern Recognition
+  Letters}, vol.~27, no.~8, pp. 861--874, 2006.
+
 \end{thebibliography}

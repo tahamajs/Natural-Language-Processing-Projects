@@ -1,0 +1,84 @@
+\section{Extended Analysis and Practical Implications}
+
+\subsection{Detailed Interpretation of Precision-Recall Tradeoffs}
+
+The most informative model behavior difference in this assignment is not raw accuracy, but the precision-recall profile under different feature regimes. In Q1, Logistic Regression simultaneously improves precision and recall relative to Naive Bayes. This indicates better decision boundary placement in the high-dimensional email feature space. In Q2, the relationship is more nuanced: Gaussian Naive Bayes repeatedly achieves very high precision but substantially lower recall, especially in creative and combined feature settings. In practical terms, this means Naive Bayes tends to raise fewer alerts, but misses many phishing instances.
+
+This tradeoff has direct operational consequences. In enterprise email gateways and web filtering systems, false negatives can be more costly than false positives because undetected phishing links may lead to credential theft or malware infection. Therefore, a model with higher recall and strong F1-score is often preferred as the primary gate. Under this criterion, Logistic Regression with combined features is the strongest candidate in our experiments.
+
+A second interpretation concerns model assumptions. Naive Bayes assumes conditional independence among features given the class label. In URL feature engineering, many variables are naturally correlated: length and slash count, dot count and subdomain patterns, suspicious keywords and path complexity. The correlation heatmap and pairplot confirm these dependencies. Logistic Regression does not require conditional independence and can assign balanced weights under these correlations, which helps explain its recall advantage.
+
+\subsection{Feature Family Contributions}
+
+The four Q2 feature sets enable a structured ablation-style reading:
+\begin{enumerate}
+    \item \textbf{Structural features} capture coarse URL complexity, providing a useful baseline.
+    \item \textbf{Statistical/content features} add semantic-free numeric patterns (length, digit ratio, token span) but still miss richer structural cues.
+    \item \textbf{Creative handcrafted features} encode attacker behavior heuristics, improving separation.
+    \item \textbf{Combined features} aggregate complementary evidence and deliver the best end-to-end metrics.
+\end{enumerate}
+
+This hierarchy implies that no single signal class is sufficient. Structural-only features can detect obvious anomalies, but sophisticated phishing URLs mimic legitimate formatting. Statistical-only features can be noisy because many legitimate URLs are long and parameterized. Creative features inject targeted security priors, yet still benefit from broader context. Combining all sets allows robust detection across easy and hard cases.
+
+\subsection{Error Patterns and Failure Modes}
+
+Even the best-performing model in this report (Logistic Regression on combined features) is imperfect. Based on feature behavior and observed metric gaps, common residual error types likely include:
+\begin{itemize}
+    \item \textbf{High-quality phishing domains} that avoid suspicious tokens and use HTTPS.
+    \item \textbf{Legitimate but complex URLs} with many parameters, long paths, or tracking identifiers.
+    \item \textbf{Brand-like lexical camouflage} where malicious domains resemble known services without obvious character-level anomalies.
+\end{itemize}
+
+For Q1 spam detection, difficult examples usually occur in mixed-content emails combining business vocabulary with promotional phrases. Such overlap can weaken simple count-based discrimination.
+
+A practical mitigation strategy is layered modeling: keep the current lightweight classifier as a first-stage filter and escalate uncertain cases to richer models or external threat intelligence checks.
+
+\subsection{Thresholding and Calibration Considerations}
+
+The current notebook uses default decision thresholds for binary classification. In production environments, threshold calibration should be explicitly optimized against application-specific costs:
+\begin{itemize}
+    \item A lower threshold increases recall and catches more phishing/spam, but raises false alarms.
+    \item A higher threshold improves precision, but risks missing true attacks.
+\end{itemize}
+
+ROC and PR curves included in this report provide the foundation for choosing operating points. For imbalanced or high-risk settings, PR-based threshold tuning is often more informative than ROC-only tuning \cite{fawcett2006roc}.
+
+\subsection{Computational and Deployment Footprint}
+
+Both assignment tasks use computationally lightweight models suitable for rapid retraining and frequent updates. This matters in adversarial domains, where URL and spam patterns evolve quickly. Feature extraction costs in Q2 are also manageable and largely string-processing based, making near-real-time scoring feasible.
+
+For deployment hardening, three engineering steps are recommended:
+\begin{enumerate}
+    \item Version dataset schema checks and label maps to prevent silent training drift.
+    \item Persist feature extraction code as a tested module, not only notebook cells.
+    \item Add automated regression checks on key metrics and figure generation outputs.
+\end{enumerate}
+
+\subsection{Methodological Lessons}
+
+Several methodological lessons from this assignment generalize to future NLP and security projects:
+\begin{itemize}
+    \item \textbf{Data contracts matter.} Small path or label mismatches can invalidate entire experiments.
+    \item \textbf{Visualization is diagnostic, not decorative.} The saved plots exposed behavior that scalar metrics alone cannot show.
+    \item \textbf{Simple baselines are valuable.} Logistic Regression and Naive Bayes provide strong performance-per-complexity and transparent interpretation.
+    \item \textbf{Reproducibility is part of correctness.} A notebook that works only interactively is not a complete research artifact.
+\end{itemize}
+
+\subsection{Comparison to Typical Baseline Expectations}
+
+Classical literature often reports strong Naive Bayes performance on text tasks \cite{mccallum1998comparison}. Our Q1 results remain consistent with that baseline strength, but still favor Logistic Regression due to correlated feature behavior and discriminative optimization. For phishing URL detection, prior work also emphasizes feature design as the dominant driver \cite{ma2011learning,aburrous2010intelligent}. Our Q2 findings align with this: moving from structural-only to combined features yields larger gains than swapping one linear baseline for another.
+
+Hence, the primary optimization lever in this assignment is feature quality and data hygiene rather than model complexity.
+
+\subsection{Actionable Next-Step Roadmap}
+
+A practical continuation roadmap can be staged as follows:
+\begin{enumerate}
+    \item \textbf{Cross-validation benchmarking:} report mean and variance instead of single-split metrics.
+    \item \textbf{Probability calibration:} evaluate reliability curves and Brier score for threshold-dependent deployment.
+    \item \textbf{External-signal enrichment:} add domain age, ASN reputation, DNS TTL volatility, and redirection chain depth.
+    \item \textbf{Cost-sensitive training:} optimize objective weights for asymmetric false-positive/false-negative costs.
+    \item \textbf{Monitoring pipeline:} track data drift and feature-distribution shifts over time.
+\end{enumerate}
+
+This roadmap preserves the assignment's lightweight modeling philosophy while advancing toward operational-grade phishing and spam defense.

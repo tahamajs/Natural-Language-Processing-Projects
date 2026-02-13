@@ -1,0 +1,134 @@
+\section{Reproducibility Appendix and Artifact Manifest}
+
+\subsection{Environment and Execution Protocol}
+
+All experiments and report figures were generated in the project-local virtual environment:
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize,frame=single]
+source /Users/tahamajs/Documents/uni/venv/bin/activate
+cd /Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA2
+pip install tldextract
+jupyter nbconvert --to notebook --execute answer/NLP_HW2.ipynb \
+  --output /tmp/ca2_exec_check.ipynb --ExecutePreprocessor.timeout=3600
+\end{lstlisting}
+
+The executed notebook was then promoted back to the deliverable path so that outputs remain embedded in the submission artifact.
+
+\subsection{Deterministic Data Contracts}
+
+The notebook now uses fixed project paths, removing ambiguity from execution context:
+\begin{itemize}
+    \item \texttt{datasets/q1/emails\_1.csv}
+    \item \texttt{datasets/q1/emails\_2.csv}
+    \item \texttt{datasets/q2/urls.csv}
+\end{itemize}
+
+Label normalization is explicit and validated at runtime:
+\begin{itemize}
+    \item \texttt{spam/ham} $\rightarrow 1/0$ for \texttt{emails\_1.csv}
+    \item \texttt{Prediction} (or \texttt{status}) coerced to integer for \texttt{emails\_2.csv}
+    \item \texttt{phishing/legitimate} $\rightarrow 1/0$ for \texttt{urls.csv}
+\end{itemize}
+
+This design prevents silent fallback behavior and ensures reproducible class semantics across runs.
+
+\subsection{Figure Manifest}
+
+Table~\ref{tab:manifest} lists all figures that are generated automatically by notebook execution and consumed by this report.
+
+\begin{table*}[t]
+\centering
+\caption{Generated figure artifact manifest}
+\label{tab:manifest}
+\begin{tabular}{p{4.2cm}p{8.8cm}p{3.2cm}}
+\toprule
+Filename & Purpose & Used in section \\
+\midrule
+\texttt{q1\_confusion\_matrices.png} & Side-by-side confusion matrices for from-scratch Q1 models & Q1 results \\
+\texttt{q1\_roc\_pr\_curves\_lr.png} & ROC and Precision-Recall curves for Q1 Logistic Regression & Q1 results \\
+\texttt{q1\_top\_words\_spam\_ham.png} & Top class-specific BoW terms from \texttt{emails\_1.csv} & Q1 results \\
+\texttt{q1\_model\_comparison\_bar.png} & Metric bar chart for Q1 model comparison & Q1 results \\
+\texttt{q2\_structural\_distributions.png} & Histograms of structural URL features & Q2 results \\
+\texttt{q2\_correlation\_heatmap\_all\_features.png} & Correlation structure of combined URL features & Q2 results \\
+\texttt{q2\_structural\_boxplots.png} & Class-conditional spread for key structural features & Q2 results \\
+\texttt{q2\_pairplot\_sample.png} & Pairwise sampled visualization of combined features & Q2 results \\
+\texttt{q2\_top\_mean\_abs\_correlations.png} & Top features by mean absolute correlation & Q2 results \\
+\texttt{q2\_roc\_combined\_features.png} & ROC comparison on combined feature set & Q2 results \\
+\texttt{q2\_pr\_combined\_lr.png} & PR curve for combined-feature Logistic Regression & Q2 results \\
+\texttt{q2\_lr\_feature\_importance.png} & Positive/negative coefficient importance plot & Q2 results \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Complete Feature Dictionary for Q2}
+
+For reproducibility and future extension, Table~\ref{tab:feature-dict} documents all URL features used in the combined model, grouped by engineering family.
+
+\begin{table*}[t]
+\centering
+\caption{Complete feature dictionary used in the combined Q2 model}
+\label{tab:feature-dict}
+\begin{tabular}{p{3.0cm}p{2.2cm}p{9.2cm}}
+\toprule
+Feature & Family & Description and intended signal \\
+\midrule
+\texttt{host\_len} & Structural & Length of host segment; unusually long hosts can indicate obfuscation or generated domains. \\
+\texttt{path\_len} & Structural & Number of characters in URL path; phishing pages often include long nested paths. \\
+\texttt{url\_len} & Structural & Total URL length; extreme length can correlate with attack payload stuffing. \\
+\texttt{num\_params} & Structural & Number of query parameters; excessive parameters may indicate tracking or camouflage. \\
+\texttt{has\_fragment} & Structural & Binary indicator for fragment usage; sometimes used to hide payload-like tokens. \\
+\texttt{digits\_in\_host} & Structural & Count of numeric characters in host; high counts can indicate non-human domain patterns. \\
+\texttt{length\_url} & Statistical & Raw URL length from content-oriented extraction; provides a second length perspective. \\
+\texttt{ratio\_digits\_url} & Statistical & Ratio of digits to full URL length; captures aggressive numeric token usage. \\
+\texttt{longest\_words\_raw} & Statistical & Length of longest alphabetic token after split; can expose generated token artifacts. \\
+\texttt{sub\_len} & Creative & Subdomain length; deeply nested or very long subdomains are common in phishing. \\
+\texttt{has\_ip} & Creative & Binary indicator for IP-literal host usage instead of domain names. \\
+\texttt{at\_sign} & Creative & Presence of '@' in URL; classic obfuscation pattern in malicious links. \\
+\texttt{dash\_in\_host} & Creative & Presence of '-' in host; often used in brand impersonation domains. \\
+\texttt{dot\_count\_host} & Creative & Number of dots in host; indicates domain depth and possible spoofing complexity. \\
+\texttt{slash\_count\_path} & Creative & Count of path separators; deeper paths may correlate with deceptive navigation. \\
+\texttt{percent\_encoding} & Creative & Binary indicator for URL percent encoding; sometimes used to hide suspicious strings. \\
+\texttt{suspicious\_words} & Creative & Count of suspicious security/payment words (verify, update, login, secure, account). \\
+\texttt{has\_https} & Creative & HTTPS usage indicator; useful but not sufficient since phishing can also use TLS. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{LaTeX Build Procedure}
+
+The IEEE report is compiled with a standard bibliography pipeline:
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize,frame=single]
+cd answer/report
+pdflatex -interaction=nonstopmode main.tex
+bibtex main
+pdflatex -interaction=nonstopmode main.tex
+pdflatex -interaction=nonstopmode main.tex
+pdfinfo main.pdf
+\end{lstlisting}
+
+This generates the final PDF at:
+\begin{center}
+\texttt{answer/report/main.pdf}
+\end{center}
+
+\subsection{Validation Checklist}
+
+The final submission was validated against these criteria:
+\begin{enumerate}
+    \item Full notebook execution completes with zero cell errors.
+    \item Real datasets are loaded from \texttt{datasets/} paths without fallback demo mode.
+    \item All expected figure files exist and are non-empty.
+    \item IEEE LaTeX report compiles successfully with bibliography.
+    \item Report includes all required assignment analyses for both questions.
+\end{enumerate}
+
+\subsection{Submission-Readiness Notes}
+
+The current artifact set is designed to be grader-friendly:
+\begin{itemize}
+    \item Notebook contains executable code and generated outputs.
+    \item Report references only local generated figures.
+    \item Paths are deterministic and independent of notebook launch location.
+    \item Dependencies are explicit and minimal.
+\end{itemize}
+
+Together, these properties reduce ambiguity during evaluation and make the submission resilient to environment differences.

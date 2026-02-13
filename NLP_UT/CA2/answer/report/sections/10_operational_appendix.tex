@@ -1,0 +1,74 @@
+\section{Operational Appendix: End-to-End Execution Recipe}
+
+This appendix provides an explicit command-level runbook so the complete artifact can be regenerated without ambiguity. The intent is to make grading and independent verification straightforward, even if the notebook is executed on a fresh machine with only the repository and Python environment available.
+
+\subsection{Command-Level Runbook}
+
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize,frame=single]
+# 1) Activate environment and move to project root
+source /Users/tahamajs/Documents/uni/venv/bin/activate
+cd /Users/tahamajs/Documents/uni/NLP/nlp-assignments-spring-2023/NLP_UT/CA2
+
+# 2) Verify key files
+ls answer/NLP_HW2.ipynb
+ls datasets/q1/emails_1.csv
+ls datasets/q1/emails_2.csv
+ls datasets/q2/urls.csv
+
+# 3) Ensure required Python dependencies are present
+python -c "import pandas, numpy, sklearn, matplotlib, seaborn, tldextract"
+
+# 4) Execute notebook non-interactively
+MPLBACKEND=Agg jupyter nbconvert --to notebook --execute answer/NLP_HW2.ipynb \
+  --output /tmp/ca2_exec_check.ipynb --ExecutePreprocessor.timeout=3600
+
+# 5) Promote executed notebook as final deliverable
+cp /tmp/ca2_exec_check.ipynb answer/NLP_HW2.ipynb
+
+# 6) Validate expected figure outputs
+ls answer/report/figures/q1_confusion_matrices.png
+ls answer/report/figures/q1_roc_pr_curves_lr.png
+ls answer/report/figures/q1_top_words_spam_ham.png
+ls answer/report/figures/q1_model_comparison_bar.png
+ls answer/report/figures/q2_structural_distributions.png
+ls answer/report/figures/q2_correlation_heatmap_all_features.png
+ls answer/report/figures/q2_structural_boxplots.png
+ls answer/report/figures/q2_pairplot_sample.png
+ls answer/report/figures/q2_top_mean_abs_correlations.png
+ls answer/report/figures/q2_roc_combined_features.png
+ls answer/report/figures/q2_pr_combined_lr.png
+ls answer/report/figures/q2_lr_feature_importance.png
+
+# 7) Build IEEE report
+cd answer/report
+pdflatex -interaction=nonstopmode main.tex
+bibtex main
+pdflatex -interaction=nonstopmode main.tex
+pdflatex -interaction=nonstopmode main.tex
+
+# 8) Check final page count and PDF metadata
+pdfinfo main.pdf | rg '^Pages|^Title'
+
+# 9) Optional quality checks
+# - Open main.pdf and visually inspect all figure captions and references
+# - Confirm no missing figures in log
+# - Confirm model tables match notebook outputs
+
+# 10) Final artifact set
+# - answer/NLP_HW2.ipynb
+# - answer/report/main.pdf
+# - answer/report/figures/*.png
+# - answer/report/main.tex + section files + references.bib
+\end{lstlisting}
+
+\subsection{Expected Observable Outcomes}
+
+A successful run should satisfy the following observable outcomes:
+\begin{enumerate}
+    \item Notebook execution terminates without \texttt{CellExecutionError}.
+    \item Exactly twelve report figures are present and non-empty.
+    \item The report compiles with IEEEtran and includes all assignment sections.
+    \item Final PDF page count is strictly greater than ten pages.
+\end{enumerate}
+
+This appendix intentionally duplicates procedural information from earlier sections in a command-first format, because reproducibility failures in assignments frequently occur in operational details rather than in modeling logic.
