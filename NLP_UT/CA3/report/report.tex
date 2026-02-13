@@ -101,7 +101,7 @@
 \caption{چک‌لیست بازتولید نتایج و مصنوعات اجرایی}
 \end{table}
 
-\section{سوال اول: پیاده‌سازی CBOW و Skip-Gram}
+\section{سوال اول: پیاده‌سازی \lr{CBOW} و \lr{Skip-Gram}}
 
 \subsection{بارگذاری داده}
 برای این بخش از دیتاست WikiText-2 استفاده شده است که شامل متن‌های ویکی‌پدیا است. این دیتاست از کتابخانه datasets پایتورچ بارگذاری و در سه فایل جداگانه ذخیره شده است.
@@ -279,8 +279,8 @@ class Word2VecDataset(Dataset):
 
 \subsection{پیاده‌سازی شبکه و آموزش شبکه}
 
-\subsubsection{مدل CBOW}
-مدل CBOW با استفاده از میانگین embeddingهای کلمات زمینه، embedding کلمه مرکزی را پیش‌بینی می‌کند.
+\subsubsection{مدل \lr{CBOW}}
+مدل \lr{CBOW} با استفاده از میانگین \lr{embedding} کلمات زمینه، \lr{embedding} کلمه‌ی مرکزی را پیش‌بینی می‌کند.
 
 \begin{lstlisting}[caption=کد مدل CBOW]
 class CBOW(nn.Module):
@@ -299,8 +299,8 @@ class CBOW(nn.Module):
         return out
 \end{lstlisting}
 
-\subsubsection{مدل Skip-Gram}
-مدل Skip-Gram با استفاده از embedding کلمه مرکزی، embeddingهای کلمات زمینه را پیش‌بینی می‌کند.
+\subsubsection{مدل \lr{Skip-Gram}}
+مدل \lr{Skip-Gram} با استفاده از \lr{embedding} کلمه‌ی مرکزی، \lr{embedding} کلمات زمینه را پیش‌بینی می‌کند.
 
 \begin{lstlisting}[caption=کد مدل Skip-Gram]
 class SkipGram(nn.Module):
@@ -318,7 +318,25 @@ class SkipGram(nn.Module):
         return out
 \end{lstlisting}
 
-هر دو مدل با استفاده از بهینه‌ساز Adam و تابع هزینه CrossEntropy آموزش دیده‌اند.
+هر دو مدل با استفاده از بهینه‌ساز \lr{Adam} و تابع هزینه‌ی \lr{CrossEntropy} آموزش دیده‌اند.
+
+\subsubsection{فرمول‌بندی ریاضی}
+برای تکمیل بحث پیاده‌سازی، فرمول‌بندی ساده‌شده‌ی هر دو مدل به‌صورت زیر است:
+\begin{itemize}
+\item \textbf{\lr{CBOW}}: با داشتن زمینه‌ی \lr{$C=\{w_{t-k},...,w_{t-1},w_{t+1},...,w_{t+k}\}$} ابتدا بردار زمینه از میانگین بردارها ساخته می‌شود:
+\begin{equation}
+\bar{v}_C = \frac{1}{|C|}\sum_{w \in C} v_w
+\end{equation}
+سپس توزیع خروجی با \lr{softmax} محاسبه می‌شود:
+\begin{equation}
+P(w_t \mid C) = \frac{\exp(u_{w_t}^{\top}\bar{v}_C)}{\sum_{w' \in V}\exp(u_{w'}^{\top}\bar{v}_C)}
+\end{equation}
+\item \textbf{\lr{Skip-Gram}}: با داشتن واژه‌ی مرکزی \lr{$w_t$} برای هر واژه‌ی زمینه‌ی \lr{$w_o$} داریم:
+\begin{equation}
+P(w_o \mid w_t) = \frac{\exp(u_{w_o}^{\top}v_{w_t})}{\sum_{w' \in V}\exp(u_{w'}^{\top}v_{w_t})}
+\end{equation}
+\end{itemize}
+تابع هدف در هر دو مدل، کمینه‌سازی منفی لگاریتم درست‌نمایی (معادل \lr{CrossEntropy}) است.
 
 \subsubsection{پیکربندی آموزش}
 \begin{table}[H]
@@ -339,7 +357,7 @@ Dropout & ۰.۰ \\
 \end{table}
 
 \subsubsection{نتایج آموزش}
-مدل CBOW آموزش داده شده و نتایج به شرح زیر است:
+نتایج آموزش دو مدل به شرح زیر است:
 
 \begin{table}[H]
 \centering
@@ -361,6 +379,14 @@ Skip-Gram & 23,522 & 100 & 2,352,200 \\
 \end{itemize}
 
 نمودارهای آموزش نشان‌دهنده همگرایی مناسب مدل‌ها است. مدل Skip-Gram عملکرد بهتری در یادگیری روابط معنایی داشته است.
+
+\subsubsection{تحلیل بهره‌وری اجرایی}
+با استفاده از تعداد نمونه‌ها و زمان آموزش، می‌توان یک برآورد ساده از هزینه‌ی محاسباتی ارائه کرد:
+\begin{itemize}
+\item \lr{CBOW}: با حدود \(1{,}666{,}558\) نمونه‌ی آموزشی در هر ایپاک و ۲۰ ایپاک، حجم کل پردازش حدود \(33.3\) میلیون نمونه است.
+\item \lr{Skip-Gram}: با حدود \(6{,}666{,}232\) نمونه‌ی آموزشی در هر ایپاک و ۲۰ ایپاک، حجم کل پردازش حدود \(133.3\) میلیون نمونه است.
+\item نسبت حجم پردازش \lr{Skip-Gram} به \lr{CBOW} تقریباً ۴ برابر است؛ در نتیجه افزایش زمان آموزش مشاهده‌شده منطقی و سازگار با طراحی داده‌ی آموزشی است.
+\end{itemize}
 
 \subsection{مقایسه مدل‌ها}
 نتایج مقایسه مدل‌ها در جدول زیر ارائه شده است:
@@ -418,7 +444,7 @@ Skip-Gram & ۷.۰۵۶۹ & ۲۱.۷ دقیقه & عالی \\
 \end{table}
 
 \subsubsection{تحلیل شباهت واژگان}
-برای ۵ کلمه انتخابی (king, computer, good, time, world)، کلمات مشابه با استفاده از معیار Cosine Similarity استخراج شده‌اند. نمودارهای t-SNE نشان‌دهنده گروه‌بندی مناسب کلمات مشابه است.
+برای ۵ واژه‌ی نمونه \lr{(king, computer, good, time, world)}، نزدیک‌ترین واژه‌ها با معیار \lr{Cosine Similarity} استخراج شده‌اند. نمودارهای \lr{t-SNE} نیز خوشه‌بندی مفهومی واژه‌های مشابه را نمایش می‌دهند.
 
 \begin{table}[H]
 \centering
@@ -454,7 +480,7 @@ world & earth (0.87), planet (0.85), global (0.83), international (0.81), univer
 
 نتایج نشان می‌دهد که مدل Skip-Gram در یادگیری روابط معنایی دقیق‌تر عملکرد بهتری دارد، در حالی که CBOW سریع‌تر آموزش می‌بیند و برای داده‌های بزرگ مناسب‌تر است.
 
-\section{سوال دوم: پیاده‌سازی طبقه‌بند اخبار با کمک شبکه عصبی و مدل FastText}
+\section{سوال دوم: پیاده‌سازی طبقه‌بند اخبار با کمک شبکه عصبی}
 
 \subsection{بارگذاری داده و پیش‌پردازش}
 در این بخش از دیتاست \lr{AG News} استفاده شده است. این دیتاست شامل چهار کلاس خبری \lr{(World, Sports, Business, Sci/Tech)} است.
@@ -482,10 +508,10 @@ Sci/Tech & ۱,۲۵۰ & ۲۵۰ & ۲۵۰ \\
 
 \subsubsection{نمونه‌هایی از داده‌ها}
 \begin{itemize}
-\item World: "China's Premier Wen Jiabao meets with Russian President Vladimir Putin in Moscow"
-\item Sports: "Lions defeat Packers in overtime thriller at Lambeau Field"
-\item Business: "Oil prices surge past \$70 a barrel on supply concerns"
-\item Sci/Tech: "Google announces new AI-powered search features"
+\item \lr{World: "China's Premier Wen Jiabao meets with Russian President Vladimir Putin in Moscow"}
+\item \lr{Sports: "Lions defeat Packers in overtime thriller at Lambeau Field"}
+\item \lr{Business: "Oil prices surge past \$70 a barrel on supply concerns"}
+\item \lr{Sci/Tech: "Google announces new AI-powered search features"}
 \end{itemize}
 
 \subsubsection{دلیل نیاز کمتر به پیش‌پردازش در FastText}
@@ -539,6 +565,17 @@ train_embeddings = [sentence_embedding(text, ft) for text in train_texts]
 \item ارزیابی با Accuracy، Macro-F1 و ماتریس درهم‌ریختگی
 \item تحلیل خطا با مشاهده‌ی نمونه‌های درست و نادرست
 \end{enumerate}
+
+\subsubsection{فرمول‌بندی مسئله‌ی طبقه‌بندی}
+در این بخش، مسئله به‌صورت طبقه‌بندی چندکلاسه با ۴ برچسب تعریف شده است. خروجی لایه‌ی آخر شبکه برای نمونه‌ی \(x\) به‌صورت \(z \in \mathbb{R}^4\) بوده و احتمال کلاس \(c\) با \lr{softmax} محاسبه می‌شود:
+\begin{equation}
+P(y=c \mid x) = \frac{\exp(z_c)}{\sum_{j=1}^{4}\exp(z_j)}
+\end{equation}
+تابع هزینه برای هر نمونه:
+\begin{equation}
+\mathcal{L}(x,y) = -\log P(y \mid x)
+\end{equation}
+و معیار بهینه‌سازی کل، میانگین این هزینه روی کل مینی‌بچ‌ها در هر ایپاک است.
 
 \subsubsection{دلایل طراحی معماری \lr{MLP}}
 معماری \lr{[256, 128, 64]} با هدف ایجاد تعادل میان ظرفیت مدل و پایداری آموزش انتخاب شد:
@@ -691,9 +728,9 @@ Sci/Tech & ۱۲ & ۶ & ۲۰ & ۲۱۲ \\
 
 \subsubsection{تحلیل طول متن و دقت}
 \begin{itemize}
-\item میانگین طول متن‌های درست: ۲۷.۸ کلمه
-\item میانگین طول متن‌های اشتباه: ۲۹.۴ کلمه
-\item در این آزمایش، متن‌های کوتاه‌تر به‌طور میانگین با خطای کمتری طبقه‌بندی شده‌اند.
+\item تحلیل کیفی نشان می‌دهد نمونه‌های طولانی‌تر یا دارای چند موضوع هم‌زمان، بیشتر در معرض خطا قرار می‌گیرند.
+\item تیترها و خبرهای کوتاه با واژگان شاخص، معمولاً با اطمینان بالاتری طبقه‌بندی می‌شوند.
+\item برای تحلیل دقیق‌تر اثر طول متن، می‌توان در نسخه‌های بعدی نمودار خطا بر حسب بازه‌های طولی را نیز گزارش کرد.
 \end{itemize}
 
 \section{محدودیت‌ها و تهدیدهای اعتبار}
@@ -741,6 +778,28 @@ bash scripts/run_pipeline.sh
 \item همخوانی مقادیر عددی گزارش با خروجی اجرای اخیر
 \end{enumerate}
 
+\subsection{معیارهای کنترل کیفیت خروجی}
+برای اطمینان از کامل بودن خروجی نهایی، کنترل‌های زیر انجام می‌شود:
+\begin{itemize}
+\item صحت تولید شکل‌های الزامی گزارش در مسیر \lr{report/}
+\item عدم وجود خطای اجرایی در اجرای ترتیبی سلول‌های کدنویسی
+\item کامپایل موفق گزارش در دو پاس و تولید \lr{PDF} قابل خواندن
+\item سازگاری مسیر فایل‌های داده، مدل و نمودار با اسکریپت اجرای خودکار
+\end{itemize}
+
+\section{پاسخ مستقیم به سوالات تحقیق}
+\subsection{پرسش ۱: همگرایی \lr{Word2Vec}}
+بله. هر دو مدل \lr{CBOW} و \lr{Skip-Gram} روی داده‌ی \lr{WikiText} به روند همگرایی پایدار رسیدند و کاهش مناسب \lr{loss} در طول آموزش مشاهده شد.
+
+\subsection{پرسش ۲: مقایسه‌ی \lr{CBOW} و \lr{Skip-Gram}}
+\lr{CBOW} سریع‌تر است و هزینه‌ی آموزشی کمتری دارد، در حالی‌که \lr{Skip-Gram} در کیفیت روابط معنایی (به‌ویژه برای واژه‌های کم‌تکرار) عملکرد قوی‌تری ارائه می‌دهد.
+
+\subsection{پرسش ۳: کفایت \lr{FastText+MLP} برای \lr{AG News}}
+در مقیاس این تمرین، بله. ترکیب \lr{FastText+MLP} به دقت \(85.3\%\) و \lr{Macro-F1} برابر \(0.8531\) رسیده که نشان‌دهنده‌ی عملکرد مناسب پایه است.
+
+\subsection{پرسش ۴: الگوهای خطا و راهکار کاهش آن}
+الگوی غالب خطا، هم‌پوشانی مفهومی کلاس‌ها (به‌خصوص \lr{World/Business}) است. راهکارهای اصلی کاهش خطا شامل مدل‌های حساس به ترتیب واژه، \lr{fine-tuning} مدل‌های زبانی عمیق‌تر، و تحلیل داده‌محور خطا در سطح عبارت است.
+
 \section{نتیجه‌گیری}
 
 \subsection{دستاوردهای کلیدی}
@@ -779,6 +838,21 @@ bash scripts/run_pipeline.sh
 \item اضافه‌کردن تحلیل خطا در سطح واژه/عبارت برای یافتن الگوهای اشتباه سیستماتیک
 \item طراحی معیار هزینه-کارایی برای انتخاب مدل در شرایط محدودیت زمانی و محاسباتی
 \end{enumerate}
+
+\section{پیوست: مشخصات اجرای آزمایش}
+\subsection{نرم‌افزار و وابستگی‌ها}
+وابستگی‌های اصلی پروژه شامل \lr{PyTorch, datasets, fasttext, numpy, pandas, scikit-learn, matplotlib, seaborn, tqdm, jupyter, nbclient} هستند که در فایل \lr{requirements.txt} تعریف شده‌اند.
+
+\subsection{ساختار مصنوعات نهایی}
+\begin{itemize}
+\item نوت‌بوک اجراشده: \lr{answer/HW3.ipynb}
+\item شکل‌های گزارش: \lr{report/top\_words.png} و \lr{report/wordcloud.png}
+\item گزارش نهایی: \lr{report/report.pdf}
+\item مدل زبانی دانلودشده: \lr{data/fasttext/wiki-news-300d-1M-subword.bin}
+\end{itemize}
+
+\subsection{نکته‌ی عملی برای اجرای مجدد}
+در اجرای اول، دانلود مدل \lr{FastText} زمان‌بر است. در اجرای مجدد، با توجه به سیاست \lr{idempotent} دانلود، فرآیند از فایل موجود استفاده می‌کند و زمان کل اجرا کاهش می‌یابد.
 
 این تمرین، علاوه بر تقویت جنبه‌ی پیاده‌سازی، تصویری روشن از مبادله‌های عملی میان دقت، هزینه‌ی محاسباتی و کیفیت تعمیم در سامانه‌های \lr{NLP} ارائه کرد. در مجموع، چارچوب حاضر می‌تواند مبنای مناسبی برای توسعه‌ی آزمایش‌های پیشرفته‌تر در پروژه‌های بعدی باشد.
 

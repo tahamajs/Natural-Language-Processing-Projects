@@ -51,6 +51,19 @@ Artifact & Description \\
 \bottomrule
 \end{longtable}
 
+\section{Artifact Integrity Snapshot}
+The artifact snapshot below reflects the current local run state on February 14, 2026.
+\begin{longtable}{@{}p{0.46\textwidth} p{0.18\textwidth} p{0.30\textwidth}@{}}
+\toprule
+Artifact & Size (bytes) & Last modified (local time) \\
+\midrule
+\texttt{Q1/data/indexed\_dataset.pkl} & 9289627 & 2026-02-13 12:25:09 \\
+\texttt{Q1/data/pipeline\_timings.csv} & 49673 & 2026-02-13 12:25:23 \\
+\texttt{Q1/data/rag\_evaluation\_report.xlsx} & 16896 & 2026-02-13 10:05:26 \\
+\texttt{reports/figures/q1/*.png} & 6 files & 2026-02-13 generation set \\
+\bottomrule
+\end{longtable}
+
 \section{Data and Indexing Summary}
 The indexed corpus characteristics from \texttt{indexed\_dataset.pkl} are:
 \begin{itemize}
@@ -58,8 +71,25 @@ The indexed corpus characteristics from \texttt{indexed\_dataset.pkl} are:
 \item indexed chunks: 444,
 \item chunk length mean: 1187.93 characters,
 \item chunk length range: 165 to 1200 characters,
-\item extracted year values (unique): 51.
+\item chunk length standard deviation: 95.86 characters,
+\item extracted year values (unique): 51,
+\item chunks with non-null extracted year: 323 of 444 (72.75\%).
 \end{itemize}
+
+\subsection*{Corpus distribution by source law file}
+\begin{longtable}{@{}p{0.62\textwidth} p{0.14\textwidth} p{0.16\textwidth}@{}}
+\toprule
+Source file (English descriptor) & Chunks & Share \\
+\midrule
+Law on combating goods and currency smuggling & 98 & 22.07\% \\
+Labor law & 87 & 19.59\% \\
+Law on registration of deeds and properties & 86 & 19.37\% \\
+Value added tax law & 77 & 17.34\% \\
+Social security law & 68 & 15.32\% \\
+Law on issuance of cheques & 23 & 5.18\% \\
+Landlord and tenant relations law & 5 & 1.13\% \\
+\bottomrule
+\end{longtable}
 
 \section{Pipeline Architecture}
 The execution graph is:
@@ -143,6 +173,31 @@ Mean retrieval-stage share of end-to-end latency & 90.40\% \\
 \bottomrule
 \end{longtable}
 
+\subsection*{Tail-latency diagnostics}
+\begin{longtable}{@{}p{0.50\textwidth} p{0.22\textwidth}@{}}
+\toprule
+Metric & Value \\
+\midrule
+P90 total latency & 0.8805 seconds \\
+P95 total latency & 1.1385 seconds \\
+Interquartile range (Q3-Q1) & 0.0287 seconds \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Node contribution to total latency}
+\begin{longtable}{@{}p{0.30\textwidth} p{0.22\textwidth} p{0.22\textwidth}@{}}
+\toprule
+Node & Mean latency (s) & Share of total mean \\
+\midrule
+rewrite & 0.0028 & 0.81\% \\
+classify\_intent & 0.0033 & 0.96\% \\
+extract\_metadata & 0.0235 & 6.76\% \\
+context\_retrieve & 0.3141 & 90.40\% \\
+rerank & 0.0007 & 0.21\% \\
+generate\_answer & 0.0021 & 0.61\% \\
+\bottomrule
+\end{longtable}
+
 \section{Retrieval Effectiveness Diagnostics}
 \begin{longtable}{@{}p{0.50\textwidth} p{0.22\textwidth}@{}}
 \toprule
@@ -156,12 +211,26 @@ Rows with non-empty retrieved contexts & 5 / 5 \\
 \bottomrule
 \end{longtable}
 
+\subsection*{Retrieved-score diagnostics}
+\begin{longtable}{@{}p{0.50\textwidth} p{0.22\textwidth}@{}}
+\toprule
+Metric & Value \\
+\midrule
+Top-1 similarity score mean & 0.1770 \\
+Top-1 similarity score range & 0.1123 to 0.2385 \\
+Top-3 similarity score mean & 0.1273 \\
+Top-1 minus Top-3 spread mean & 0.0497 \\
+Top-1 minus Top-3 spread range & 0.0035 to 0.0952 \\
+\bottomrule
+\end{longtable}
+
 The retrieval diagnostics indicate complete benchmark recall for this five-query sample. Because the sample size is small, the result should be interpreted as a functional validation signal, not a final quality bound.
 
 \section{Evaluation Results}
 RAGAS is configured with \texttt{faithfulness} and \texttt{answer\_relevancy}. The latest live run produced no valid metric values because the OpenAI credential failed authentication during evaluation. In \texttt{rag\_evaluation\_report.xlsx}, both metric columns are null for all 5 rows.
 
 Despite that failure mode, the run confirms the evaluation export path is wired correctly and that question-answer-context tuples are persisted in a format ready for immediate re-evaluation after credential correction.
+The strict preflight command executed on February 14, 2026 returned: OpenAI API credential check failed with HTTP status 401.
 
 \section{Operational Quality Notes}
 \begin{itemize}
@@ -170,6 +239,19 @@ Despite that failure mode, the run confirms the evaluation export path is wired 
 \item High latency variance is concentrated in one broad legal query; four queries are below 0.11 seconds.
 \item The evaluation-stage dependency on live credentials is the only blocking item for full metric completion.
 \end{itemize}
+
+\section{Acceptance Criteria Traceability (Q1)}
+\begin{longtable}{@{}p{0.52\textwidth} p{0.12\textwidth} p{0.30\textwidth}@{}}
+\toprule
+Validation target & Status & Evidence \\
+\midrule
+Q1 benchmark records generated and non-empty & Pass & \texttt{Q1/data/pipeline\_timings.csv}, 5 rows \\
+Q1 index artifact generated and non-empty & Pass & \texttt{Q1/data/indexed\_dataset.pkl}, 9289627 bytes \\
+Q1 evaluation artifact exported & Pass with blocker & \texttt{Q1/data/rag\_evaluation\_report.xlsx}, metrics null due credential failure \\
+Q1 required figures generated & Pass & 6 PNG files under \texttt{reports/figures/q1} \\
+Strict live preflight & Fail & OpenAI credential check failed (401) \\
+\bottomrule
+\end{longtable}
 
 \section{Quantitative Figure Set}
 \safeimage{figures/q1/avg_node_timings.png}{0.88}{Average node timing}
