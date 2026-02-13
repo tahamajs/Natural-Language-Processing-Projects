@@ -186,7 +186,12 @@ Schema utilization refers to how effectively each model leverages the database s
 \subsubsection{Reasons for Different Behaviors}
 The architectural differences between Encoder-Decoder and Decoder-only models fundamentally influence their performance in Text-to-SQL:
 
-\begin{tabular}{|c|c|c|}
+\begin{table*}[t]
+\caption{Architectural comparison: Encoder-Decoder vs. Decoder-only}
+\label{tab:q1_architecture_comparison}
+\centering
+\small
+\begin{tabular}{|p{0.17\textwidth}|p{0.38\textwidth}|p{0.38\textwidth}|}
 \hline
 \textbf{Aspect} & \textbf{BART (Encoder-Decoder)} & \textbf{GPT-2 (Decoder-only)} \\
 \hline
@@ -203,6 +208,7 @@ Context Retention & Strong for long inputs via bidirectional encoding & Weaker f
 Generation Control & More precise, focused on target sequence & Prone to verbosity or off-topic continuation \\
 \hline
 \end{tabular}
+\end{table*}
 
 These differences explain why BART excels in structured tasks requiring accurate mapping and control, while GPT-2, despite its fluency, struggles with precision and schema fidelity.
 
@@ -243,7 +249,7 @@ The Encoder-Decoder paradigm, as embodied by BART, separates input comprehension
 \textbf{For GPT-2:}
 \begin{itemize}
     \item \textbf{Prompt Engineering:} Develop structured prompts with examples (few-shot) to guide generation and reduce hallucinations.
-    \item \textbf{Special Tokens:} Introduce delimiters (e.g., <|schema|>, <|sql|>) to clearly separate input components.
+    \item \textbf{Special Tokens:} Introduce delimiters (e.g., \texttt{\textless|schema|\textgreater}, \texttt{\textless|sql|\textgreater}) to clearly separate input components.
     \item \textbf{Larger Datasets:} Train on more extensive Text-to-SQL data to improve schema understanding.
     \item \textbf{Post-Processing:} Implement output filtering to remove irrelevant continuations and standardize SQL.
     \item \textbf{Larger Models:} Scale to GPT-2 Medium/Large or integrate with GPT-3/4 for better context handling.

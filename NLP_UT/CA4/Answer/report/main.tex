@@ -10,10 +10,15 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{float}
-\usepackage{subcaption}
 \usepackage{multirow}
 \usepackage{booktabs}
-\usepackage{xepersian}
+\usepackage{fontspec}
+
+% Explicit fonts for XeLaTeX to avoid IEEEtran legacy font fallbacks.
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Courier New}
+\hypersetup{hidelinks,hypertexnames=false}
 
 % Code listing settings
 \lstset{
@@ -38,7 +43,7 @@ in Large Language Models}
 \author{\IEEEauthorblockN{Mohammad Mahdi Salmani Zarchi}
 \IEEEauthorblockA{\textit{Department of Computer Engineering} \\
 \textit{University of Tehran}\\
-Student ID: 810100XXX \\
+Student ID: 810101504 \\
 Email: m.salmani@ut.ac.ir}
 }
 
@@ -136,25 +141,25 @@ The author would like to thank the course instructor and teaching assistants for
 
 \begin{thebibliography}{00}
 
-\bibitem{b1} Lewis, M., et al. (2019). "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension." arXiv:1910.13461.
+\bibitem{lewis2019bart} Lewis, M., et al. (2019). "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension." arXiv:1910.13461.
 
-\bibitem{b2} Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." OpenAI Blog.
+\bibitem{raffel2019exploring} Raffel, C., et al. (2019). "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer." arXiv:1910.10683.
 
-\bibitem{b3} Hu, E. J., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." arXiv:2106.09685.
+\bibitem{hu2021lora} Hu, E. J., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." arXiv:2106.09685.
 
-\bibitem{b4} Zhou, Y., et al. (2023). "Instruction-Following Evaluation for Large Language Models." arXiv:2311.07911.
+\bibitem{zhou2023instruction} Zhou, Y., et al. (2023). "Instruction-Following Evaluation for Large Language Models." arXiv:2311.07911.
 
-\bibitem{b5} Scholak, T., et al. (2021). "PICARD: Parsing Incrementally for Constrained Auto-Regressive Decoding from Language Models." arXiv:2109.05093.
+\bibitem{scholak2021picard} Scholak, T., et al. (2021). "PICARD: Parsing Incrementally for Constrained Auto-Regressive Decoding from Language Models." arXiv:2109.05093.
 
-\bibitem{b6} Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs." arXiv:2305.14314.
+\bibitem{dettmers2023qlora} Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs." arXiv:2305.14314.
 
-\bibitem{b7} Zhong, V., et al. (2017). "Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning." arXiv:1709.00103.
+\bibitem{zhong2017seq2sql} Zhong, V., et al. (2017). "Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning." arXiv:1709.00103.
 
-\bibitem{b8} Yu, T., et al. (2018). "Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task." arXiv:1809.08887.
+\bibitem{yu2018spider} Yu, T., et al. (2018). "Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task." arXiv:1809.08887.
 
-\bibitem{b9} Touvron, H., et al. (2023). "Llama 2: Open Foundation and Fine-Tuned Chat Models." arXiv:2307.09288.
+\bibitem{rajkumar2022evaluating} Rajkumar, R., et al. (2022). "Evaluating the Text-to-SQL Capabilities of Large Language Models." arXiv:2204.00498.
 
-\bibitem{b10} Ouyang, L., et al. (2022). "Training language models to follow instructions with human feedback." arXiv:2203.02155.
+\bibitem{ouyang2022training} Ouyang, L., et al. (2022). "Training language models to follow instructions with human feedback." arXiv:2203.02155.
 
 \end{thebibliography}
 

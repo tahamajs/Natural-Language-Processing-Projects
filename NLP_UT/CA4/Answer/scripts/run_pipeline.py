@@ -56,7 +56,23 @@ def smoke(compile_report: bool = False) -> None:
 
 
 def compile_report_pdf() -> None:
-    run(["latexmk", "-xelatex", "main.tex"], cwd=REPORT_DIR)
+    latexmk_cmd = [
+        "latexmk",
+        "-xelatex",
+        "-interaction=nonstopmode",
+        "-halt-on-error",
+        "main.tex",
+    ]
+    xelatex_cmd = ["xelatex", "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
+
+    try:
+        run(latexmk_cmd, cwd=REPORT_DIR)
+        return
+    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+        print(f"latexmk unavailable or failed ({exc}); falling back to xelatex twice.")
+
+    run(xelatex_cmd, cwd=REPORT_DIR)
+    run(xelatex_cmd, cwd=REPORT_DIR)
 
 
 def full_q1(compile_report: bool = False) -> None:

@@ -53,6 +53,8 @@ Compile report only:
 python scripts/run_pipeline.py report
 ```
 
+The report build uses `latexmk -xelatex` when available, with automatic fallback to running `xelatex` twice.
+
 Optional full notebook execution:
 
 ```bash
