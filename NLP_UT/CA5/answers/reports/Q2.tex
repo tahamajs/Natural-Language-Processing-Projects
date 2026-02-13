@@ -298,10 +298,10 @@ bash answers/scripts/run_all.sh
 \toprule
 Validation target & Status & Evidence \\
 \midrule
-Scenario outputs generated and non-empty & Pass & \texttt{Q2/results/scenario\_results.csv}, 5 rows \\
-Scenario JSON export generated and non-empty & Pass & \texttt{Q2/results/scenario\_results.json}, 1247 bytes \\
-Q2 required figures generated & Pass & 4 PNG files under \texttt{reports/figures/q2} \\
-Response and tool traces present in all rows & Pass & non-empty \texttt{answer} and \texttt{tool\_names} in 5/5 rows \\
+Scenario outputs generated and non-empty & Pass & \texttt{scenario\_results.csv}, 5 rows \\
+Scenario JSON export generated and non-empty & Pass & \texttt{scenario\_results.json}, 1247 bytes \\
+Q2 required figures generated & Pass & 4 PNG files in \texttt{reports/figures/q2} \\
+Response and tool traces present in all rows & Pass & non-empty \texttt{answer} and \texttt{tool\_names} in all 5 rows \\
 Strict live preflight & Fail & OpenAI credential check failed (401) \\
 \bottomrule
 \end{longtable}

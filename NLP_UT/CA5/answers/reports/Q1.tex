@@ -59,7 +59,7 @@ Artifact & Size (bytes) & Last modified (local time) \\
 \midrule
 \texttt{Q1/data/indexed\_dataset.pkl} & 9289627 & 2026-02-13 12:25:09 \\
 \texttt{Q1/data/pipeline\_timings.csv} & 49673 & 2026-02-13 12:25:23 \\
-\texttt{Q1/data/rag\_evaluation\_report.xlsx} & 16896 & 2026-02-13 10:05:26 \\
+\texttt{Q1/data/}\linebreak\texttt{rag\_evaluation\_report.xlsx} & 16896 & 2026-02-13 10:05:26 \\
 \texttt{reports/figures/q1/*.png} & 6 files & 2026-02-13 generation set \\
 \bottomrule
 \end{longtable}
@@ -245,10 +245,10 @@ The strict preflight command executed on February 14, 2026 returned: OpenAI API 
 \toprule
 Validation target & Status & Evidence \\
 \midrule
-Q1 benchmark records generated and non-empty & Pass & \texttt{Q1/data/pipeline\_timings.csv}, 5 rows \\
-Q1 index artifact generated and non-empty & Pass & \texttt{Q1/data/indexed\_dataset.pkl}, 9289627 bytes \\
-Q1 evaluation artifact exported & Pass with blocker & \texttt{Q1/data/rag\_evaluation\_report.xlsx}, metrics null due credential failure \\
-Q1 required figures generated & Pass & 6 PNG files under \texttt{reports/figures/q1} \\
+Q1 benchmark records generated and non-empty & Pass & \texttt{pipeline\_timings.csv}, 5 rows \\
+Q1 index artifact generated and non-empty & Pass & \texttt{indexed\_dataset.pkl}, 9289627 bytes \\
+Q1 evaluation artifact exported & Pass with blocker & \texttt{rag\_evaluation\_report.xlsx}, metric columns null due credential failure \\
+Q1 required figures generated & Pass & 6 PNG files in \texttt{reports/figures/q1} \\
 Strict live preflight & Fail & OpenAI credential check failed (401) \\
 \bottomrule
 \end{longtable}
