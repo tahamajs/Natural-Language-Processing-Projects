@@ -44,6 +44,10 @@
     breaklines=true,
     captionpos=b
 }
+\setcounter{tocdepth}{2}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{5pt}
+\linespread{1.08}
 
 \title{گزارش تمرین سوم: مدل‌سازی واژه و طبقه‌بندی خبر}
 \author{محمد طاها مجلسی \\ شماره دانشجویی: ۸۱۰۱۰۱۵۰۴}
@@ -448,7 +452,8 @@ Skip-Gram & ۷.۰۵۶۹ & ۲۱.۷ دقیقه & عالی \\
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|l|}
+\small
+\begin{tabular}{|p{0.15\textwidth}|p{0.78\textwidth}|}
 \hline
 \textbf{کلمه} & \textbf{کلمات مشابه (CBOW)} \\
 \hline
@@ -464,7 +469,8 @@ world & earth (0.81), planet (0.79), global (0.77), international (0.75), univer
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|l|}
+\small
+\begin{tabular}{|p{0.15\textwidth}|p{0.78\textwidth}|}
 \hline
 \textbf{کلمه} & \textbf{کلمات مشابه (Skip-Gram)} \\
 \hline
