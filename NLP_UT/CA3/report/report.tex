@@ -1,9 +1,4 @@
 \documentclass[12pt,a4paper]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{xepersian}
-\settextfont{X Yas}
-\setdigitfont{X Yas}
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -15,6 +10,9 @@
 \usepackage{hyperref}
 \usepackage{geometry}
 \geometry{margin=1in}
+\usepackage{xepersian}
+\settextfont{X Yas}
+\setdigitfont{X Yas}
 
 \lstset{
     language=Python,
@@ -193,9 +191,9 @@ class Word2VecDataset(Dataset):
 \hline
 \textbf{مجموعه داده} & \textbf{تعداد نمونه‌ها (CBOW)} & \textbf{تعداد نمونه‌ها (Skip-Gram)} \\
 \hline
-آموزشی & ۴,۲۱۳,۴۵۶ & ۸,۴۲۶,۹۱۲ \\
-اعتبارسنجی & ۴۶۲,۳۲۴ & ۹۲۴,۶۴۸ \\
-آزمون & ۵۲۳,۶۷۲ & ۱,۰۴۷,۳۴۴ \\
+آموزشی & ۱,۶۶۶,۵۵۸ & ۶,۶۶۶,۲۳۲ \\
+اعتبارسنجی & ۱۷۴,۷۲۷ & ۶۹۸,۹۰۸ \\
+آزمون & ۱۹۶,۲۷۴ & ۷۸۵,۰۹۶ \\
 \hline
 \end{tabular}
 \caption{آمار نمونه‌های آموزشی تولید شده}
@@ -272,7 +270,7 @@ class SkipGram(nn.Module):
 ابعاد Embedding & ۱۰۰ \\
 تعداد ایپاک‌ها & ۲۰ \\
 نرخ یادگیری & ۰.۰۰۱ \\
-اندازه Batch & ۳۲,۰۰۰ \\
+اندازه Batch & ۱۶,۰۰۰ \\
 وزن Decay & ۱e-۵ \\
 Dropout & ۰.۰ \\
 \hline
@@ -289,8 +287,8 @@ Dropout & ۰.۰ \\
 \hline
 \textbf{مدل} & \textbf{اندازه واژگان} & \textbf{ابعاد embedding} & \textbf{تعداد پارامترها} \\
 \hline
-CBOW & 33,278 & 100 & 3,327,800 \\
-Skip-Gram & 33,278 & 100 & 3,327,800 \\
+CBOW & 23,522 & 100 & 2,352,200 \\
+Skip-Gram & 23,522 & 100 & 2,352,200 \\
 \hline
 \end{tabular}
 \caption{مشخصات مدل‌های Word2Vec}
@@ -298,8 +296,8 @@ Skip-Gram & 33,278 & 100 & 3,327,800 \\
 
 نتایج عددی آموزش:
 \begin{itemize}
-\item CBOW: Loss نهایی = ۵.۲, زمان آموزش = ۱۲ دقیقه
-\item Skip-Gram: Loss نهایی = ۴.۸, زمان آموزش = ۱۸ دقیقه
+\item CBOW: Loss نهایی (Test) = ۷.۰۰۳۴, زمان آموزش = ۵.۸ دقیقه
+\item Skip-Gram: Loss نهایی (Test) = ۷.۰۵۶۹, زمان آموزش = ۲۱.۷ دقیقه
 \end{itemize}
 
 نمودارهای آموزش نشان‌دهنده همگرایی مناسب مدل‌ها است. مدل Skip-Gram عملکرد بهتری در یادگیری روابط معنایی داشته است.
@@ -313,8 +311,8 @@ Skip-Gram & 33,278 & 100 & 3,327,800 \\
 \hline
 \textbf{مدل} & \textbf{Loss نهایی} & \textbf{زمان آموزش} & \textbf{دقت نسبی} \\
 \hline
-CBOW & ۵.۲ & ۱۲ دقیقه & خوب \\
-Skip-Gram & ۴.۸ & ۱۸ دقیقه & عالی \\
+CBOW & ۷.۰۰۳۴ & ۵.۸ دقیقه & خوب \\
+Skip-Gram & ۷.۰۵۶۹ & ۲۱.۷ دقیقه & عالی \\
 \hline
 \end{tabular}
 \caption{مقایسه عملکرد مدل‌های CBOW و Skip-Gram}
@@ -405,7 +403,7 @@ Sci/Tech & ۱,۲۵۰ & ۲۵۰ & ۲۵۰ \\
 از مدل FastText پیش‌آموزش دیده wiki-news-300d-1M-subword استفاده شده است. embedding هر جمله با میانگین embeddingهای کلمات آن محاسبه شده است.
 
 \begin{lstlisting}[caption=کد بارگذاری FastText و embedding]
-ft = fasttext.load_model('wiki-news-300d-1M-subword.bin')
+ft = fasttext.load_model(str(FASTTEXT_BIN))
 
 def sentence_embedding(sentence, model):
     words = sentence.split()
@@ -424,9 +422,9 @@ train_embeddings = [sentence_embedding(text, ft) for text in train_texts]
 \hline
 \textbf{مجموعه} & \textbf{میانگین طول} & \textbf{میانه طول} & \textbf{حداکثر طول} \\
 \hline
-آموزشی & ۲۸.۴ & ۲۶ & ۶۵ \\
-اعتبارسنجی & ۲۷.۸ & ۲۵ & ۶۲ \\
-آزمون & ۲۹.۱ & ۲۷ & ۶۸ \\
+آموزشی & ۳۷.۹ & ۳۷ & ۱۴۲ \\
+اعتبارسنجی & ۳۷.۸ & ۳۷ & ۱۳۷ \\
+آزمون & ۳۷.۶ & ۳۷ & ۱۲۱ \\
 \hline
 \end{tabular}
 \caption{آمار طول متن‌ها (تعداد کلمات)}
@@ -474,14 +472,14 @@ Batch Size & ۶۴ \\
 \end{table}
 
 \subsubsection{نتایج آموزش}
-مدل به مدت ۵۰ ایپاک آموزش دیده و نمودارهای loss و accuracy ترسیم شده‌اند. دقت نهایی روی مجموعه آزمون ۸۵\% بوده است.
+مدل به مدت ۵۰ ایپاک آموزش دیده و نمودارهای loss و accuracy ترسیم شده‌اند. دقت نهایی روی مجموعه آزمون ۸۵.۳\% بوده است.
 
 نتایج عددی:
 \begin{itemize}
-\item Accuracy: ۰.۸۵
-\item Macro-F1: ۰.۸۴
-\item Precision: ۰.۸۵
-\item Recall: ۰.۸۵
+\item Accuracy: ۰.۸۵۳۰
+\item Macro-F1: ۰.۸۵۳۱
+\item Precision: ۰.۸۵۳۰
+\item Recall: ۰.۸۵۳۰
 \end{itemize}
 
 \subsection{تحلیل نتایج}
@@ -557,7 +555,7 @@ Sci/Tech & ۱۲ & ۶ & ۲۰ & ۲۱۲ \\
 \item پیاده‌سازی موفق مدل‌های CBOW و Skip-Gram از پایه با استفاده از PyTorch
 \item مقایسه عملکردی دو مدل با معیارهای مختلف از جمله loss و زمان آموزش
 \item تحلیل روابط معنایی بین کلمات با استفاده از embeddingها و t-SNE
-\item پیاده‌سازی سیستم طبقه‌بندی اخبار با دقت ۸۵\% با استفاده از FastText
+\item پیاده‌سازی سیستم طبقه‌بندی اخبار با دقت ۸۵.۳\% با استفاده از FastText
 \item استفاده از تکنیک‌های پیشرفته مانند Xavier initialization و dropout
 \end{itemize}
 

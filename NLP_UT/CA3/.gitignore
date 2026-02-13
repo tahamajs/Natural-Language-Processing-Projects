@@ -27,3 +27,9 @@ report/*.lot
 report/*.out
 report/*.run.xml
 report/*.toc
+
+# Notebook-generated intermediate figures (keep report/*.png tracked)
+cbow_training_live.png
+skip-gram_training_live.png
+word2vec_final_comparison.png
+tsne_*_comparison.png

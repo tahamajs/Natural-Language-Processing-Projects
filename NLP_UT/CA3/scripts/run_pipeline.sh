@@ -13,21 +13,16 @@ fi
 source "${VENV_PATH}/bin/activate"
 export MPLCONFIGDIR=/tmp/matplotlib
 mkdir -p "${MPLCONFIGDIR}"
-export CA3_RUNTIME_PROFILE="${CA3_RUNTIME_PROFILE:-balanced}"
+export CA3_RUNTIME_PROFILE="${CA3_RUNTIME_PROFILE:-full}"
 
 cd "${ROOT_DIR}"
 
 echo "Using CA3 runtime profile: ${CA3_RUNTIME_PROFILE}"
 
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install --quiet --upgrade pip
+python -m pip install --quiet -r requirements.txt
 
-python -m jupyter nbconvert \
-  --to notebook \
-  --execute answer/HW3.ipynb \
-  --inplace \
-  --ExecutePreprocessor.kernel_name=python3 \
-  --ExecutePreprocessor.timeout=-1
+python scripts/execute_notebook.py answer/HW3.ipynb --kernel python3
 
 for required_plot in report/top_words.png report/wordcloud.png; do
   if [[ ! -s "${required_plot}" ]]; then
