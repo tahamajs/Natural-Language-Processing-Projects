@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 
 REQUIRED_ENV_KEYS = [
@@ -168,6 +170,31 @@ def _check_env(strict_live: bool, errors: list[str]) -> None:
             errors.append(f"Environment variable appears to be a placeholder: {key}")
 
 
+def _check_openai_credentials(strict_live: bool, errors: list[str]) -> None:
+    if not strict_live:
+        return
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1").strip().rstrip("/")
+    if not api_key or not api_base:
+        return
+    request = Request(
+        f"{api_base}/models",
+        headers={"Authorization": f"Bearer {api_key}"},
+        method="GET",
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            code = getattr(response, "status", 200)
+            if code >= 400:
+                errors.append(f"OpenAI API credential check failed with status {code}")
+    except HTTPError as exc:
+        errors.append(f"OpenAI API credential check failed with status {exc.code}")
+    except URLError as exc:
+        errors.append(f"OpenAI API credential check failed: {exc.reason}")
+    except Exception as exc:
+        errors.append(f"OpenAI API credential check failed: {type(exc).__name__}")
+
+
 def check_all(strict_live: bool = True) -> int:
     _load_runtime_env()
     errors: list[str] = []
@@ -177,6 +204,7 @@ def check_all(strict_live: bool = True) -> int:
     _check_tesseract_fas(errors)
     _check_modules(errors)
     _check_env(strict_live, errors)
+    _check_openai_credentials(strict_live, errors)
 
     if errors:
         print("Preflight failed")
