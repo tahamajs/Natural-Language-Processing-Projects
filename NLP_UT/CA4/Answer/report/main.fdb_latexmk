@@ -1,10 +1,10 @@
 # Fdb version 4
-["xdvipdfmx"] 1771017643.13637 "main.xdv" "main.pdf" "main" 1771017646.24042 0
-  "main.xdv" 1771017642.89961 490492 a941f56238d65ed84c24cc5e90aa6264 "xelatex"
+["xdvipdfmx"] 1771017959.82743 "main.xdv" "main.pdf" "main" 1771017961.56898 0
+  "main.xdv" 1771017959.74109 490492 bdb10cd9843b7ee0709f062e0ff9afcb "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1771017639.56734 "main.tex" "main.xdv" "main" 1771017646.23857 0
+["xelatex"] 1771017958.27364 "main.tex" "main.xdv" "main" 1771017961.56769 0
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/map/fontname/texfonts.map" 1741388039 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1741388039 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1741388039 1004 54797486969f23fa377b128694d548df ""
@@ -95,12 +95,12 @@
   "/opt/homebrew/Cellar/texlive/20250308_2/share/texmf-var/web2c/xetex/xelatex.fmt" 1741388039 5640242 4f7cb22c150520ed498cbbe46d26ba29 ""
   "Q1.tex" 1771016841.9775 22759 79503aac7863da73cf84084553dd0638 ""
   "Q2.tex" 1771017554.23362 16173 bdc50f46e691a719981b284eed79da88 ""
-  "figures/q1_em_comparison.png" 1771017323.56996 89200 ec3e85e28de30e6ade29bd0696a5c639 ""
-  "figures/q1_error_types.png" 1771017324.44039 161556 6d57947d6892427741746974bc497768 ""
-  "figures/q2_ifeval_comparison.png" 1771017325.04469 77949 670ddf1cbcae825b9cc62d7073fb227b ""
-  "generated_metrics.tex" 1771017325.04748 1007 c60dcfed2c1ca6ae8633712a71b74f5a ""
-  "main.aux" 1771017642.89546 10976 539d4396bec2d061cf30422e252d4400 "xelatex"
-  "main.out" 1771017642.89818 10645 c518af8e245668931722c5ccaef36dc7 "xelatex"
+  "figures/q1_em_comparison.png" 1771017946.42886 89200 ec3e85e28de30e6ade29bd0696a5c639 ""
+  "figures/q1_error_types.png" 1771017946.81676 161556 6d57947d6892427741746974bc497768 ""
+  "figures/q2_ifeval_comparison.png" 1771017947.06973 77949 670ddf1cbcae825b9cc62d7073fb227b ""
+  "generated_metrics.tex" 1771017947.07092 1007 c60dcfed2c1ca6ae8633712a71b74f5a ""
+  "main.aux" 1771017959.73926 10976 539d4396bec2d061cf30422e252d4400 "xelatex"
+  "main.out" 1771017959.74055 10645 c518af8e245668931722c5ccaef36dc7 "xelatex"
   "main.tex" 1771017623.9255 14769 1c82c1585905a72c3989ee0eca960bb5 ""
   (generated)
   "main.aux"
