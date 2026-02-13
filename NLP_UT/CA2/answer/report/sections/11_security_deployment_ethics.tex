@@ -1,0 +1,55 @@
+\section{Security Deployment Context, Threat Model, and Ethics}
+
+\subsection{Operational Threat Model}
+
+The phishing URL detector in Question 2 can be interpreted as a first-stage classifier in a layered defense system. In this setting, adversaries attempt to maximize user trust while minimizing lexical anomalies that static rules can detect. Typical attacker strategies include:
+\begin{itemize}
+    \item Using HTTPS certificates to mimic legitimacy,
+    \item Constructing long but semantically plausible paths,
+    \item Using brand-like tokens with subtle lexical perturbations,
+    \item Rotating domains rapidly to evade blacklist refresh cycles.
+\end{itemize}
+
+Given this threat model, a detector that optimizes only precision is insufficient, because missed phishing samples can have disproportionately high impact. The empirical results therefore favor models with stronger recall and balanced performance profiles.
+
+\subsection{Deployment Pipeline Integration}
+
+A practical deployment architecture for this assignment's model family can be structured into four stages:
+\begin{enumerate}
+    \item \textbf{Ingress filtering:} parse URL/email input and normalize formatting.
+    \item \textbf{Feature extraction:} compute deterministic handcrafted features (or BoW vectors for email).
+    \item \textbf{Primary classifier:} run Logistic Regression as balanced-risk scorer.
+    \item \textbf{Escalation policy:} route uncertain or high-risk scores to secondary checks (sandboxing, DNS reputation, manual triage).
+\end{enumerate}
+
+This layered design reduces dependence on any single model assumption and supports iterative hardening as attacker behavior shifts.
+
+\subsection{Decision-Policy Perspective}
+
+In production systems, model outputs are not final decisions by themselves. They are inputs to policies that encode organizational risk appetite. A security-focused institution may prioritize recall and accept higher analyst workload from false positives. A high-volume consumer system may set a stricter threshold to preserve user experience, then compensate with auxiliary signals.
+
+The report's ROC and PR curves provide the basis for selecting these operating thresholds. The current notebook uses default thresholds for comparability, but deployment should tune thresholds using cost-weighted validation.
+
+\subsection{Monitoring and Drift Management}
+
+Phishing and spam data are non-stationary. Model quality can decay even if training accuracy is strong. A complete operational plan should therefore monitor:
+\begin{itemize}
+    \item class prior drift,
+    \item feature distribution drift (e.g., URL length and subdomain depth shifts),
+    \item precision/recall degradation over time,
+    \item error concentration by campaign or domain family.
+\end{itemize}
+
+Simple drift alarms can trigger retraining or temporary policy tightening. Without monitoring, even well-performing baselines become stale in adversarial environments.
+
+\subsection{Ethical and Governance Considerations}
+
+Although this project uses non-personalized lexical and structural features, deployment still raises governance concerns:
+\begin{itemize}
+    \item \textbf{False positives:} legitimate links or emails may be blocked, causing usability and trust issues.
+    \item \textbf{Transparency:} users and administrators should receive understandable reason codes (e.g., suspicious token concentration).
+    \item \textbf{Appeal and override:} systems should support safe review pathways for blocked content.
+    \item \textbf{Security disclosure:} avoid exposing exact threshold logic publicly to reduce attacker adaptation.
+\end{itemize}
+
+A balanced design combines technical metrics with accountable policy controls, ensuring that detection quality does not come at the cost of opaque or brittle decisions.

@@ -1,0 +1,55 @@
+\section{Statistical Appendix: Protocol, Assumptions, and Additional Validation}
+
+\subsection{Why Statistical Reporting Matters in This Assignment}
+
+Most assignment submissions stop at single-point metrics. However, point estimates can be unstable under finite test samples or class-dependent errors. To make this report more decision-complete, we include (i) confusion-derived diagnostics, (ii) balanced metrics, and (iii) bootstrap uncertainty intervals for key outcomes.
+
+\subsection{Bootstrap Protocol}
+
+For each selected model-output pair, we sampled the test set with replacement 500 times. On each resample we recomputed F1-score using the same prediction vector alignment. Let $\hat{F}_1^{(b)}$ denote the F1 from bootstrap draw $b$; the 95\% interval is obtained from the empirical 2.5 and 97.5 percentiles of $\{\hat{F}_1^{(b)}\}_{b=1}^{500}$.
+
+This method is non-parametric and does not assume normality of the metric distribution.
+
+\subsection{Class-Balance Effects}
+
+The two tasks have different class structures:
+\begin{itemize}
+    \item Q1 test split: 1035 samples, with 300 positives and 735 negatives.
+    \item Q2 test split: 2286 samples, perfectly balanced at 1143 positives and 1143 negatives.
+\end{itemize}
+
+This difference affects metric interpretation. In Q1, precision and specificity are more sensitive to false positives due to larger negative class mass. In Q2, balanced accuracy is numerically equal to standard accuracy under equal class priors, making recall losses immediately visible.
+
+\subsection{Decision-Relevant Reading of Advanced Metrics}
+
+MCC and balanced accuracy are particularly helpful for comparing models under differing error patterns:
+\begin{itemize}
+    \item In Q1, Logistic Regression achieves higher MCC (0.9122 vs 0.8642), indicating stronger overall agreement beyond chance.
+    \item In Q2 combined features, Logistic Regression also leads on MCC (0.5768 vs 0.5138), despite Naive Bayes having lower FPR.
+\end{itemize}
+
+Hence, the preferred model depends on whether policy emphasizes \emph{fewest false alarms} or \emph{best balanced detection}. For most phishing defense contexts, high recall with controlled FPR is preferable to ultra-conservative alerting.
+
+\subsection{Assumption Audit}
+
+To make assumptions explicit:
+\begin{enumerate}
+    \item Logistic Regression assumes a linear decision boundary in feature space after scaling.
+    \item Naive Bayes assumes conditional independence among features given class.
+    \item Feature extraction assumes lexical/structural signals correlate with attack behavior.
+    \item Train-test IID assumption is used for evaluation, though adversarial drift may violate this over time.
+\end{enumerate}
+
+Assumption violations are partly visible in the empirical pattern: Naive Bayes precision remains high but recall drops under correlated combined features.
+
+\subsection{Recommended Extensions for Stronger Statistical Rigor}
+
+For future coursework or publication-level quality, the following upgrades are recommended:
+\begin{itemize}
+    \item repeated stratified K-fold evaluation,
+    \item paired significance testing on F1 and MCC differences,
+    \item calibration metrics (Brier score, reliability diagrams),
+    \item confidence bands on ROC/PR curves rather than single trajectories.
+\end{itemize}
+
+These additions would further reduce evaluation variance and make cross-model conclusions statistically stronger.

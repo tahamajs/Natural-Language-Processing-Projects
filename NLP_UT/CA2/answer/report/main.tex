@@ -14,6 +14,15 @@
 \usepackage{subcaption}
 \usepackage{siunitx}
 \usepackage{listings}
+\def\UrlBreaks{\do\/\do-\do\_}
+\Urlmuskip=0mu plus 1mu
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true
+}
 
 \hypersetup{
   colorlinks=true,
@@ -56,6 +65,8 @@ Spam classification, phishing URL detection, Logistic Regression, Naive Bayes, B
 \input{sections/09_reproducibility_appendix}
 \clearpage
 \input{sections/10_operational_appendix}
+\input{sections/11_security_deployment_ethics}
+\input{sections/12_statistical_appendix}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

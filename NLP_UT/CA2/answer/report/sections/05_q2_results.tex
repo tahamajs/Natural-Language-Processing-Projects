@@ -38,6 +38,45 @@ All combined             & 0.7227 & 0.9442 & 0.4733 & 0.6305 \\
 
 The combined feature configuration is best for both models. Logistic Regression achieves the strongest overall balance, while Naive Bayes tends to exhibit very high precision with noticeably lower recall.
 
+\subsection{Combined-Model Error Decomposition}
+
+Because combined features provide the best headline performance, we inspect their confusion structure directly in Table~\ref{tab:q2-combined-diagnostics}.
+
+\begin{table}[H]
+\centering
+\caption{Detailed diagnostics on combined features (Q2)}
+\label{tab:q2-combined-diagnostics}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lcc}
+\toprule
+Metric & Logistic Regression & Gaussian NB \\
+\midrule
+TN / FP / FN / TP & 977 / 166 / 324 / 819 & 1111 / 32 / 602 / 541 \\
+Specificity & 0.8548 & 0.9720 \\
+Balanced Accuracy & 0.7857 & 0.7227 \\
+MCC & 0.5768 & 0.5138 \\
+False Positive Rate & 0.1452 & 0.0280 \\
+False Negative Rate & 0.2835 & 0.5267 \\
+F1 95\% CI (bootstrap) & [0.7470, 0.7882] & [0.6024, 0.6576] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table clarifies a central tradeoff: Gaussian NB is much more conservative (very low FPR), but it misses a large fraction of true phishing URLs (high FNR). Logistic Regression accepts more false alarms yet recovers substantially more positives, yielding better balanced accuracy and F1.
+
+\subsection{Relative Gain Analysis Across Feature Families}
+
+To quantify feature-engineering value, we compare the best and weakest feature families:
+\begin{itemize}
+    \item Logistic Regression F1 improves from 0.6063 (statistical/content) to 0.7697 (combined), a +26.96\% relative gain.
+    \item Logistic Regression recall improves from 0.5363 to 0.7165, a +33.61\% relative gain.
+    \item Naive Bayes F1 improves from 0.5368 (statistical/content) to 0.6305 (combined), a +17.46\% relative gain.
+    \item Naive Bayes recall improves from 0.4121 to 0.4733, a +14.85\% relative gain.
+\end{itemize}
+
+These improvements indicate that engineering richer feature views has larger impact than changing linear-probabilistic baseline type alone.
+
 \subsection{Distributional and Correlation Insights}
 
 \begin{figure}[H]

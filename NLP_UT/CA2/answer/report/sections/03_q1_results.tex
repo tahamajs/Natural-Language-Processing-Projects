@@ -22,6 +22,40 @@ F1-score  & 0.9379 & 0.9042 \\
 
 Logistic Regression outperforms Naive Bayes on every metric. The largest practical gain appears in precision and F1-score, suggesting fewer false positives while preserving strong detection of spam emails.
 
+\subsection{Confusion-Matrix Derived Diagnostics}
+
+To make the comparison operationally meaningful, we report confusion-derived metrics beyond the standard four. Table~\ref{tab:q1-advanced} is computed from the exact test confusion counts (test size = 1035; positives = 300; negatives = 735).
+
+\begin{table}[H]
+\centering
+\caption{Advanced Q1 diagnostics from confusion matrices}
+\label{tab:q1-advanced}
+\begin{tabular}{lcc}
+\toprule
+Metric & Logistic Regression & Naive Bayes \\
+\midrule
+TN / FP / FN / TP & 710 / 25 / 13 / 287 & 692 / 43 / 17 / 283 \\
+Specificity & 0.9660 & 0.9415 \\
+Balanced Accuracy & 0.9613 & 0.9424 \\
+MCC & 0.9122 & 0.8642 \\
+False Positive Rate & 0.0340 & 0.0585 \\
+False Negative Rate & 0.0433 & 0.0567 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These diagnostics reinforce the same conclusion: Logistic Regression is not only better in aggregate metrics, but also better calibrated on both classes simultaneously (higher specificity, lower FPR/FNR, and higher MCC).
+
+\subsection{Uncertainty-Aware Metric View}
+
+To avoid over-interpreting point estimates from a single split, we estimated non-parametric bootstrap confidence intervals (500 resamples) for F1-score:
+\begin{itemize}
+    \item Logistic Regression F1 95\% CI: [0.9182, 0.9579]
+    \item Naive Bayes F1 95\% CI: [0.8795, 0.9277]
+\end{itemize}
+
+The intervals overlap only partially and the center of the Logistic Regression interval remains higher, supporting the robustness of the observed ranking.
+
 \subsection{Confusion and Ranking Behavior}
 
 \begin{figure}[H]
