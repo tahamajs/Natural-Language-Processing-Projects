@@ -1,0 +1,59 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{listings}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\title{Natural Language Processing Assignment 2:\\\
+From-Scratch Email Classification and\\
+Feature-Driven Phishing URL Detection}
+
+\author{\IEEEauthorblockN{Mohammad Mahdi Salmani Zarchi}
+\IEEEauthorblockA{\textit{Department of Computer Engineering} \\
+\textit{University of Tehran}\\
+Student ID: 810100XXX \\
+Email: m.salmani@ut.ac.ir}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report presents a complete implementation and analysis of two binary classification tasks in Natural Language Processing and security-oriented text analytics. In Question 1, Logistic Regression and Multinomial Naive Bayes are implemented from scratch to classify emails as spam or ham, supported by custom metric functions and Bag-of-Words preprocessing. In Question 2, the same model family is evaluated on phishing URL detection using four feature configurations: structural, statistical/content, creative handcrafted, and combined features. Beyond model training, this work establishes a reproducible pipeline with deterministic data loading, robust label normalization, and automatic figure export for report integration. Experimental results show that from-scratch Logistic Regression outperforms from-scratch Naive Bayes on the email task, while in URL detection the combined feature space substantially improves both methods and highlights precision-recall tradeoffs between discriminative and probabilistic models. The final artifact includes a fully executable notebook and a complete IEEE-format technical report.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Spam classification, phishing URL detection, Logistic Regression, Naive Bayes, Bag-of-Words, feature engineering, reproducibility
+\end{IEEEkeywords}
+
+\input{sections/01_intro}
+\input{sections/02_q1_methods}
+\input{sections/03_q1_results}
+\input{sections/04_q2_features_methods}
+\input{sections/05_q2_results}
+\input{sections/06_discussion_limitations}
+\input{sections/07_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
