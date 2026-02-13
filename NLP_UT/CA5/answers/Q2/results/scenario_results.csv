@@ -1,0 +1,6 @@
+scenario_id,query,answer,tool_names,tool_calls_count,latency_seconds
+1,"Find a flight from Tehran to Dubai for next Friday.","Sample response 1","flight_search_tool,weather_info_tool",2,4.21
+2,"Find a hotel in Paris for 3 nights starting tomorrow.","Sample response 2","hotel_search_tool,restaurant_search_tool",2,5.02
+3,"What is the weather in Barcelona next Monday?","Sample response 3","weather_info_tool",1,2.67
+4,"Convert currency from Iran to UAE today.","Sample response 4","currency_info_tool",1,2.11
+5,"Plan a 3-day trip to Istanbul focused on history and food.","Sample response 5","trip_planning_tool,faq_search_tool,restaurant_search_tool",3,6.54

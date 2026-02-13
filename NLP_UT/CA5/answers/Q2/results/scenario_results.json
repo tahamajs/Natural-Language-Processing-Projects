@@ -1,0 +1,42 @@
+[
+  {
+    "scenario_id": "1",
+    "query": "Find a flight from Tehran to Dubai for next Friday.",
+    "answer": "Sample response 1",
+    "tool_names": "flight_search_tool,weather_info_tool",
+    "tool_calls_count": "2",
+    "latency_seconds": "4.21"
+  },
+  {
+    "scenario_id": "2",
+    "query": "Find a hotel in Paris for 3 nights starting tomorrow.",
+    "answer": "Sample response 2",
+    "tool_names": "hotel_search_tool,restaurant_search_tool",
+    "tool_calls_count": "2",
+    "latency_seconds": "5.02"
+  },
+  {
+    "scenario_id": "3",
+    "query": "What is the weather in Barcelona next Monday?",
+    "answer": "Sample response 3",
+    "tool_names": "weather_info_tool",
+    "tool_calls_count": "1",
+    "latency_seconds": "2.67"
+  },
+  {
+    "scenario_id": "4",
+    "query": "Convert currency from Iran to UAE today.",
+    "answer": "Sample response 4",
+    "tool_names": "currency_info_tool",
+    "tool_calls_count": "1",
+    "latency_seconds": "2.11"
+  },
+  {
+    "scenario_id": "5",
+    "query": "Plan a 3-day trip to Istanbul focused on history and food.",
+    "answer": "Sample response 5",
+    "tool_names": "trip_planning_tool,faq_search_tool,restaurant_search_tool",
+    "tool_calls_count": "3",
+    "latency_seconds": "6.54"
+  }
+]

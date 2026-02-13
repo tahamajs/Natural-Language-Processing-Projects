@@ -1,0 +1,8 @@
+{
+  "faq_js_path": "answers/Q2/FAQ.js",
+  "tourism_pdf_path": "answers/Q2/World Travel Book.pdf",
+  "lancedb_dir": "answers/Q2/lancedb_data",
+  "openai_model": "gpt-4o-mini",
+  "openai_temperature": 0,
+  "max_tool_results": 5
+}

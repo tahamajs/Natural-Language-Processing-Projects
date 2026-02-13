@@ -1,0 +1,7 @@
+[
+  {"query": "Find a flight from Tehran to Dubai for next Friday."},
+  {"query": "Find a hotel in Paris for 3 nights starting tomorrow."},
+  {"query": "What is the weather in Barcelona next Monday?"},
+  {"query": "Convert currency from Iran to UAE today."},
+  {"query": "Plan a 3-day trip to Istanbul focused on history and food."}
+]

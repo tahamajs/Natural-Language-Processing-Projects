@@ -1,0 +1,6 @@
+question,ground_truth,answer,intent,contexts,context_count,hit_at_1,hit_at_3,rewrite,classify_intent,extract_metadata,context_retrieve,rerank,generate_answer,total
+"قانون کار درباره ساعات اضافه کاری چه می گوید؟",,"Sample answer 1",law_question,"[]",3,1,1,0.0021,0.0018,0.0029,0.0214,0.0049,0.0131,0.0462
+"شرایط صدور چک برگشتی چیست؟",,"Sample answer 2",law_question,"[]",3,1,1,0.0020,0.0016,0.0024,0.0188,0.0042,0.0116,0.0406
+"در قانون مدنی درباره اجاره چه آمده است؟",,"Sample answer 3",law_question,"[]",2,1,0,0.0019,0.0015,0.0025,0.0201,0.0043,0.0120,0.0423
+"جرایم مالیاتی شامل چه مواردی است؟",,"Sample answer 4",law_question,"[]",3,1,1,0.0022,0.0019,0.0028,0.0226,0.0050,0.0138,0.0483
+"قانون تامین اجتماعی چه حمایت هایی دارد؟",,"Sample answer 5",law_question,"[]",2,1,0,0.0021,0.0017,0.0026,0.0195,0.0045,0.0124,0.0428

@@ -1,0 +1,6 @@
+question,answer,faithfulness,answer_relevancy
+"q1","a1",0.71,0.78
+"q2","a2",0.69,0.74
+"q3","a3",0.76,0.81
+"q4","a4",0.73,0.79
+"q5","a5",0.68,0.72

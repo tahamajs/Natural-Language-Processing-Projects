@@ -215,3 +215,9 @@ INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/xelatex/xeper
 INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/xelatex/xepersian/url-xetex-xepersian.def
 INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/xelatex/xepersian/url-xetex-xepersian.def
 INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/xelatex/xepersian/url-xetex-xepersian.def
+INPUT /opt/homebrew/Cellar/texlive/20250308_2/share/texmf-dist/tex/xelatex/bidi/float-xetex-bidi.def
+INPUT ./main.aux
+INPUT ./main.aux
+INPUT main.aux
+OUTPUT main.aux
+OUTPUT main.out
